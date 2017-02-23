@@ -1,48 +1,137 @@
+#!/usr/bin/python3
+""" main.py:
+    Main entry-point into the RPiHome application.
+"""
+
+# Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
-import time
 import datetime
+import file_logger
 
 
+# Authorship Info *************************************************************
+__author__ = "Christopher Maue"
+__copyright__ = "Copyright 2017, The RPi-Home Project"
+__credits__ = ["Christopher Maue"]
+__license__ = "GPL"
+__version__ = "1.0.0"
+__maintainer__ = "Christopher Maue"
+__email__ = "csmaue@gmail.com"
+__status__ = "Development"
 
-def hello_world(loop):
-    print('Hello World ' + str(datetime.datetime.now().time()))
-    loop.call_later(1, hello_world, loop)
 
-def good_evening(loop):
-    print('Good Evening ' + str(datetime.datetime.now().time()))
-    loop.call_later(1, good_evening, loop)
+# Configure Logging ***********************************************************
+debug_file, info_file = file_logger.setup_log_files(__file__)
+logger = file_logger.setup_log_handlers(__file__, debug_file, info_file)
 
-@asyncio.coroutine
-def hello_world_coroutine():
+
+# Function Defs ***************************************************************
+def main_event_loop(loop):
+    """ Main event loop.  Calls coroutines as necessary """
+    logger.info(
+        "Calling main at %s",
+        str(datetime.datetime.now().time()))
+    loop.call_later(1, main_event_loop, loop)
+
+
+# Get Calendar Updates
+async def read_calendar_coroutine():
+    """ Reads google calendar to obtain current user home/away schedule """
     while True:
-        yield from asyncio.sleep(0.5)
-        print('Hello World Coroutine ' + str(datetime.datetime.now().time()))
+        logger.info(
+            "Calling 'read_calendar_coroutine' at %s",
+            str(datetime.datetime.now().time())
+            )
+        await asyncio.sleep(1.5)
+        logger.info(
+            "Finished 'read_calendar_coroutine' at %s",
+            str(datetime.datetime.now().time())
+            )
+        await asyncio.sleep(900.0)
 
-@asyncio.coroutine
-def good_evening_coroutine():
+
+# Check Home / Away Status
+async def check_home_coroutine():
+    """ Checks to see if users are home """
     while True:
-        yield from asyncio.sleep(0.5)
-        print('Good Evening Coroutine ' + str(datetime.datetime.now().time()))
+        logger.info(
+            "Calling 'check_home_coroutine' at %s",
+            str(datetime.datetime.now().time())
+            )
+        await asyncio.sleep(0.1)
+        logger.info(
+            "Finished 'check_home_coroutine' at %s",
+            str(datetime.datetime.now().time())
+            )
+        await asyncio.sleep(60.0)
 
 
-# Get main event loop
-print('step: asyncio.get_event_loop()')
-loop = asyncio.get_event_loop()
+# Calculate sunrise/sunset times
+async def calc_sun_coroutine():
+    """ calculates sunrise/sunset times for current date """
+    while True:
+        logger.info(
+            "Calling 'calc_sun_coroutine' at %s",
+            str(datetime.datetime.now().time())
+            )
+        await asyncio.sleep(0.1)
+        logger.info(
+            "Finished 'calc_sun_coroutine' at %s",
+            str(datetime.datetime.now().time())
+            )
+        await asyncio.sleep(900.0)
 
-# Call functions from main loop
-print('step: loop.call_soon(hello_world, loop)')
-loop.call_soon(hello_world, loop)
-print('step: loop.call_soon(good_evening, loop)')
-loop.call_soon(good_evening, loop)
-print('step: asyncio.async(hello_world_coroutine)')
-asyncio.async(hello_world_coroutine())
-print('step: asyncio.async(good_evening_coroutine)')
-asyncio.async(good_evening_coroutine())
 
+# Get Nest Updates
+async def read_nest_coroutine():
+    """ Reads current environmental condtions from Nest account """
+    while True:
+        logger.info(
+            "Calling 'read_nest_coroutine' at %s",
+            str(datetime.datetime.now().time())
+            )
+        await asyncio.sleep(1.5)
+        logger.info(
+            "Finished 'read_nest_coroutine' at %s",
+            str(datetime.datetime.now().time())
+            )
+        await asyncio.sleep(900.0)
+
+
+# Automation Engine
+async def run_automation_coroutine():
+    """ Evaluates rules and determines desired on/off state of devices """
+    while True:
+        logger.info(
+            "Calling 'run_automation_coroutine' at %s",
+            str(datetime.datetime.now().time())
+            )
+        await asyncio.sleep(0.2)
+        logger.info(
+            "Finished 'run_automation_coroutine' at %s",
+            str(datetime.datetime.now().time())
+            )
+        await asyncio.sleep(1.0)
+
+
+# Call functions from main loop ***********************************************
+eventloop = asyncio.get_event_loop()
+eventloop.call_soon(main_event_loop, eventloop)
+eventloop.run_until_complete(
+    asyncio.gather(
+        read_calendar_coroutine(),
+        check_home_coroutine(),
+        calc_sun_coroutine(),
+        read_nest_coroutine(),
+        run_automation_coroutine()
+        ))
+
+
+# Run main event loop *********************************************************
 try:
-    loop.run_forever()
+    eventloop.run_forever()
 except KeyboardInterrupt:
     pass
 finally:
     print('step: loop.close()')
-    loop.close()
+    eventloop.close()
