@@ -7,8 +7,8 @@
 import asyncio
 import collections
 import datetime
-import file_logger
-import device_ping
+from .log_support import *
+from .ping import *
 
 
 # Authorship Info *************************************************************
@@ -23,8 +23,8 @@ __status__ = "Development"
 
 
 # Configure Logging ***********************************************************
-debug_file, info_file = file_logger.setup_log_files(__file__)
-logger = file_logger.setup_log_handlers(__file__, debug_file, info_file)
+debug_file, info_file = setup_log_files(__file__)
+logger = setup_log_handlers(__file__, debug_file, info_file)
 
 
 # Function Defs ***************************************************************
@@ -44,7 +44,7 @@ async def scan_for_devices(device_list, rescan_seconds):
             str(datetime.datetime.now().time())
             )
         for device in device_list:
-            device_ping.ping_device(device.address)
+            ping_device(device.address)
         logger.info(
             "Finished 'read_calendar_coroutine' at %s",
             str(datetime.datetime.now().time())
