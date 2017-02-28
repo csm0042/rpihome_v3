@@ -5,7 +5,6 @@
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import logging
 import logging.handlers
-import os
 import sys
 
 
@@ -21,20 +20,6 @@ __status__ = "Development"
 
 
 # Logging helper functions ****************************************************
-def setup_log_files(name):
-    """ Function to decide where to store log files (folder in root) and
-    create that folder if necessary """
-    file_drive, file_path = os.path.splitdrive(name)
-    log_path = os.path.join(file_drive, "/python_logs")
-    full_path, file_name = os.path.split(name)
-    file_name, file_ext = os.path.splitext(file_name)
-    if not os.path.isdir(log_path):
-        os.mkdir(log_path)
-    debug_logfile = (log_path + "/" +  file_name + "_debug.log")
-    info_logfile = (log_path + "/" + file_name + "_info.log")
-    return debug_logfile, info_logfile
-
-
 def setup_log_handlers(name, debug_logfile, info_logfile):
     """ Function to configure root logger with three handlers, one to stream
     info and up messages, plus two additional file handlers for debug and info
@@ -67,11 +52,3 @@ def setup_log_handlers(name, debug_logfile, info_logfile):
     root.addHandler(console_handler)
     root.debug("logging configured with 3 handlers")
     return root
-
-
-def setup_logging(name):
-    """ For those lazy people who want to be able to call a single function and get the full
-    logging setup done in a single statement (aka: me)"""
-    debug_file, info_file = setup_log_files(name)
-    root_logger = setup_log_handlers(name, debug_file, info_file)
-    return root_logger
