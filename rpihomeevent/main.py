@@ -5,8 +5,10 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
+import collections
 import datetime
 import file_logger
+import device_ping
 
 
 # Authorship Info *************************************************************
@@ -32,6 +34,22 @@ def main_event_loop(loop):
         "Calling main at %s",
         str(datetime.datetime.now().time()))
     loop.call_later(1, main_event_loop, loop)
+
+
+async def scan_for_devices(device_list, rescan_seconds):
+    """ Pings devices in a defined list to see if they are active on network"""
+    while True:
+        logger.info(
+            "Calling 'read_calendar_coroutine' at %s",
+            str(datetime.datetime.now().time())
+            )
+        for device in device_list:
+            device_ping.ping_device(device.address)
+        logger.info(
+            "Finished 'read_calendar_coroutine' at %s",
+            str(datetime.datetime.now().time())
+            )
+        await asyncio.sleep(rescan_seconds)
 
 
 # Get Calendar Updates
@@ -114,11 +132,20 @@ async def run_automation_coroutine():
         await asyncio.sleep(1.0)
 
 
+# Define values specific to this house
+Device = collections.namedtuple("Device", "name, address, state")
+phones = []
+phones.append(Device("chris", "192.168.86.40", "False"))
+phones.append(Device("aiden", "192.168.86.41", "False"))
+phones.append(Device("sarah", "192.168.86.42", "False"))
+
+
 # Call functions from main loop ***********************************************
 eventloop = asyncio.get_event_loop()
 eventloop.call_soon(main_event_loop, eventloop)
 eventloop.run_until_complete(
     asyncio.gather(
+        scan_for_devices(phones, 60.0),
         read_calendar_coroutine(),
         check_home_coroutine(),
         calc_sun_coroutine(),
