@@ -28,8 +28,10 @@ def setup_log_handlers(name, debug_logfile, info_logfile):
     root.setLevel(logging.DEBUG)
     root.handlers = []
     # Create desired handlers
-    debug_handler = logging.FileHandler(debug_logfile)
-    info_handler = logging.FileHandler(info_logfile)
+    debug_handler = logging.handlers.TimedRotatingFileHandler(
+        debug_logfile, when='d', interval=1, backupCount=7)
+    info_handler = logging.handlers.TimedRotatingFileHandler(
+        info_logfile, when='d', interval=1, backupCount=7)
     console_handler = logging.StreamHandler(sys.stdout)
     # Set logging levels for each handler
     debug_handler.setLevel(logging.DEBUG)

@@ -21,13 +21,14 @@ __status__ = "Development"
 
 
 # Define mySQL interface Class ************************************************
-class MySQLinterface(object):
+class MySqlInterface(object):
     """ The """
 
     def __init__(self, **kwargs):
         """ Declare instance elements and set default values"""
         self._host = "localhost"
-        self._database = "db"
+        self._port = '3306'
+        self._schema = "db"
         self._user = "user"
         self._password = "password"
         self._connected = False
@@ -40,8 +41,10 @@ class MySQLinterface(object):
             for key, value in kwargs.items():
                 if key == "host":
                     self.host = value
-                if key == "database":
-                    self.database = value
+                if key == "port":
+                    self.host = value
+                if key == "schema":
+                    self.schema = value
                 if key == "user":
                     self.user = value
                 if key == "password":
@@ -56,12 +59,20 @@ class MySQLinterface(object):
         self._host = str(value)
 
     @property
-    def database(self):
-        return self._database
+    def port(self):
+        return self._port
 
-    @database.setter
-    def database(self, value):
-        self._database = str(value)
+    @port.setter
+    def port(self, value):
+        self._port = str(value)        
+
+    @property
+    def schema(self):
+        return self._schema
+
+    @schema.setter
+    def schema(self, value):
+        self._schema = str(value)
 
     @property
     def user(self):
@@ -93,10 +104,13 @@ class MySQLinterface(object):
 #
 
     def connect(self):
-        """ Establishes an active connection to the mySQL database using the parameters passed in """
+        """ Establishes an active connection to the mySQL database using the
+        parameters passed in """
         try:
-            self.db = mysql.connector.connect(host=self.host, database=self.database,
-                                              user=self.user, password=self.password)
+            self.db = mysql.connector.connect(host=self.host,
+                                              database=self.schema,
+                                              user=self.user,
+                                              password=self.password)
             self.connected = True
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
