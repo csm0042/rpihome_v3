@@ -20,6 +20,30 @@ __email__ = "csmaue@gmail.com"
 __status__ = "Development"
 
 
+
+def insert_db_record(address, schema, user, pwd, table, device, state):
+    """ Inserts a record into a mySQL data table """
+    # Create connection to database
+    try:
+        db = mysql.connector.connect(host=address,
+                                     database=schema,
+                                     user=user,
+                                     password=pwd)
+        cursor = db.cursor()
+        query = "INSERT INTO '%s'.'%s' ('device', 'connected') \
+        VALUES ('%s', '%s')", schema, table, device, state
+        cursor.execute(query)
+        db.commit()
+        cursor.close()
+        db.close()
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            self.connected = False
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            self.connected = False
+        else:
+            self.connected = False
+
 # Define mySQL interface Class ************************************************
 class MySqlInterface(object):
     """ The """

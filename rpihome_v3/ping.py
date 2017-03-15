@@ -3,6 +3,10 @@
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
+import asyncio
+import collections
+import datetime
+import logging
 import os
 import platform
 
@@ -19,16 +23,25 @@ __status__ = "Development"
 
 
 # Ping Function ***************************************************************
-def ping_device(address):
+def ping_device(address, logger=None):
     """ Pings a device with a given address and returns a True/False based
     upon whether or not the device responded  """
+    # Configure local logging
+    logger = logger or logging.getLogger(__name__)
+
     # Set ping command flags based upon operating system used
     if platform.system().lower() == "windows":
         ping_flags = "-n 1"
+        logger.debug('Attempting to ping on Windows platform')
     else:
         ping_flags = "-c 1"
+        logger.debug('Attempting to ping on Non-Windows platform')
+
     # Perform ping
+    logger.debug('Performing ping to address [%s]', address)
     result = os.system("ping " + ping_flags + " " + address)
+    logger.debug('Ping returned result [%s]', str(result))
+
     # evaluate result
     if result == 0:
         return True
@@ -36,25 +49,34 @@ def ping_device(address):
         return False
 
 
-def insert_db_record(address, schema, user, pwd, table, device, state):
-    """ Inserts a record into a mySQL data table """
-    # Create connection to database
-    try:
-        db = mysql.connector.connect(host=address,
-                                     database=schema,
-                                     user=user,
-                                     password=pwd)
-        cursor = db.cursor()
-        query = "INSERT INTO '%s'.'%s' ('device', 'connected') \
-        VALUES ('%s', '%s')", schema, table, device, state
-        cursor.execute(query)
-        db.commit()
-        cursor.close()
-        db.close()
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            self.connected = False
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            self.connected = False
-        else:
-            self.connected = False
+@asyncio.coroutine
+def ping_devices(device_list, logger=None):
+    """ Pings every device in a list periodically as defined by sleeptime
+    input variable.  Each device is ping'd using an individual coroutine
+    so nothing blocks the main thread """
+
+    # Configure local logging
+    logger = logger or logging.getLogger(__name__)
+
+    # Create named tuple for device records
+    Pdevice = collections.namedtuple(
+        'Pdevice', 'name, address, status, last_seen'
+        )
+
+    # Ping each device in list in turn and update their record accordingly
+    for index, device in enumerate(device_list):
+        logger.debug('Pinging device [%s] at [%s]',
+                     device.name, device.address)
+        result = yield from ping_device(device.address, logger)
+        logger.debug('Updating device [%s] status to [%s]',
+                     device.name, str(result))
+        device = Pdevice(
+            device.name, device.address,
+            str(result), str(datetime.datetime.now())
+            )
+        logger.debug('Updating record in personal device list')
+        device_list[index] = device
+
+    # Return updated device list to main
+    logger.debug('Returning updated personal device list to main')
+    return device_list
