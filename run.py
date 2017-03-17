@@ -38,7 +38,7 @@ def main():
 
     # Get configuration from INI file for this run
     logger, p_devices, a_devices = rpihome_v3.configure_all(
-        'rpihome_v3/config.ini')
+        'config.ini')
     logger.info(
         'RpiHome-v3 Application Started @ [%s] ******************************',
         str(datetime.datetime.now()))
