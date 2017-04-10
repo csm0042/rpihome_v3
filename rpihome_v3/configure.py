@@ -33,9 +33,11 @@ class Pdevice(typing.NamedTuple):
 
 class Adevice(typing.NamedTuple):
     name: str
+    devtype: str
     address: str
     status: str
     last_seen: str
+
 
 
 # Config Function Def *********************************************************
@@ -126,7 +128,7 @@ def configure_adevice(filename, logger):
             elif len(str(i)) == 2:
                 device_id = 'device' + str(i)
             device_name = config_file['AUTOMATION_DEVICES'][device_id]
-            ad_temp = Adevice(device_name, '', '', '')
+            ad_temp = Adevice(device_name, '', '', '','')
             a_devices.append(copy.copy(ad_temp))
             logger.debug(
                 'Device %s added to automation device list', device_name)
@@ -134,11 +136,29 @@ def configure_adevice(filename, logger):
             pass
     logger.debug('Completed automation device list: %s', str(a_devices))
 
+    # Obtain device type for found automation devices
+    for index, device in enumerate(a_devices):
+        ty_add = config_file['AUTOMATION_DEVICE_TYPES'][device.name]
+        device = Adevice(
+            device.name,
+            copy.copy(ty_add),
+            device.address,
+            device.status,
+            device.last_seen)
+        a_devices[index] = device
+        logger.debug(
+            'Updated device [%s] record with device type [%s]',
+            device.name,
+            ty_add
+            )
+    logger.debug('Updated automation device list: %s', a_devices)
+
     # Obtain addresses for found automation devices
     for index, device in enumerate(a_devices):
         ad_add = config_file['AUTOMATION_DEVICE_ADDRESSES'][device.name]
         device = Adevice(
             device.name,
+            device.devtype,
             copy.copy(ad_add),
             device.status,
             device.last_seen)

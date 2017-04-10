@@ -27,6 +27,15 @@ __status__ = "Development"
 def event_scheduler(loop, refresh, logger, p_devices, a_devices):
     # do some stuff
     logger.debug('Running scheduler')
+
+    # Cycle through automation devices and execute rules
+    for index, device in enumerate(a_devices):
+
+        # Check motion sensor(s)
+        if device.devtype == 'motion_capture':
+            if rpihome_v3.check_motion(device.address, logger) is True:
+                logger.info('Motion sensed by device [%s]', device.name)
+
     loop.call_later(
         refresh, event_scheduler,
         loop, refresh, logger, p_devices, a_devices)
