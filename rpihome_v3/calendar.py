@@ -26,13 +26,17 @@ __status__ = "Development"
 async def update_schedule(credentials, loop, logger):
     """ queries google calendar and returns list of items for current week """
     while True:
-        logger.debug('Starting 5-second sleep to simulate schedule lookup')
-        await asyncio.sleep(5)
-        schedule = (1, 2, 3, 4, 5)
-        if loop is False:
-            logger.debug('Breaking out of update schedule loop')
+        try:
+            logger.debug('Starting 5-second sleep to simulate schedule lookup')
+            await asyncio.sleep(5)
+            schedule = (1, 2, 3, 4, 5)
+            if loop is False:
+                logger.debug('Breaking out of update schedule loop')
+                break
+            logger.debug(
+                'Sleeping update_schedule task for 60 seconds before running again')
+            await asyncio.sleep(60)
+        except KeyboardInterrupt:
+            logging.debug('Stopping update_schedule process loop')
             break
-        logger.debug(
-            'Sleeping update_schedule task for 60 seconds before running again')
-        await asyncio.sleep(60)
     return schedule

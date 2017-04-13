@@ -157,12 +157,26 @@ def configure_Adevice(filename, logger):
     return a_devices
 
 
+def configure_calendar(filename, logger):
+    # Define connection to configuration file
+    config_file = configparser.ConfigParser()
+    config_file.read(filename)
+    # Read credential info from file
+    credentials = rpihome_v3.Credentials(
+        config_file['CALENDAR']['username'],
+        config_file['CALENDAR']['password'])
+    logger.debug('Credentails obtained from INI file')
+    # Return configured objects to main program
+    return credentials
+
+
 def configure_all(filename):
     """ Gather application configuration data from config.ini file """
     logger = configure_logger(filename)
     database = configure_database(filename, logger)
     p_devices = configure_Pdevice(filename, logger)
     a_devices = configure_Adevice(filename, logger)
+    credentials = configure_calendar(filename, logger)
     logger.debug('Finished call to configuration function')
     # Return results to main program
-    return (logger, p_devices, a_devices, ('user', 'pwd'))
+    return (logger, p_devices, a_devices, credentials)

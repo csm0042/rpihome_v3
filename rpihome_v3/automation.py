@@ -4,6 +4,8 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
+import datetime
+
 import rpihome_v3
 
 
@@ -22,51 +24,78 @@ __status__ = "Development"
 async def update_Pdevice_status(p_devices, loop, logger):
     """ test """
     while True:
-        for index, device in enumerate(p_devices):
+        try:
+            # Ping each device in-turn
+            for index, device in enumerate(p_devices):
+                logger.debug(
+                    'Pinging device [%s] at [%s]',
+                    device.name,
+                    device.address)
+                response = rpihome_v3.ping_device(device.address, logger)
+                if response is True:
+                    device = rpihome_v3.Pdevice(
+                        device.name, device.address,
+                        'true', str(datetime.datetime.now()))
+                else:
+                    device = rpihome_v3.Pdevice(
+                        device.name, device.address,
+                        'false', device.last_seen)
+                p_devices[index] = device
+
+
+            # Do not loop when status flag is false
+            if loop is False:
+                logger.debug('Breaking out of update_Pdevice_status loop')
+                break
+            # Otherwise wait a pre-determined time period, then re-run the task
             logger.debug(
-                'Starting 2-second sleep to simulate status query for device: [%s]',
-                device.name)
-            await asyncio.sleep(2)
-        if loop is False:
-            logger.debug('Breaking out of update_Pdevice_status loop')
+                'Sleeping update_Pdevice_status task for 10 seconds before running again')
+            await asyncio.sleep(10)
+        except KeyboardInterrupt:
+            logging.debug('Stopping update_Pdevice_status process loop')
             break
-        logger.debug(
-            'Sleeping update_Pdevice_status task for 10 seconds before running again')
-        await asyncio.sleep(10)
 
 
 # Main event loop function ****************************************************
 async def update_Adevice_status(a_devices, loop, logger):
     """ test """
     while True:
-        for index, device in enumerate(a_devices):
+        try:
+            for index, device in enumerate(a_devices):
+                logger.debug(
+                    'Starting 2-second sleep to simulate status query for device: [%s]',
+                    device.name)
+                await asyncio.sleep(2)
+            if loop is False:
+                logger.debug('Breaking out of update_Adevice_status loop')
+                break
             logger.debug(
-                'Starting 2-second sleep to simulate status query for device: [%s]',
-                device.name)
+                'Sleeping update_Adevice_status task for 10 seconds before running again')
             await asyncio.sleep(2)
-        if loop is False:
-            logger.debug('Breaking out of update_Adevice_status loop')
+        except KeyboardInterrupt:
+            logging.debug('Stopping update_Adevice_status process loop')
             break
-        logger.debug(
-            'Sleeping update_Adevice_status task for 10 seconds before running again')
-        await asyncio.sleep(2)
 
 
 # Main event loop function ****************************************************
 async def update_Adevice_state(a_devices, p_devices, schedule, loop, logger):
     """ test """
     while True:
-        for index, device in enumerate(a_devices):
+        try:
+            for index, device in enumerate(a_devices):
+                logger.debug(
+                    'Starting 1/2-second sleep to simulate state-set for device: [%s]',
+                    device.name)
+                await asyncio.sleep(0.5)
+            if loop is False:
+                logger.debug('Breaking out of update_Adevice_state loop')
+                break
             logger.debug(
-                'Starting 1/2-second sleep to simulate state-set for device: [%s]',
-                device.name)
-            await asyncio.sleep(0.5)
-        if loop is False:
-            logger.debug('Breaking out of update_Adevice_state loop')
+                'Sleeping update_Adevice_state task for 1 seconds before running again')
+            await asyncio.sleep(1)
+        except KeyboardInterrupt:
+            logging.debug('Stopping update_Adevice_state process loop')
             break
-        logger.debug(
-            'Sleeping update_Adevice_state task for 1 seconds before running again')
-        await asyncio.sleep(1)
 
 
 def automate(a_devices, p_devices, logger):

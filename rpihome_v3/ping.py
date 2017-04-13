@@ -24,30 +24,6 @@ __status__ = "Development"
 
 
 # Ping Function ***************************************************************
-@asyncio.coroutine
-def ping_devices(device_list, logger=None):
-    """ Pings every device in a list periodically as defined by sleeptime
-    input variable.  Each device is ping'd using an individual coroutine
-    so nothing blocks the main thread """
-
-    # Configure local logging
-    logger = logger or logging.getLogger(__name__)
-
-    # Ping each device in list in turn and update their record accordingly
-    for index, device in enumerate(device_list):
-        logger.debug('Pinging device [%s] at [%s]',
-                     device.name, device.address)
-        result = yield from ping_device(device.address, logger)
-        logger.debug('Updating device [%s] status to [%s]',
-                     device.name, str(result))
-        device = rpihome_v3.Pdevice(
-            device.name, device.address,
-            str(result), str(datetime.datetime.now())
-            )
-        logger.debug('Updating record in personal device list')
-        device_list[index] = device
-
-
 def ping_device(address, logger=None):
     """ Pings a device with a given address and returns a True/False based
     upon whether or not the device responded  """
