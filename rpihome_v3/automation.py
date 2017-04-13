@@ -28,9 +28,11 @@ async def update_Pdevice_status(p_devices, loop, logger):
             # Ping each device in-turn
             for index, device in enumerate(p_devices):
                 logger.debug(
-                    'Pinging device [%s] at [%s]',
+                    'Pinging device [%s] at [%s], original status [%s / %s]',
                     device.name,
-                    device.address)
+                    device.address,
+                    device.status,
+                    device.last_seen)
                 response = rpihome_v3.ping_device(device.address, logger)
                 if response is True:
                     device = rpihome_v3.Pdevice(
@@ -41,7 +43,9 @@ async def update_Pdevice_status(p_devices, loop, logger):
                         device.name, device.address,
                         'false', device.last_seen)
                 p_devices[index] = device
-
+                logger.debug(
+                    'Updating device status to [%s / %s]',
+                    device.status, device.last_seen)
 
             # Do not loop when status flag is false
             if loop is False:

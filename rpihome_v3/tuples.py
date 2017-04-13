@@ -31,3 +31,8 @@ class Adevice(typing.NamedTuple):
     address: str
     status: str
     last_seen: str
+
+
+class Credentials(typing.NamedTuple):
+    username: str
+    password: str
