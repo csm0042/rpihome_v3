@@ -23,51 +23,36 @@ __email__ = "csmaue@gmail.com"
 __status__ = "Development"
 
 
-# Event Loop Scheduler ********************************************************
-def event_scheduler(loop, refresh, logger, p_devices, a_devices):
-    # do some stuff
-    logger.debug('Running scheduler')
-
-    # Cycle through automation devices and execute rules
-    for index, device in enumerate(a_devices):
-
-        # Check motion sensor(s)
-        if device.devtype == 'motion_capture':
-            if rpihome_v3.check_motion(device.address, logger) is True:
-                logger.info('Motion sensed by device [%s]', device.name)
-
-    loop.call_later(
-        refresh, event_scheduler,
-        loop, refresh, logger, p_devices, a_devices)
-
-
 # Main event loop function ****************************************************
 def main():
     """ main function for the rpihome application """
 
     # Get configuration from INI file for this run
-    logger, p_devices, a_devices = rpihome_v3.configure_all(
-        'config.ini')
+    logger, p_devices, a_devices, cal_credentials = (
+        rpihome_v3.configure_all('rpihome_v3//config.ini'))
     logger.info(
         'RpiHome-v3 Application Started @ [%s] ******************************',
         str(datetime.datetime.now()))
-    logger.info('Configuraiton imported from INI file')
+    logger.info('Configuration imported from INI file')
 
     # Get main event loop *****************************************************
     logger.info('Getting main event loop')
     event_loop = asyncio.get_event_loop()
 
-    # Schedule call to main scheduler function ********************************
-    logger.info('Call soon event_scheduler')
-    event_loop.call_soon(
-        event_scheduler,
-        event_loop, 1.0, logger, p_devices, a_devices)
+    # Perform initial schedule query ******************************************
+    schedule = rpihome_v3.update_schedule(cal_credentials, False, logger)
 
     # Run event loop until keyboard interrupt received ************************
     try:
-        logger.info('Call run_forever on main event loop')
-        event_loop.run_forever()
-        logger.info('Main event loop is started')
+        logger.info('Call run_until_complete on task list')
+        event_loop.run_until_complete(
+            asyncio.gather(
+                rpihome_v3.update_schedule(cal_credentials, True, logger),
+                rpihome_v3.update_Pdevice_status(p_devices, True, logger),
+                rpihome_v3.update_Adevice_status(a_devices, True, logger),
+                rpihome_v3.update_Adevice_state(a_devices, p_devices, schedule, True, logger)
+                ))
+        logger.info('Tasks are started')
     except KeyboardInterrupt:
         pass
     finally:

@@ -1,11 +1,12 @@
 #!/usr/bin/python3
-""" configure.py:
-    Configuration process for the RPiHome application.
+""" motion.py:
+    Motion sensing function.  Monitors a folder on a network for screen captures
+    provided by a motion sensing security camera.  When a new screen shot is
+    detected, it returns "true"
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import os
-import sys
 
 
 # Authorship Info *************************************************************
@@ -20,10 +21,10 @@ __status__ = "Development"
 
 
 # Defined named tuples for various object types *******************************
-
-
-
 def check_motion(filepath, logger):
+    """ Monitors network folder for picture files.  These files are stored in
+    this location by a separate process whenever a security camera detects
+    motion """
     found = False
     dir_contents = os.listdir(filepath)
     if len(dir_contents) > 0:

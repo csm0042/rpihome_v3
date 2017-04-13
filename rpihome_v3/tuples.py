@@ -1,17 +1,9 @@
 #!/usr/bin/python3
-""" rpihome_v3 module init
+""" tuples.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
-from .automation import *
-from .calendar import *
-from .configure import *
-from .log_support import *
-from .motion import *
-#from nest import *
-from .persistance import *
-from .ping import *
-from .tuples import *
+import typing
 
 
 # Authorship Info *************************************************************
@@ -23,3 +15,19 @@ __version__ = "1.0.0"
 __maintainer__ = "Christopher Maue"
 __email__ = "csmaue@gmail.com"
 __status__ = "Development"
+
+
+# Defined named tuples for various object types *******************************
+class Pdevice(typing.NamedTuple):
+    name: str
+    address: str
+    status: str
+    last_seen: str
+
+
+class Adevice(typing.NamedTuple):
+    name: str
+    devtype: str
+    address: str
+    status: str
+    last_seen: str
