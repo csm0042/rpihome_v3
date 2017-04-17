@@ -22,6 +22,7 @@ class Pdevice(typing.NamedTuple):
     name: str
     address: str
     status: str
+    status_mem: str
     last_seen: str
 
 
@@ -30,6 +31,7 @@ class Adevice(typing.NamedTuple):
     devtype: str
     address: str
     status: str
+    status_mem: str
     last_seen: str
 
 

@@ -5,7 +5,6 @@
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
 import datetime
-
 import rpihome_v3
 
 
@@ -33,15 +32,15 @@ async def update_Pdevice_status(p_devices, loop, logger):
                     device.address,
                     device.status,
                     device.last_seen)
-                response = rpihome_v3.ping_device(device.address, logger)
+                response = await rpihome_v3.ping_device(device.address, logger)
                 if response is True:
                     device = rpihome_v3.Pdevice(
-                        device.name, device.address,
-                        'true', str(datetime.datetime.now()))
+                        device.name, device.address, 'true',
+                        device.status_mem, str(datetime.datetime.now()))
                 else:
                     device = rpihome_v3.Pdevice(
-                        device.name, device.address,
-                        'false', device.last_seen)
+                        device.name, device.address, 'false',
+                        device.status_mem, device.last_seen)
                 p_devices[index] = device
                 logger.debug(
                     'Updating device status to [%s / %s]',

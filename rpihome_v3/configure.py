@@ -8,8 +8,9 @@ import asyncio
 import copy
 import configparser
 import typing
+import mysql.connector
+import mysql.connector.errorcode as errorcode
 from .log_support import setup_log_handlers
-from .persistance import MySqlInterface
 import rpihome_v3
 
 
@@ -45,14 +46,24 @@ def configure_database(filename, logger):
     config_file = configparser.ConfigParser()
     config_file.read(filename)
     # Set up database connection
-    database = MySqlInterface(
-        host=config_file['DATABASE']['host'],
-        port=config_file['DATABASE']['port'],
-        schema=config_file['DATABASE']['schema'],
-        user=config_file['DATABASE']['user'],
-        password=config_file['DATABASE']['password']
-        )
-    logger.debug('Database connection established to: %s', str(database))
+    try:
+        database = mysql.connector.connect(
+            host=config_file['DATABASE']['host'],
+            port=config_file['DATABASE']['port'],
+            database=config_file['DATABASE']['schema'],
+            user=config_file['DATABASE']['user'],
+            password=config_file['DATABASE']['password'])
+        logger.debug("Successfully connected to database")
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            database = None
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            database = None
+        else:
+            database = None
+        pass
+        logger.debug("Could not connect to database")
+
     # Return configured objects to main program
     return database
 
@@ -71,7 +82,7 @@ def configure_Pdevice(filename, logger):
             elif len(str(i)) == 2:
                 device_id = 'device' + str(i)
             device_name = config_file['PERSONAL_DEVICES'][device_id]
-            pd_temp = rpihome_v3.Pdevice(device_name, '', '', '')
+            pd_temp = rpihome_v3.Pdevice(device_name, '', '', '', '')
             p_devices.append(copy.copy(pd_temp))
             logger.debug(
                 'Device %s added to personal device list', device_name)
@@ -86,6 +97,7 @@ def configure_Pdevice(filename, logger):
             device.name,
             copy.copy(pd_add),
             device.status,
+            device.status_mem,
             device.last_seen)
         p_devices[index] = device
         logger.debug(
@@ -112,7 +124,7 @@ def configure_Adevice(filename, logger):
             elif len(str(i)) == 2:
                 device_id = 'device' + str(i)
             device_name = config_file['AUTOMATION_DEVICES'][device_id]
-            ad_temp = rpihome_v3.Adevice(device_name, '', '', '', '')
+            ad_temp = rpihome_v3.Adevice(device_name, '', '', '', '', '')
             a_devices.append(copy.copy(ad_temp))
             logger.debug(
                 'Device %s added to automation device list', device_name)
@@ -128,6 +140,7 @@ def configure_Adevice(filename, logger):
             copy.copy(ty_add),
             device.address,
             device.status,
+            device.status_mem,
             device.last_seen)
         a_devices[index] = device
         logger.debug(
@@ -145,6 +158,7 @@ def configure_Adevice(filename, logger):
             device.devtype,
             copy.copy(ad_add),
             'false',
+            device.status_mem,
             device.last_seen)
         a_devices[index] = device
         logger.debug(
@@ -179,4 +193,4 @@ def configure_all(filename):
     credentials = configure_calendar(filename, logger)
     logger.debug('Finished call to configuration function')
     # Return results to main program
-    return (logger, p_devices, a_devices, credentials)
+    return (logger, database, p_devices, a_devices, credentials)

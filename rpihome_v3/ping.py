@@ -24,7 +24,7 @@ __status__ = "Development"
 
 
 # Ping Function ***************************************************************
-def ping_device(address, logger=None):
+async def ping_device(address, logger=None):
     """ Pings a device with a given address and returns a True/False based
     upon whether or not the device responded  """
     # Configure local logging
