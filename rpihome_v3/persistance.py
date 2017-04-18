@@ -23,48 +23,49 @@ __status__ = "Development"
 
 
 # Main event loop function ****************************************************
-async def log_status_updates(database, a_devices, p_devices, loop, logger):
+async def log_status_updates(database, devices, loop, logger):
     """ test """
     while True:
         try:
-            # Log changes of state in automation device status
-            for index, device in enumerate(a_devices):
-                if device.status != device.status_mem:
-                    cursor = database.cursor()
-                    query = ("INSERT INTO device_log "
-                             "(device, status, timestamp) "
-                             "VALUES (%s, %s, %s)")
-                    data = (device.name, device.status, device.last_seen)
-                    cursor.execute(query, data)
-                    database.commit()
-                    cursor.close()
-                    a_devices[index] = rpihome_v3.Adevice(
-                        device.name, device.devtype, device.address,
-                        device.status, device.status, device.last_seen)
-            # Log changes of state in personal device status
-            for index, device in enumerate(p_devices):
-                if device.status != device.status_mem:
-                    cursor = database.cursor()
-                    query = ("INSERT INTO connection_log "
-                             "(device, connected, timestamp) "
-                             "VALUES (%s, %s, %s)")
-                    data = (device.name, device.status, device.last_seen)
-                    cursor.execute(query, data)
-                    database.commit()
-                    cursor.close()
-                    p_devices[index] = rpihome_v3.Pdevice(
-                        device.name, device.address,
-                        device.status, device.status, device.last_seen)
+            # Check each device in-turn for updates
+            for index, device in enumerate(devices):
+                # Log changes of state in automation device status
+                if device.devtype == 'wemo_switch':
+                    if device.status != device.status_mem:
+                        cursor = database.cursor()
+                        query = ("INSERT INTO device_log "
+                                 "(device, status, timestamp) "
+                                 "VALUES (%s, %s, %s)")
+                        data = (device.name, device.status, device.last_seen)
+                        cursor.execute(query, data)
+                        database.commit()
+                        cursor.close()
+                        devices[index] = rpihome_v3.Device(
+                            device.name, device.devtype, device.address,
+                            device.status, device.status, device.last_seen)
+                elif device.devtype == 'personal':
+                    if device.status != device.status_mem:
+                        cursor = database.cursor()
+                        query = ("INSERT INTO connection_log "
+                                 "(device, connected, timestamp) "
+                                 "VALUES (%s, %s, %s)")
+                        data = (device.name, device.status, device.last_seen)
+                        cursor.execute(query, data)
+                        database.commit()
+                        cursor.close()
+                        devices[index] = rpihome_v3.Device(
+                            device.name, device.devtype, device.address,
+                            device.status, device.status, device.last_seen)
             # Do not loop when status flag is false
             if loop is False:
-                logger.debug('Breaking out of update_Pdevice_status loop')
+                logger.debug('Breaking out of log_status_updates loop')
                 break
             # Otherwise wait a pre-determined time period, then re-run the task
             logger.debug(
-                'Sleeping update_Pdevice_status task for 10 seconds before running again')
+                'Sleeping log_status_updates task for 10 seconds before running again')
             await asyncio.sleep(10)
         except KeyboardInterrupt:
             logging.debug('Closing connection to database')
             database.close()
-            logging.debug('Stopping update_Pdevice_status process loop')
+            logging.debug('Stopping log_status_updates process loop')
             break

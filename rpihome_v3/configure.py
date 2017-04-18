@@ -68,106 +68,36 @@ def configure_database(filename, logger):
 
 
 # Config Automation Device List Function **************************************
-def configure_Adevice(filename, logger):
+def configure_device(filename, logger):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
     # Create list of automation devices defined in config.ini file
-    a_devices = []
-    logger.debug('Begining search for automation devices in config file')
+    devices = []
+    logger.debug('Begining search for device configuration in config file')
     for i in range(1, 50, 1):
         try:
             if len(str(i)) == 1:
                 device_id = 'device0' + str(i)
             elif len(str(i)) == 2:
                 device_id = 'device' + str(i)
-            device_name = config_file['AUTOMATION_DEVICES'][device_id]
-            ad_temp = rpihome_v3.Adevice(
-                device_name, '', '', '', '', str(datetime.datetime.now()))
-            a_devices.append(copy.copy(ad_temp))
+            devices.append(rpihome_v3.Device(
+                config_file['DEVICES'][device_id + '_name'],
+                config_file['DEVICES'][device_id + '_devtype'],
+                config_file['DEVICES'][device_id + '_address'],
+                'None',
+                '',
+                str(datetime.datetime.now())
+                ))
+            print('got this far')
             logger.debug(
-                'Device %s added to automation device list', device_name)
+                'Device %s added to automation device list',
+                (config_file['DEVICES'][device_id + '_name']))
         except:
             pass
-    logger.debug('Completed automation device list: %s', str(a_devices))
-    # Obtain device types for automation devices in list
-    for index, device in enumerate(a_devices):
-        ty_add = config_file['AUTOMATION_DEVICE_TYPES'][device.name]
-        device = rpihome_v3.Adevice(
-            device.name,
-            copy.copy(ty_add),
-            device.address,
-            device.status,
-            device.status_mem,
-            device.last_seen)
-        a_devices[index] = device
-        logger.debug(
-            'Updated device [%s] record with device type [%s]',
-            device.name,
-            ty_add
-            )
-    logger.debug('Updated automation device list: %s', a_devices)
-    # Obtain addresses for found automation devices
-    for index, device in enumerate(a_devices):
-        ad_add = config_file['AUTOMATION_DEVICE_ADDRESSES'][device.name]
-        device = rpihome_v3.Adevice(
-            device.name,
-            device.devtype,
-            copy.copy(ad_add),
-            'false',
-            device.status_mem,
-            device.last_seen)
-        a_devices[index] = device
-        logger.debug(
-            'Updated device [%s] record with address [%s]',
-            device.name,
-            ad_add
-            )
-    logger.debug('Updated automation device list: %s', a_devices)
+    logger.debug('Completed automation device list: %s', str(devices))
     # Return configured objects to main program
-    return a_devices
-
-
-# Config Personal Device List Function ****************************************
-def configure_Pdevice(filename, logger):
-    # Define connection to configuration file
-    config_file = configparser.ConfigParser()
-    config_file.read(filename)
-    # Create list of personal devices defined in config.ini file
-    p_devices = []
-    logger.debug('Begining search for persona devices in config file')
-    for i in range(1, 10, 1):
-        try:
-            if len(str(i)) == 1:
-                device_id = 'device0' + str(i)
-            elif len(str(i)) == 2:
-                device_id = 'device' + str(i)
-            device_name = config_file['PERSONAL_DEVICES'][device_id]
-            pd_temp = rpihome_v3.Pdevice(
-                device_name, '', '', '', str(datetime.datetime.now()))
-            p_devices.append(copy.copy(pd_temp))
-            logger.debug(
-                'Device %s added to personal device list', device_name)
-        except:
-            pass
-    logger.debug('Completed personal device list: %s', str(p_devices))
-    # Obtain addresses for personal devices in list
-    for index, device in enumerate(p_devices):
-        pd_add = config_file['PERSONAL_DEVICE_ADDRESSES'][device.name]
-        device = rpihome_v3.Pdevice(
-            device.name,
-            copy.copy(pd_add),
-            device.status,
-            device.status_mem,
-            device.last_seen)
-        p_devices[index] = device
-        logger.debug(
-            'Updated device [%s] record with address [%s]',
-            device.name,
-            pd_add)
-    logger.debug('Updated personal device list: %s', p_devices)
-    # Return configured objects to main program
-    return p_devices
+    return devices
 
 
 # Config Google Calendar Connection *******************************************
@@ -189,9 +119,8 @@ def configure_all(filename):
     """ Gather application configuration data from config.ini file """
     logger = configure_logger(filename)
     database = configure_database(filename, logger)
-    a_devices = configure_Adevice(filename, logger)
-    p_devices = configure_Pdevice(filename, logger)
+    devices = configure_device(filename, logger)
     credentials = configure_calendar(filename, logger)
     logger.debug('Finished call to configuration function')
     # Return results to main program
-    return (logger, database, p_devices, a_devices, credentials)
+    return (logger, database, devices, credentials)

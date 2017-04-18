@@ -35,6 +35,15 @@ class Adevice(typing.NamedTuple):
     last_seen: str
 
 
+class Device(typing.NamedTuple):
+    name: str
+    devtype: str
+    address: str
+    status: str
+    status_mem: str
+    last_seen: str    
+
+
 class Credentials(typing.NamedTuple):
     username: str
     password: str

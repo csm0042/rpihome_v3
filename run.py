@@ -27,7 +27,7 @@ def main():
     """ main function for the rpihome application """
 
     # Get configuration from INI file for this run
-    logger, database, p_devices, a_devices, cal_credentials = (
+    logger, database, devices, cal_credentials = (
         rpihome_v3.configure_all('rpihome_v3//config.ini'))
     logger.info(
         'RpiHome-v3 Application Started @ [%s] ******************************',
@@ -47,10 +47,8 @@ def main():
         event_loop.run_until_complete(
             asyncio.gather(
                 rpihome_v3.update_schedule(cal_credentials, True, logger),
-                rpihome_v3.update_Pdevice_status(p_devices, True, logger),
-                rpihome_v3.update_Adevice_status(a_devices, True, logger),
-                rpihome_v3.update_Adevice_state(a_devices, p_devices, schedule, True, logger),
-                rpihome_v3.log_status_updates(database, a_devices, p_devices, True, logger)
+                rpihome_v3.update_device_status(devices, True, logger),
+                rpihome_v3.log_status_updates(database, devices, True, logger)
                 ))
         logger.info('Tasks are started')
     except KeyboardInterrupt:
