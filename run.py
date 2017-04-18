@@ -47,7 +47,8 @@ def main():
         event_loop.run_until_complete(
             asyncio.gather(
                 rpihome_v3.update_schedule(cal_credentials, True, logger),
-                rpihome_v3.update_device_status(devices, True, logger),
+                rpihome_v3.update_adevice_status(devices, True, logger),
+                rpihome_v3.update_pdevice_status(devices, True, logger),
                 rpihome_v3.log_status_updates(database, devices, True, logger)
                 ))
         logger.info('Tasks are started')

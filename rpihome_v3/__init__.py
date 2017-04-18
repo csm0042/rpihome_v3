@@ -12,6 +12,7 @@ from .motion import *
 from .persistance import *
 from .ping import *
 from .tuples import *
+from .wemo import *
 
 
 # Authorship Info *************************************************************

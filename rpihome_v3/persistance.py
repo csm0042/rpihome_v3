@@ -42,7 +42,8 @@ async def log_status_updates(database, devices, loop, logger):
                         cursor.close()
                         devices[index] = rpihome_v3.Device(
                             device.name, device.devtype, device.address,
-                            device.status, device.status, device.last_seen)
+                            device.status, device.status, device.last_seen,
+                            device.cmd, device.cmd_mem, device.rule)
                 elif device.devtype == 'personal':
                     if device.status != device.status_mem:
                         cursor = database.cursor()
@@ -55,7 +56,8 @@ async def log_status_updates(database, devices, loop, logger):
                         cursor.close()
                         devices[index] = rpihome_v3.Device(
                             device.name, device.devtype, device.address,
-                            device.status, device.status, device.last_seen)
+                            device.status, device.status, device.last_seen,
+                            device.cmd, device.cmd_mem, device.rule)
             # Do not loop when status flag is false
             if loop is False:
                 logger.debug('Breaking out of log_status_updates loop')

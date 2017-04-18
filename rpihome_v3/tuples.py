@@ -24,7 +24,10 @@ class Device(typing.NamedTuple):
     address: str
     status: str
     status_mem: str
-    last_seen: str    
+    last_seen: str
+    cmd: str
+    cmd_mem: str
+    rule: str  
 
 
 class Credentials(typing.NamedTuple):
