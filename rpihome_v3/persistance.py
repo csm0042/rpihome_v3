@@ -2,7 +2,7 @@
 """ mysql.py: Class and methods to connect to and query a mySQL database
 """
 
-# Import Required Libraries (Standard, Third Party, Local) ************************************************************
+# Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
 import copy
 import logging
@@ -27,7 +27,21 @@ async def log_status_updates(database, a_devices, p_devices, loop, logger):
     """ test """
     while True:
         try:
-            # Ping each device in-turn
+            # Log changes of state in automation device status
+            for index, device in enumerate(a_devices):
+                if device.status != device.status_mem:
+                    cursor = database.cursor()
+                    query = ("INSERT INTO device_log "
+                             "(device, status, timestamp) "
+                             "VALUES (%s, %s, %s)")
+                    data = (device.name, device.status, device.last_seen)
+                    cursor.execute(query, data)
+                    database.commit()
+                    cursor.close()
+                    a_devices[index] = rpihome_v3.Adevice(
+                        device.name, device.devtype, device.address,
+                        device.status, device.status, device.last_seen)
+            # Log changes of state in personal device status
             for index, device in enumerate(p_devices):
                 if device.status != device.status_mem:
                     cursor = database.cursor()
@@ -38,7 +52,9 @@ async def log_status_updates(database, a_devices, p_devices, loop, logger):
                     cursor.execute(query, data)
                     database.commit()
                     cursor.close()
-                    p_devices[index] = rpihome_v3.Pdevice(device.name, device.address, device.status, device.status, device.last_seen)
+                    p_devices[index] = rpihome_v3.Pdevice(
+                        device.name, device.address,
+                        device.status, device.status, device.last_seen)
             # Do not loop when status flag is false
             if loop is False:
                 logger.debug('Breaking out of update_Pdevice_status loop')
@@ -48,7 +64,7 @@ async def log_status_updates(database, a_devices, p_devices, loop, logger):
                 'Sleeping update_Pdevice_status task for 10 seconds before running again')
             await asyncio.sleep(10)
         except KeyboardInterrupt:
+            logging.debug('Closing connection to database')
+            database.close()
             logging.debug('Stopping update_Pdevice_status process loop')
             break
-
-

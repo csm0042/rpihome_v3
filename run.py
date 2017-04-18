@@ -8,7 +8,6 @@ import asyncio
 import datetime
 import logging
 import typing
-
 import rpihome_v3
 
 
@@ -55,6 +54,8 @@ def main():
                 ))
         logger.info('Tasks are started')
     except KeyboardInterrupt:
+        logger.debug('Closing connection to database')
+        database.close()
         pass
     finally:
         logger.info(
