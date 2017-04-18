@@ -18,23 +18,6 @@ __status__ = "Development"
 
 
 # Defined named tuples for various object types *******************************
-class Pdevice(typing.NamedTuple):
-    name: str
-    address: str
-    status: str
-    status_mem: str
-    last_seen: str
-
-
-class Adevice(typing.NamedTuple):
-    name: str
-    devtype: str
-    address: str
-    status: str
-    status_mem: str
-    last_seen: str
-
-
 class Device(typing.NamedTuple):
     name: str
     devtype: str
