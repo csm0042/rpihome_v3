@@ -24,6 +24,7 @@ __status__ = "Development"
 # Update automation device status *********************************************
 async def update_adevice_status(devices, loop, logger):
     """ test """
+    sleep = 5
     while True:
         try:
             # Evaluate each device in turn
@@ -32,7 +33,7 @@ async def update_adevice_status(devices, loop, logger):
                 if device.devtype == "wemo_switch":
                     devices[index] = await rpihome_v3.wemo_status(
                         devices[index], logger)
-                await asyncio.sleep(2)
+                await asyncio.sleep(sleep)
 
             # Do not loop when status flag is false
             if loop is False:
@@ -40,11 +41,42 @@ async def update_adevice_status(devices, loop, logger):
                 break
             # Otherwise wait a pre-determined time period, then re-run the task
             logger.debug(
-                'Sleeping update_device_status task for '
-                '10 seconds before running again')
-            await asyncio.sleep(2)
+                'Sleeping update automation device status task for '
+                '%s seconds before running again', str(sleep))
+            await asyncio.sleep(sleep)
         except KeyboardInterrupt:
-            logging.debug('Stopping update_device_status process loop')
+            logging.debug(
+                'Stopping update automation device status process loop')
+            break
+            break
+
+
+# Update motion sensor status *************************************************
+async def update_mdevice_status(devices, loop, logger):
+    """ test """
+    sleep = 2
+    while True:
+        try:
+            # Evaluate each device in turn
+            for index, device in enumerate(devices):
+                # Personal devices get ping'd to detect if they are on
+                # the network or not
+                if device.devtype == 'motion_capture':
+                    devices[index] = await rpihome_v3.check_motion(
+                        devices[index], logger)
+
+            # Do not loop when status flag is false
+            if loop is False:
+                logger.debug('Breaking out of update_motion_status loop')
+                break
+            # Otherwise wait a pre-determined time period, then re-run the task
+            logger.debug(
+                'Sleeping update motion device status task for '
+                '%s seconds before running again', str(sleep))
+            await asyncio.sleep(sleep)
+        except KeyboardInterrupt:
+            logging.debug(
+                'Stopping update motion device status process loop')
             break
             break
 
@@ -52,6 +84,7 @@ async def update_adevice_status(devices, loop, logger):
 # Update personal device status ***********************************************
 async def update_pdevice_status(devices, loop, logger):
     """ test """
+    sleep = 15
     while True:
         try:
             # Evaluate each device in turn
@@ -68,10 +101,11 @@ async def update_pdevice_status(devices, loop, logger):
                 break
             # Otherwise wait a pre-determined time period, then re-run the task
             logger.debug(
-                'Sleeping update_device_status task for '
-                '10 seconds before running again')
-            await asyncio.sleep(15)
+                'Sleeping update personal device status task for '
+                '%s seconds before running again', str(sleep))
+            await asyncio.sleep(sleep)
         except KeyboardInterrupt:
-            logging.debug('Stopping update_device_status process loop')
+            logging.debug(
+                'Stopping update personal device status process loop')
             break
             break

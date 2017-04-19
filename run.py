@@ -10,7 +10,6 @@ import logging
 import typing
 import rpihome_v3
 
-
 # Authorship Info *************************************************************
 __author__ = "Christopher Maue"
 __copyright__ = "Copyright 2017, The RPi-Home Project"
@@ -48,6 +47,7 @@ def main():
             asyncio.gather(
                 #rpihome_v3.update_schedule(cal_credentials, True, logger),
                 rpihome_v3.update_adevice_status(devices, True, logger),
+                rpihome_v3.update_mdevice_status(devices, True, logger),
                 rpihome_v3.update_pdevice_status(devices, True, logger),
                 rpihome_v3.update_database(database, devices, True, logger)
                 ))

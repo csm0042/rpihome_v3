@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" automation.py:
+""" device_cmd.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
