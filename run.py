@@ -46,10 +46,10 @@ def main():
         logger.info('Call run_until_complete on task list')
         event_loop.run_until_complete(
             asyncio.gather(
-                rpihome_v3.update_schedule(cal_credentials, True, logger),
+                #rpihome_v3.update_schedule(cal_credentials, True, logger),
                 rpihome_v3.update_adevice_status(devices, True, logger),
                 rpihome_v3.update_pdevice_status(devices, True, logger),
-                rpihome_v3.log_status_updates(database, devices, True, logger)
+                rpihome_v3.update_database(database, devices, True, logger)
                 ))
         logger.info('Tasks are started')
     except KeyboardInterrupt:

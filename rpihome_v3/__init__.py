@@ -6,6 +6,7 @@
 from .automation import *
 from .calendar import *
 from .configure import *
+from .device_status import *
 from .log_support import *
 from .motion import *
 #from nest import *

@@ -23,7 +23,7 @@ __status__ = "Development"
 
 
 # Main event loop function ****************************************************
-async def log_status_updates(database, devices, loop, logger):
+async def update_database(database, devices, loop, logger):
     """ test """
     while True:
         try:

@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" device_ping.py:   
+""" ping.py:  Async ping function for a device at a given address
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
@@ -24,11 +24,14 @@ __status__ = "Development"
 
 
 # Ping Function ***************************************************************
-async def ping_device(address, logger=None):
-    """ Pings a device with a given address and returns a True/False based
-    upon whether or not the device responded  """
-    # Configure local logging
-    logger = logger or logging.getLogger(__name__)
+async def ping_device(device, logger):
+    # Personal devices get ping'd to detect if they are on the network or not
+    logger.debug(
+        'Pinging device [%s] at [%s], original status [%s / %s]',
+        device.name,
+        device.address,
+        device.status,
+        device.last_seen)
 
     # Set ping command flags based upon operating system used
     if platform.system().lower() == "windows":
@@ -39,15 +42,36 @@ async def ping_device(address, logger=None):
         logger.debug('Attempting to ping on Non-Windows platform')
 
     # Perform ping
-    logger.debug('Performing ping to address [%s]', address)
-    result = os.system("ping " + ping_flags + " " + address)
+    logger.debug('Performing ping to address [%s]', device.address)
+    result = os.system("ping " + ping_flags + " " + device.address)
     logger.debug('Ping returned result [%s]', str(result))
 
     # evaluate result
     if result == 0:
-        return True
+        device = rpihome_v3.Device(
+            device.name,
+            device.devtype,
+            device.address,
+            'true',
+            device.status_mem,
+            str(datetime.datetime.now()),
+            device.cmd,
+            device.cmd_mem,
+            device.rule
+            )
     else:
-        return False
-
-
-
+        device = rpihome_v3.Device(
+            device.name,
+            device.devtype,
+            device.address,
+            'false',
+            device.status_mem,
+            device.last_seen,
+            device.cmd,
+            device.cmd_mem,
+            device.rule
+            )
+    logger.debug(
+        'Updating device status to [%s / %s]',
+        device.status, device.last_seen)
+    return device
