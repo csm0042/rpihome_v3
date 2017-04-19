@@ -85,12 +85,12 @@ def configure_device(filename, logger):
                 config_file['DEVICES'][device_id + '_name'],
                 config_file['DEVICES'][device_id + '_devtype'],
                 config_file['DEVICES'][device_id + '_address'],
-                'None',
+                '',
                 '',
                 str(datetime.datetime.now()),
                 '',
                 '',
-                ''))
+                config_file['DEVICES'][device_id + '_rule']))
             logger.debug(
                 'Device %s added to automation device list',
                 (config_file['DEVICES'][device_id + '_name']))
