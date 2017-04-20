@@ -22,7 +22,7 @@ __status__ = "Development"
 
 
 # Update automation device status *********************************************
-async def update_adevice_status(devices, loop, logger):
+async def update_adevice_status(devices, wemo, loop, logger):
     """ test """
     sleep = 5
     while True:
@@ -31,8 +31,8 @@ async def update_adevice_status(devices, loop, logger):
             for index, device in enumerate(devices):
                 # Wemo devices are querried for the current state
                 if device.devtype == "wemo_switch":
-                    devices[index] = await rpihome_v3.wemo_status(
-                        devices[index], logger)
+                    devices[index], wemo = await rpihome_v3.wemo_status(
+                        devices[index], wemo, logger)
                 await asyncio.sleep(sleep)
 
             # Do not loop when status flag is false
