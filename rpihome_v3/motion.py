@@ -9,6 +9,7 @@
 import asyncio
 import datetime
 import os
+import shutil
 import rpihome_v3
 
 
@@ -29,17 +30,27 @@ async def check_motion(device, logger):
     this location by a separate process whenever a security camera detects
     motion """
     timeout = 2 #minutes
-    dir_contents = os.listdir(device.address)
-    if len(dir_contents) > 0:
+    capture_count = 0
+    capture_dir = device.address
+    archive_dir = os.path.join(device.address, 'archive')
+    # Search capture dir for capture files
+    dir_contents = os.listdir(capture_dir)
+    # Count files in found contents (ignore directories)
+    for item in dir_contents:
+        if os.path.isfile(os.path.join(device.address, item)):
+            capture_count += 1
+    if capture_count > 0:
         logger.debug(
             'Motion capture found in search folder. ' +
             'Setting motion detection to True')
         for file in dir_contents:
             try:
-                os.remove(os.path.join(device.address, file))
-                logger.debug('Successfully moved capture file')
+                if os.path.isfile(os.path.join(capture_dir, file)):
+                    shutil.move(os.path.join(capture_dir, file), os.path.join(archive_dir, file))
+                    #os.remove(os.path.join(device.address, file))
+                    logger.debug('Successfully moved capture file')
             except:
-                logger.debug('Oh crap, couldn\'t remove the requested file')
+                logger.warning('Oh crap, couldn\'t remove the requested file')
             # Update device record
             device = rpihome_v3.Device(
                 device.name, device.devtype, device.address,
