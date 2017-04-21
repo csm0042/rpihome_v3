@@ -9,7 +9,7 @@ from .device_cmd import *
 from .device_status import *
 from .log_support import *
 from .motion import *
-#from nest import *
+from .nest import *
 from .persistance import *
 from .ping import *
 from .tuples import *

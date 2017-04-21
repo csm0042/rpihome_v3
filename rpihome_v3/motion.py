@@ -44,13 +44,7 @@ async def check_motion(device, logger):
             'Motion capture found in search folder. ' +
             'Setting motion detection to True')
         for file in dir_contents:
-            try:
-                if os.path.isfile(os.path.join(capture_dir, file)):
-                    shutil.move(os.path.join(capture_dir, file), os.path.join(archive_dir, file))
-                    #os.remove(os.path.join(device.address, file))
-                    logger.debug('Successfully moved capture file')
-            except:
-                logger.warning('Oh crap, couldn\'t remove the requested file')
+            rpihome_v3.move_file(file, capture_dir, archive_dir, logger)
             # Update device record
             device = rpihome_v3.Device(
                 device.name, device.devtype, device.address,
@@ -60,9 +54,9 @@ async def check_motion(device, logger):
     # the last find
     elif datetime.datetime.now() >= (
             datetime.datetime.strptime(device.last_seen[0:18], '%Y-%m-%d %H:%M:%S') +
-            datetime.timedelta(minutes=-timeout)):
+            datetime.timedelta(minutes=timeout)):
         logger.debug(
-            'No captures seen in the timeout period.' +
+            'No captures seen in the timeout period.  ' +
             'Motion detection status set back to false')
         device = rpihome_v3.Device(
             device.name, device.devtype, device.address,
@@ -78,3 +72,15 @@ async def check_motion(device, logger):
             device.status, device.status_mem, device.last_seen,
             device.cmd, device.cmd_mem, device.rule)
     return device
+
+
+def move_file(filename, source_dir, dest_dir, logger):
+    try:
+        if os.path.isfile(os.path.join(source_dir, filename)):
+            shutil.move(
+                os.path.join(source_dir, filename),
+                os.path.join(dest_dir, filename)
+                )
+            logger.debug('Successfully moved capture file')
+    except:
+        logger.warning('Oh crap, couldn\'t remove the requested file')

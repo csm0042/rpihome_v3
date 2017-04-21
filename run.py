@@ -26,7 +26,7 @@ def main():
     """ main function for the rpihome application """
 
     # Get configuration from INI file for this run
-    logger, database, devices, cal_credentials = (
+    logger, credentials, database, devices = (
         rpihome_v3.configure_all('rpihome_v3//config.ini'))
     logger.info(
         'RpiHome-v3 Application Started @ [%s] ******************************',
@@ -36,13 +36,14 @@ def main():
     # Create empty list for wemo devices (helps prevent having to run
     # multiple discoveries)
     wemo = []
+    nest = []
 
     # Get main event loop *****************************************************
     logger.info('Getting main event loop')
     event_loop = asyncio.get_event_loop()
 
     # Perform initial schedule query ******************************************
-    schedule = rpihome_v3.update_schedule(cal_credentials, False, logger)
+    schedule = rpihome_v3.update_schedule(credentials, False, logger)
 
     # Run event loop until keyboard interrupt received ************************
     try:
@@ -51,6 +52,7 @@ def main():
             asyncio.gather(
                 #rpihome_v3.update_schedule(cal_credentials, True, logger),
                 rpihome_v3.update_adevice_status(devices, wemo, True, logger),
+                rpihome_v3.update_enviro_status(devices, nest, credentials, True, logger),
                 rpihome_v3.update_mdevice_status(devices, True, logger),
                 rpihome_v3.update_pdevice_status(devices, True, logger),
                 rpihome_v3.update_database(database, devices, True, logger)

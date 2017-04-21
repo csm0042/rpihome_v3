@@ -31,7 +31,7 @@ async def update_adevice_status(devices, wemo, loop, logger):
             for index, device in enumerate(devices):
                 # Wemo devices are querried for the current state
                 if device.devtype == "wemo_switch":
-                    devices[index], wemo = await rpihome_v3.wemo_status(
+                    devices[index], wemo = await rpihome_v3.wemo_read_status(
                         devices[index], wemo, logger)
                 await asyncio.sleep(sleep)
 
@@ -107,5 +107,35 @@ async def update_pdevice_status(devices, loop, logger):
         except KeyboardInterrupt:
             logging.debug(
                 'Stopping update personal device status process loop')
+            break
+            break
+
+
+# Update enviro device status *************************************************
+async def update_enviro_status(devices, nest, credentials, loop, logger):
+    """ test """
+    sleep = 300
+    while True:
+        try:
+            # Evaluate each device in turn
+            for index, device in enumerate(devices):
+                # Personal devices get ping'd to detect if they are on
+                # the network or not
+                if device.devtype == 'nest':
+                    devices[index] = await rpihome_v3.current_conditions(
+                        devices[index], nest, credentials, logger)
+
+            # Do not loop when status flag is false
+            if loop is False:
+                logger.debug('Breaking out of update_enviro_status loop')
+                break
+            # Otherwise wait a pre-determined time period, then re-run the task
+            logger.debug(
+                'Sleeping update enviro status task for '
+                '%s seconds before running again', str(sleep))
+            await asyncio.sleep(sleep)
+        except KeyboardInterrupt:
+            logging.debug(
+                'Stopping update enviro status process loop')
             break
             break

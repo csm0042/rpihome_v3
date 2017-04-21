@@ -21,8 +21,24 @@ __email__ = "csmaue@gmail.com"
 __status__ = "Development"
 
 
+# Wemo discover / connect function ********************************************
+async def wemo_discover(device, logger):
+    # Attempt to discover wemo device
+    try:
+        wemo_device = None
+        wemo_device = pywemo.discovery.device_from_description(
+            ('http://%s:%i/setup.xml',
+             device.address,
+             pywemo.ouimeaux_device.probe_wemo(device.address)
+            ),
+            None)
+        return wemo_device
+    except:
+        return None
+
+
 # Wemo status check function **************************************************
-async def wemo_status(device, wemo_list, logger):
+async def wemo_read_status(device, wemo_list, logger):
     # Wemo devices get a status query message sent to detect if they are
     # on the network or not and what their current state is
     logger.debug(
@@ -39,7 +55,7 @@ async def wemo_status(device, wemo_list, logger):
 
     # Point to existing list record or recently discovered device
     if result == None:
-        wemo_device = await discover(device, logger)
+        wemo_device = await wemo_discover(device, logger)
     else:
         wemo_device = wemo_list[result]
 
@@ -67,18 +83,3 @@ async def wemo_status(device, wemo_list, logger):
             status, device.status_mem, str(datetime.datetime.now()),
             device.cmd, device.cmd_mem, device.rule)
     return device, wemo_list
-
-
-async def discover(device, logger):
-    # Attempt to discover wemo device
-    try:
-        wemo_device = None
-        wemo_device = pywemo.discovery.device_from_description(
-            ('http://%s:%i/setup.xml',
-             device.address,
-             pywemo.ouimeaux_device.probe_wemo(device.address)
-            ),
-            None)
-        return wemo_device
-    except:
-        return None

@@ -40,19 +40,36 @@ def configure_logger(filename):
     return logger
 
 
-# Config Database Connection Function *****************************************
-def configure_database(filename, logger):
+# Obtain Credentials **********************************************************
+def configure_credentials(filename, logger):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
+    # Read credential info from file
+    try:
+        credentials = config_file['CREDENTIALS']['file']
+        logger.debug('Credentails file found')
+    except:
+        logger.error('No credentials file found')
+    # Return configured objects to main program
+    return credentials
+
+
+# Config Database Connection Function *****************************************
+def configure_database(filename, credentials, logger):
+    # Define connection to configuration file
+    config_file = configparser.ConfigParser()
+    config_file.read(filename)
+    credential_file = configparser.ConfigParser()
+    credential_file.read(credentials)
     # Set up database connection
     try:
         database = mysql.connector.connect(
             host=config_file['DATABASE']['host'],
             port=config_file['DATABASE']['port'],
             database=config_file['DATABASE']['schema'],
-            user=config_file['DATABASE']['user'],
-            password=config_file['DATABASE']['password'])
+            user=credential_file['DATABASE']['username'],
+            password=credential_file['DATABASE']['password'])
         logger.debug("Successfully connected to database")
     except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -101,27 +118,13 @@ def configure_device(filename, logger):
     return devices
 
 
-# Config Google Calendar Connection *******************************************
-def configure_calendar(filename, logger):
-    # Define connection to configuration file
-    config_file = configparser.ConfigParser()
-    config_file.read(filename)
-    # Read credential info from file
-    credentials = rpihome_v3.Credentials(
-        config_file['CALENDAR']['username'],
-        config_file['CALENDAR']['password'])
-    logger.debug('Credentails obtained from INI file')
-    # Return configured objects to main program
-    return credentials
-
-
 # Run all configuration functions in-turn *************************************
 def configure_all(filename):
     """ Gather application configuration data from config.ini file """
     logger = configure_logger(filename)
-    database = configure_database(filename, logger)
+    credentials = configure_credentials(filename, logger)
+    database = configure_database(filename, credentials, logger)
     devices = configure_device(filename, logger)
-    credentials = configure_calendar(filename, logger)
     logger.debug('Finished call to configuration function')
     # Return results to main program
-    return (logger, database, devices, credentials)
+    return (logger, credentials, database, devices)

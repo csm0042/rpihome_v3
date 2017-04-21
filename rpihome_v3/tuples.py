@@ -28,8 +28,3 @@ class Device(typing.NamedTuple):
     cmd: str
     cmd_mem: str
     rule: str  
-
-
-class Credentials(typing.NamedTuple):
-    username: str
-    password: str
