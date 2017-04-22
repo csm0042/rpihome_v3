@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-""" tuples.py:
+""" tuples.py
+
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
