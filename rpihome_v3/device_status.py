@@ -122,7 +122,7 @@ async def update_enviro_status(devices, nest, credentials, loop, logger):
                 # Personal devices get ping'd to detect if they are on
                 # the network or not
                 if device.devtype == 'nest':
-                    devices[index] = await rpihome_v3.current_conditions(
+                    devices[index], nest = await rpihome_v3.current_conditions(
                         devices[index], nest, credentials, logger)
 
             # Do not loop when status flag is false
