@@ -27,8 +27,10 @@ class TestNest(unittest.TestCase):
         async def go():
             self.nest_device = await rpihome_v3.connect_to_nest(
                 self.device, self.credentials, self.logger)
+            for self.structure in self.nest_device.structures:
+                logging.debug('structure %s', self.structure.name)
+                logging.debug('away %s', self.structure.away)
         self.loop.run_until_complete(go())
-        print(self.nest_device)
         self.assertNotEqual(self.nest_device, None)
 
 

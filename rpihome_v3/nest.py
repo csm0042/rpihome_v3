@@ -38,7 +38,7 @@ async def connect_to_nest(device, credentials, logger):
     client_pin = credential_file['NEST']['client_pin']
     access_token_cache_file = credential_file['NEST']['access_token_cache_file']
 
-    # Login to Nest account
+    # Create connection to Nest API
     logger.debug("Attempting to connect to NEST account")
     try:
         nest_device = nest.Nest(
@@ -48,22 +48,23 @@ async def connect_to_nest(device, credentials, logger):
         logger.debug('Nest instance created')
     except:
         logger.debug('Error creating NEST instance')
-    """
+
+    # Authorize connection
     if nest_device.authorization_required:
-        logger.debug(
-            'Need to authorize via online pin')
+        logger.debug('Need to authorize via online pin')
+
+        if len(client_pin) > 0:
+            logger.debug('Pin found in config file. Requesting token')
+            nest_device.request_token(client_pin)
+            logger.debug('Pin Sent')
+
         if len(client_pin) <= 0:
             logger.warning(
                 'Go to [%s] to authorize, then enter pin into configuration file',
-                authorize_url)
-        else:
-            logger.debug('Sending pin and requesting auth token file')
-            nest_device.request_token(client_pin)
-            logger.debug('Pin sent')
+                nest_device.authorize_url)
     else:
-        logger.debug('Using existing auth token file')
-        logger.debug("Connection successful")
-        """
+        logger.debug('Did not need to bother with pin this time')
+    # Return result
     return nest_device
 
 
