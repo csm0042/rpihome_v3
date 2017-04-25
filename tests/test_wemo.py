@@ -11,6 +11,17 @@ if __name__ == "__main__": sys.path.append("..")
 import rpihome_v3
 
 
+# Authorship Info *************************************************************
+__author__ = "Christopher Maue"
+__copyright__ = "Copyright 2017, The RPi-Home Project"
+__credits__ = ["Christopher Maue"]
+__license__ = "GPL"
+__version__ = "1.0.0"
+__maintainer__ = "Christopher Maue"
+__email__ = "csmaue@gmail.com"
+__status__ = "Development"
+
+
 # Define test class ***********************************************************
 class TestWemo(unittest.TestCase):
     """ unittests for logger.py """
@@ -50,12 +61,15 @@ class TestWemo(unittest.TestCase):
             self.wemo_device, self.wemo_list = await rpihome_v3.wemo_read_status(
                 self.device[0], self.wemo_list, self.logger)
             self.assertEqual(self.wemo_device.status, "0")
+            self.assertEqual(len(self.wemo_list), 1)
             self.wemo_device, self.wemo_list = await rpihome_v3.wemo_read_status(
                 self.device[1], self.wemo_list, self.logger)
             self.assertEqual(self.wemo_device.status, "0")
+            self.assertEqual(len(self.wemo_list), 2)
             self.wemo_device, self.wemo_list = await rpihome_v3.wemo_read_status(
                 self.device[2], self.wemo_list, self.logger)
             self.assertEqual(self.wemo_device.status, 'offline')
+            self.assertEqual(len(self.wemo_list), 2)
         self.loop.run_until_complete(go())
         self.loop.close()
 
