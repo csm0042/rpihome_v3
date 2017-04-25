@@ -30,8 +30,10 @@ class TestNest(unittest.TestCase):
             for self.structure in self.nest_device.structures:
                 logging.debug('structure %s', self.structure.name)
                 logging.debug('away %s', self.structure.away)
+            self.assertNotEqual(self.nest_device, None)
         self.loop.run_until_complete(go())
-        self.assertNotEqual(self.nest_device, None)
+        self.loop.close()
+
 
 
 

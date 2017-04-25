@@ -37,33 +37,49 @@ async def connect_to_nest(device, credentials, logger):
     authorize_url = credential_file['NEST']['authorization_url']
     client_pin = credential_file['NEST']['client_pin']
     access_token_cache_file = credential_file['NEST']['access_token_cache_file']
+    product_version = 1337
+    error = False
 
     # Create connection to Nest API
-    logger.debug("Attempting to connect to NEST account")
+    logger.debug("Attempting to connect to Nest API")
     try:
         nest_device = nest.Nest(
             client_id=client_id,
             client_secret=client_secret,
-            access_token_cache_file=access_token_cache_file)
+            access_token_cache_file=access_token_cache_file,
+            product_version=product_version)
         logger.debug('Nest instance created')
+        logger.debug('Client Version out of date: %s',
+                     nest_device.client_version_out_of_date)
+        logger.debug('Never Authorized: %s',
+                     nest_device.never_authorized)
+        logger.debug('Invalid token: %s',
+                     nest_device.invalid_access_token)
+        
     except:
         logger.debug('Error creating NEST instance')
+        error = True
 
     # Authorize connection
-    if nest_device.authorization_required:
-        logger.debug('Need to authorize via online pin')
+    if error is False:
+        logger.debug('Checking if pin is required')
+        if nest_device.authorization_required:
+            logger.debug('Need to authorize via online pin')
 
-        if len(client_pin) > 0:
-            logger.debug('Pin found in config file. Requesting token')
-            nest_device.request_token(client_pin)
-            logger.debug('Pin Sent')
+            if len(client_pin) > 0:
+                logger.debug('Pin found in config file. Requesting token')
+                nest_device.request_token(client_pin)
+                logger.debug('Pin Sent')
 
-        if len(client_pin) <= 0:
-            logger.warning(
-                'Go to [%s] to authorize, then enter pin into configuration file',
-                nest_device.authorize_url)
-    else:
-        logger.debug('Did not need to bother with pin this time')
+            if len(client_pin) <= 0:
+                logger.warning(
+                    'Go to [%s] to authorize, then enter pin into configuration file',
+                    nest_device.authorize_url)
+                client_pin = input("Please enter pin: ")
+                nest_device.request_token(client_pin)
+        else:
+            logger.debug('Did not need to bother with pin this time')
+
     # Return result
     return nest_device
 
