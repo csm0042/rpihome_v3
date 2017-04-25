@@ -7,6 +7,7 @@ import asyncio
 import copy
 import datetime
 import pywemo
+import re
 import rpihome_v3
 
 
@@ -23,17 +24,40 @@ __status__ = "Development"
 
 # Wemo discover / connect function ********************************************
 async def wemo_discover(device, logger):
-    # Attempt to discover wemo device
-    try:
-        wemo_device = None
-        wemo_device = pywemo.discovery.device_from_description(
-            ('http://%s:%i/setup.xml',
-             device.address,
-             pywemo.ouimeaux_device.probe_wemo(device.address)
-            ),
-            None)
-        return wemo_device
-    except:
+    """ discovers wemo device on network based upon known IP address """
+    # Regular expression for a valid IPv4 address
+    ipv4_regex = r'\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.' \
+                 r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.' \
+                 r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.' \
+                 r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b'
+
+    # Check if valid IP address was provided in device attributes
+    if re.fullmatch(ipv4_regex, device.address) is not None:
+        logger.debug('Valid IP address provided')
+        # Attempt to discover wemo device
+        try:
+            wemo_device = None
+            wemo_port = pywemo.ouimeaux_device.probe_wemo(device.address)
+            logger.debug('Device discovered at port %s', wemo_port)
+        except:
+            wemo_port = None
+            logger.debug('Failed to discover port for [%s]', device.name)
+    else:
+        wemo_port = None
+        logger.debug('Invalid IP address in device attributes')
+
+    # If port was found, create url for device and run discovery function
+    if wemo_port is not None:
+        wemo_url = 'http://%s:%i/setup.xml' % (device.address, wemo_port)
+        logger.debug('Resulting URL: [%s]', wemo_url)
+        try:
+            wemo_device = pywemo.discovery.device_from_description(wemo_url, None)
+            logger.debug('[%s] discovery successful', device.name)
+            return wemo_device
+        except:
+            logger.debug('[%s] discovery failed', device.name)
+            return None
+    else:
         return None
 
 
