@@ -7,7 +7,8 @@ import asyncio
 import logging
 import sys
 import unittest
-if __name__ == "__main__": sys.path.append("..")
+if __name__ == "__main__":
+    sys.path.append("..")
 import rpihome_v3
 
 
@@ -30,7 +31,7 @@ class TestWemo(unittest.TestCase):
         self.device = []
         self.wemo_list = []
         self.device.append(rpihome_v3.Device(
-            'fylt1', 'wemo_switch', '192.168.86.21', '', '', '', '', '', ''))
+            'br1lt2', 'wemo_switch', '192.168.86.28', '', '', '', '', '', ''))
         self.device.append(rpihome_v3.Device(
             'bylt1', 'wemo_switch', '192.168.86.22', '', '', '', '', '', ''))
         self.device.append(rpihome_v3.Device(
@@ -44,7 +45,7 @@ class TestWemo(unittest.TestCase):
         async def go():
             self.wemo_device = await rpihome_v3.wemo_discover(
                 self.device[0], self.logger)
-            self.assertEqual(self.wemo_device.name, "fylt1")
+            self.assertEqual(self.wemo_device.name, "br1lt2")
             self.wemo_device = await rpihome_v3.wemo_discover(
                 self.device[1], self.logger)
             self.assertEqual(self.wemo_device.name, "bylt1")
@@ -70,6 +71,34 @@ class TestWemo(unittest.TestCase):
                 self.device[2], self.wemo_list, self.logger)
             self.assertEqual(self.wemo_device.status, 'offline')
             self.assertEqual(len(self.wemo_list), 2)
+        self.loop.run_until_complete(go())
+        self.loop.close()
+
+
+    def test_wemo_set_on(self):
+        """ tests the functionality of the wemo read-status function """
+        async def go():
+            logger.debug('*******Starting set on test*********')
+            self.wemo_device, self.wemo_list = await rpihome_v3.wemo_set_on(
+                self.device[0], self.wemo_list, self.logger)
+            self.assertEqual(self.wemo_device.status, "1")
+            self.wemo_device, self.wemo_list = await rpihome_v3.wemo_read_status(
+                self.device[0], self.wemo_list, self.logger)
+            self.assertEqual(self.wemo_device.status, "1")
+        self.loop.run_until_complete(go())
+        self.loop.close()
+
+
+    def test_wemo_set_off(self):
+        """ tests the functionality of the wemo read-status function """
+        async def go():
+            logger.debug('*******Starting set off test*********')
+            self.wemo_device, self.wemo_list = await rpihome_v3.wemo_set_off(
+                self.device[0], self.wemo_list, self.logger)
+            self.assertEqual(self.wemo_device.status, "0")
+            self.wemo_device, self.wemo_list = await rpihome_v3.wemo_read_status(
+                self.device[0], self.wemo_list, self.logger)
+            self.assertEqual(self.wemo_device.status, "0")
         self.loop.run_until_complete(go())
         self.loop.close()
 
