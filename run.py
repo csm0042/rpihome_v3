@@ -55,6 +55,7 @@ def main():
                 rpihome_v3.update_enviro_status(devices, nest, credentials, True, logger),
                 rpihome_v3.update_mdevice_status(devices, True, logger),
                 rpihome_v3.update_pdevice_status(devices, True, logger),
+                rpihome_v3.update_adevice_cmd(devices, wemo, True, logger),
                 rpihome_v3.update_database(database, devices, True, logger)
                 ))
         logger.info('Tasks are started')
