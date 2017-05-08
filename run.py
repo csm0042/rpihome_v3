@@ -38,6 +38,14 @@ def main():
     wemo = []
     nest = []
 
+    # Create initial sunrise and sunset values before updating them
+    srise, snoon, sset = rpihome_v3.calc_sun_rise_and_set(
+        datetime.datetime.now(),
+        -5,
+        38.566268,
+        -90.409878,
+        logger)
+
     # Get main event loop *****************************************************
     logger.info('Getting main event loop')
     event_loop = asyncio.get_event_loop()
@@ -52,10 +60,12 @@ def main():
             asyncio.gather(
                 #rpihome_v3.update_schedule(cal_credentials, True, logger),
                 rpihome_v3.update_adevice_status(devices, wemo, True, logger),
-                rpihome_v3.update_enviro_status(devices, nest, credentials, True, logger),
+                #rpihome_v3.update_enviro_status(devices, nest, credentials, True, logger),
                 rpihome_v3.update_mdevice_status(devices, True, logger),
                 rpihome_v3.update_pdevice_status(devices, True, logger),
-                rpihome_v3.update_adevice_cmd(devices, wemo, True, logger),
+                rpihome_v3.update_sun(
+                    datetime.datetime.now(), -5, 38.566268, -90.409878, srise, sset, True, logger),
+                #rpihome_v3.update_adevice_cmd(devices, wemo, srise, ssetTrue, logger),
                 rpihome_v3.update_database(database, devices, True, logger)
                 ))
         logger.info('Tasks are started')

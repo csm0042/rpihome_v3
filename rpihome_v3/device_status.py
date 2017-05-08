@@ -33,6 +33,9 @@ async def update_adevice_status(devices, wemo, loop, logger):
                 if device.devtype == "wemo_switch":
                     devices[index], wemo = await rpihome_v3.wemo_read_status(
                         devices[index], wemo, logger)
+                    logger.debug(
+                        'Wemo device at index [%s] updated to [%s]',
+                        str(index), devices[index])
                 await asyncio.sleep(sleep)
 
             # Do not loop when status flag is false
@@ -64,7 +67,9 @@ async def update_mdevice_status(devices, loop, logger):
                 if device.devtype == 'motion_capture':
                     devices[index] = await rpihome_v3.check_motion(
                         devices[index], logger)
-
+                    logger.debug(
+                        'Motion device at index [%s] updated to [%s]',
+                        str(index), devices[index])
             # Do not loop when status flag is false
             if loop is False:
                 logger.debug('Breaking out of update_motion_status loop')
@@ -94,7 +99,9 @@ async def update_pdevice_status(devices, loop, logger):
                 if device.devtype == 'personal':
                     devices[index] = await rpihome_v3.ping_device(
                         devices[index], logger)
-
+                    logger.debug(
+                        'Personal device at index [%s] updated to [%s]',
+                        str(index), devices[index])
             # Do not loop when status flag is false
             if loop is False:
                 logger.debug('Breaking out of update_device_status loop')
@@ -124,7 +131,9 @@ async def update_enviro_status(devices, nest, credentials, loop, logger):
                 if device.devtype == 'nest':
                     devices[index], nest = await rpihome_v3.current_conditions(
                         devices[index], nest, credentials, logger)
-
+                    logger.debug(
+                        'Enviro device at index [%s] updated to [%s]',
+                        str(index), devices[index])
             # Do not loop when status flag is false
             if loop is False:
                 logger.debug('Breaking out of update_enviro_status loop')

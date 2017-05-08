@@ -3,11 +3,40 @@
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
+import asyncio
 import logging
 import datetime
 from math import cos, sin, acos, asin, tan
 from math import degrees as deg, radians as rad
 import rpihome_v3
+
+
+# Update automation device status *********************************************
+async def update_sun(when, offset, latitude, longitude, srise, sset, loop, logger):
+    """ test """
+    sleep = 3600
+    while True:
+        try:
+            # Calculate sun rise/set times for today's date
+            srise, snoon, sset = calc_sun_rise_and_set(
+                when, offset, latitude, longitude, logger)
+            logger.debug('Sunrise time set to [%s]', srise)
+            logger.debug('Sunset time set to [%s]', sset)
+
+            # Do not loop when status flag is false
+            if loop is False:
+                logger.debug('Breaking out of update_device_status loop')
+                break
+            # Otherwise wait a pre-determined time period, then re-run the task
+            logger.debug(
+                'Sleeping sun rise/set calculation task for '
+                '%s seconds before running again', str(sleep))
+            await asyncio.sleep(sleep)
+        except KeyboardInterrupt:
+            logging.debug(
+                'Stopping sun rise/set status process loop')
+            break
+            break
 
 
 # Perform sunrise/set calculations ********************************************
