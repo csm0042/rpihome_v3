@@ -51,7 +51,7 @@ def main():
     event_loop = asyncio.get_event_loop()
 
     # Perform initial schedule query ******************************************
-    schedule = rpihome_v3.update_schedule(credentials, False, logger)
+    #schedule = rpihome_v3.update_schedule(credentials, False, logger)
 
     # Run event loop until keyboard interrupt received ************************
     try:
@@ -59,13 +59,13 @@ def main():
         event_loop.run_until_complete(
             asyncio.gather(
                 #rpihome_v3.update_schedule(cal_credentials, True, logger),
-                rpihome_v3.update_adevice_status(devices, wemo, True, logger),
                 #rpihome_v3.update_enviro_status(devices, nest, credentials, True, logger),
+                rpihome_v3.update_adevice_status(devices, wemo, True, logger),
                 rpihome_v3.update_mdevice_status(devices, True, logger),
                 rpihome_v3.update_pdevice_status(devices, True, logger),
                 rpihome_v3.update_sun(
                     datetime.datetime.now(), -5, 38.566268, -90.409878, srise, sset, True, logger),
-                #rpihome_v3.update_adevice_cmd(devices, wemo, srise, ssetTrue, logger),
+                rpihome_v3.update_adevice_cmd(devices, wemo, srise, sset, True, logger),
                 rpihome_v3.update_database(database, devices, True, logger)
                 ))
         logger.info('Tasks are started')

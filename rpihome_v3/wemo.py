@@ -155,7 +155,7 @@ async def wemo_set_on(device, wemo_list, logger):
         device = rpihome_v3.Device(
             device.name, device.devtype, device.address,
             status, device.status_mem, str(datetime.datetime.now()),
-            device.cmd, device.cmd_mem, device.rule)
+            'on', device.cmd_mem, device.rule)
     return device, wemo_list
 
 
@@ -164,7 +164,7 @@ async def wemo_set_off(device, wemo_list, logger):
     # Wemo devices get a status query message sent to detect if they are
     # on the network or not and what their current state is
     logger.debug(
-        'Setting device [%s] at [%s], state to "on"',
+        'Setting device [%s] at [%s], state to "off"',
         device.name,
         device.address)
 
@@ -193,7 +193,7 @@ async def wemo_set_off(device, wemo_list, logger):
         device = rpihome_v3.Device(
             device.name, device.devtype, device.address,
             status, device.status_mem, str(datetime.datetime.now()),
-            device.cmd, device.cmd_mem, device.rule)
+            'off', device.cmd_mem, device.rule)
         # If device was not previously in wemo list, add it for next time
         if result == None:
             wemo_list.append(copy.copy(wemo_device))
