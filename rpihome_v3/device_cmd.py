@@ -34,7 +34,6 @@ async def update_adevice_cmd(devices, wemo, srise, sset, loop, logger):
                     devices[index], wemo = await rpihome_v3.dusk_to_dawn(
                         devices[index], wemo, srise, sset, logger)
 
-
             # Do not loop when status flag is false
             if loop is False:
                 logger.debug('Breaking out of update_device_status loop')

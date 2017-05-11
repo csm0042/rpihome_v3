@@ -102,6 +102,7 @@ async def update_pdevice_status(devices, loop, logger):
                     logger.debug(
                         'Personal device at index [%s] updated to [%s]',
                         str(index), devices[index])
+                await asyncio.sleep(sleep)
             # Do not loop when status flag is false
             if loop is False:
                 logger.debug('Breaking out of update_device_status loop')
