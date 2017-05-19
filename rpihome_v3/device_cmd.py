@@ -22,7 +22,7 @@ __status__ = "Development"
 
 
 # Device cmd logic ************************************************************
-async def update_adevice_cmd(devices, wemo, srise, sset, loop, logger):
+async def update_adevice_cmd(devices, wemo, sun, loop, logger):
     """ test """
     sleep = 5
     while True:
@@ -32,7 +32,7 @@ async def update_adevice_cmd(devices, wemo, srise, sset, loop, logger):
                 # Wemo devices are querried for the current state
                 if device.rule == "dusk to dawn":
                     devices[index], wemo = await rpihome_v3.dusk_to_dawn(
-                        devices[index], wemo, srise, sset, logger)
+                        devices[index], wemo, sun, logger)
 
             # Do not loop when status flag is false
             if loop is False:
@@ -51,17 +51,17 @@ async def update_adevice_cmd(devices, wemo, srise, sset, loop, logger):
 
 
 # Dusk to dawn function *******************************************************
-async def dusk_to_dawn(device, wemo, srise, sset, logger):
+async def dusk_to_dawn(device, wemo, sun, logger):
     """ test """
     # Turn on light if after sunset or before sunrise and not already on
-    if (datetime.datetime.now().time() < srise or
-            datetime.datetime.now().time() >= sset) and (
+    if (datetime.datetime.now().time() < sun.sunrise(datetime.datetime.now(), -5) or
+            datetime.datetime.now().time() >= sun.sunset(datetime.datetime.now(), -5)) and (
                 device.cmd.lower() != 'on'):
         logger.info('Turning on [%s] based on dusk to dawn rule', device.name)
         device, wemo = await rpihome_v3.wemo_set_on(device, wemo, logger)
     # Turn off light if after sunrise and before sunset and currently on
-    if (datetime.datetime.now().time() >= srise and
-            datetime.datetime.now().time() < sset and
+    if (datetime.datetime.now().time() >= sun.sunrise(datetime.datetime.now(), -5) and
+            datetime.datetime.now().time() < sun.sunset(datetime.datetime.now(), -5) and
             device.cmd.lower() != 'off'):
         logger.info('Turning off [%s] based on dusk to dawn rule', device.name)
         device, wemo = await rpihome_v3.wemo_set_off(device, wemo, logger)
