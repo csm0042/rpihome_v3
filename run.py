@@ -39,7 +39,7 @@ def main():
     nest = []
 
     # Create initial sunrise and sunset values before updating them
-    sun = rpihome_v3.Sun(38.566268, -90.409878, logger)
+    sun = rpihome_v3.Sun(38.566268, -90.409878, -5, logger)
 
     # Get main event loop *****************************************************
     logger.info('Getting main event loop')

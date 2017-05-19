@@ -54,14 +54,18 @@ async def update_adevice_cmd(devices, wemo, sun, loop, logger):
 async def dusk_to_dawn(device, wemo, sun, logger):
     """ test """
     # Turn on light if after sunset or before sunrise and not already on
-    if (datetime.datetime.now().time() < sun.sunrise(datetime.datetime.now(), -5) or
-            datetime.datetime.now().time() >= sun.sunset(datetime.datetime.now(), -5)) and (
-                device.cmd.lower() != 'on'):
+    if ((datetime.datetime.now().time() < sun.sunrise()
+         or
+         datetime.datetime.now().time() >= sun.sunset())
+            and
+            device.cmd.lower() != 'on'):
         logger.info('Turning on [%s] based on dusk to dawn rule', device.name)
         device, wemo = await rpihome_v3.wemo_set_on(device, wemo, logger)
     # Turn off light if after sunrise and before sunset and currently on
-    if (datetime.datetime.now().time() >= sun.sunrise(datetime.datetime.now(), -5) and
-            datetime.datetime.now().time() < sun.sunset(datetime.datetime.now(), -5) and
+    if ((datetime.datetime.now().time() >= sun.sunrise()
+         and
+         datetime.datetime.now().time() < sun.sunset())
+            and
             device.cmd.lower() != 'off'):
         logger.info('Turning off [%s] based on dusk to dawn rule', device.name)
         device, wemo = await rpihome_v3.wemo_set_off(device, wemo, logger)
