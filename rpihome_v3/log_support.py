@@ -31,8 +31,6 @@ def setup_log_handlers(name, debug_logfile, info_logfile):
     # Check if log files exist, create them if they don't
     os.makedirs(os.path.dirname(debug_logfile), exist_ok=True)
     os.makedirs(os.path.dirname(info_logfile), exist_ok=True)
-
-
     # Create desired handlers
     debug_handler = logging.handlers.TimedRotatingFileHandler(
         debug_logfile, when='d', interval=1, backupCount=7)
