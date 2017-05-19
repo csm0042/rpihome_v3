@@ -28,33 +28,27 @@ class TestSun(unittest.TestCase):
     """ unittests for logger.py """
     def setUp(self):
         self.logger = logging.getLogger(__name__)
-        self.sunrise_local, self.solarnoon_local, self.sunset_local = (
-            rpihome_v3.calc_sun_rise_and_set(
-                when=datetime.datetime.now(),
-                offset_hours=-5,
-                latitude=38.566,
-                longitude=-90.409,
-                logger=self.logger))
+        self.sun = rpihome_v3.Sun(38.566, -90.409, -5, self.logger)
 
 
     def test_sunrise(self):
         """ tests the functionality of the sunrise/sunset calc function """
-        self.logger.debug('Sunrise: %s', self.sunrise_local)
-        self.assertGreater(self.sunrise_local, datetime.time(4, 0))
+        self.logger.debug('Sunrise: %s', self.sun.sunrise())
+        self.assertGreater(self.sun.sunrise(), datetime.time(4, 0))
 
 
     def test_solarnoon(self):
         """ tests the functionality of the sunrise/sunset calc function """
-        self.logger.debug('Solarnoon: %s', self.solarnoon_local)
-        self.assertGreater(self.solarnoon_local, datetime.time(4, 0))
-        self.assertLess(self.solarnoon_local, datetime.time(16, 0))
+        self.logger.debug('Solarnoon: %s', self.sun.solarnoon())
+        self.assertGreater(self.sun.solarnoon(), datetime.time(4, 0))
+        self.assertLess(self.sun.solarnoon(), datetime.time(16, 0))
 
 
     def test_sunset(self):
         """ tests the functionality of the sunrise/sunset calc function """
-        self.logger.debug('Sunset: %s', self.sunset_local)
-        self.assertGreater(self.sunset_local, datetime.time(16, 0))
-        self.assertLess(self.sunset_local, datetime.time(22, 0))
+        self.logger.debug('Sunset: %s', self.sun.sunset())
+        self.assertGreater(self.sun.sunset(), datetime.time(16, 0))
+        self.assertLess(self.sun.sunset(), datetime.time(22, 0))
 
 
 if __name__ == "__main__":
