@@ -3,11 +3,11 @@
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
-from .calendar import *
 from .configure import *
 from .device_cmd import *
 from .device_status import *
 from .dst import *
+from .goog_cal import *
 from .log_support import *
 from .motion import *
 from .nest import *
