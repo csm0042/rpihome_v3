@@ -11,6 +11,17 @@ from math import degrees as deg, radians as rad
 import rpihome_v3
 
 
+# Authorship Info *************************************************************
+__author__ = "Christopher Maue"
+__copyright__ = "Copyright 2017, The RPi-Home Project"
+__credits__ = ["Christopher Maue"]
+__license__ = "GPL"
+__version__ = "1.0.0"
+__maintainer__ = "Christopher Maue"
+__email__ = "csmaue@gmail.com"
+__status__ = "Development"
+
+
 # Sun Class *******************************************************************
 class Sun(object):
     def __init__(self, latitude, longitude, offset_hours, logger):

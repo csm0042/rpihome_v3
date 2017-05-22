@@ -33,14 +33,23 @@ class TestGoogCal(unittest.TestCase):
     def test_read_data(self):
         """ test for credentials and data read """
         self.cal_object = rpihome_v3.GoogleCalSync(logger=self.logger)
-        self.events = self.cal_object.read_data(
+        self.cal_object.read_data(
             cal_id='r68pvu542kle1jm7jj9hjdp9o0@group.calendar.google.com')
-        for event in self.events:
+        for event in self.cal_object.events:
             print(
                 'Device [%s]  On for [%s]' %
                 (str(event['summary']),
                  str(event['start'].get('dateTime')))
                 )
+
+
+    def test_extract_start_time(self):
+        """ test start time extraction """
+        self.cal_object = rpihome_v3.GoogleCalSync(logger=self.logger)
+        self.cal_object.read_data(
+            cal_id='r68pvu542kle1jm7jj9hjdp9o0@group.calendar.google.com')
+        for event in self.cal_object.events:
+            print(self.cal_object.extract_start_time(event))
 
 
 

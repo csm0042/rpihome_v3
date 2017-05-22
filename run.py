@@ -41,6 +41,9 @@ def main():
     # Create initial sunrise and sunset values before updating them
     sun = rpihome_v3.Sun(38.566268, -90.409878, -5, logger)
 
+    # Create connection to calendar
+    cal = rpihome_v3.GoogleCalSync(logger)
+
     # Get main event loop *****************************************************
     logger.info('Getting main event loop')
     event_loop = asyncio.get_event_loop()
@@ -53,11 +56,10 @@ def main():
         logger.info('Call run_until_complete on task list')
         event_loop.run_until_complete(
             asyncio.gather(
-                #rpihome_v3.update_schedule(cal_credentials, True, logger),
-                #rpihome_v3.update_enviro_status(devices, nest, credentials, True, logger),
                 rpihome_v3.update_adevice_status(devices, wemo, True, logger),
+                rpihome_v3.update_pdevice_status(devices, True, logger),                
                 rpihome_v3.update_mdevice_status(devices, True, logger),
-                rpihome_v3.update_pdevice_status(devices, True, logger),
+                #rpihome_v3.update_enviro_status(devices, nest, credentials, True, logger),
                 rpihome_v3.update_adevice_cmd(devices, wemo, sun, True, logger),
                 rpihome_v3.update_database(database, devices, True, logger)
                 ))

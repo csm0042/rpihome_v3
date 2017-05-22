@@ -3,9 +3,8 @@
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
+from .automation_rules import *
 from .configure import *
-from .device_cmd import *
-from .device_status import *
 from .dst import *
 from .goog_cal import *
 from .log_support import *
@@ -14,6 +13,7 @@ from .nest import *
 from .persistance import *
 from .ping import *
 from .sun import *
+from .tasks import *
 from .tuples import *
 from .wemo import *
 

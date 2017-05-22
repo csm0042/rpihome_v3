@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" status_updates.py:
+""" tasks.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
@@ -54,38 +54,6 @@ async def update_adevice_status(devices, wemo, loop, logger):
             break
 
 
-# Update motion sensor status *************************************************
-async def update_mdevice_status(devices, loop, logger):
-    """ test """
-    sleep = 2
-    while True:
-        try:
-            # Evaluate each device in turn
-            for index, device in enumerate(devices):
-                # Personal devices get ping'd to detect if they are on
-                # the network or not
-                if device.devtype == 'motion_capture':
-                    devices[index] = await rpihome_v3.check_motion(
-                        devices[index], logger)
-                    logger.debug(
-                        'Motion device at index [%s] updated to [%s]',
-                        str(index), devices[index])
-            # Do not loop when status flag is false
-            if loop is False:
-                logger.debug('Breaking out of update_motion_status loop')
-                break
-            # Otherwise wait a pre-determined time period, then re-run the task
-            logger.debug(
-                'Sleeping update motion device status task for '
-                '%s seconds before running again', str(sleep))
-            await asyncio.sleep(sleep)
-        except KeyboardInterrupt:
-            logging.debug(
-                'Stopping update motion device status process loop')
-            break
-            break
-
-
 # Update personal device status ***********************************************
 async def update_pdevice_status(devices, loop, logger):
     """ test """
@@ -115,6 +83,38 @@ async def update_pdevice_status(devices, loop, logger):
         except KeyboardInterrupt:
             logging.debug(
                 'Stopping update personal device status process loop')
+            break
+            break
+
+
+# Update motion sensor status *************************************************
+async def update_mdevice_status(devices, loop, logger):
+    """ test """
+    sleep = 2
+    while True:
+        try:
+            # Evaluate each device in turn
+            for index, device in enumerate(devices):
+                # Personal devices get ping'd to detect if they are on
+                # the network or not
+                if device.devtype == 'motion_capture':
+                    devices[index] = await rpihome_v3.check_motion(
+                        devices[index], logger)
+                    logger.debug(
+                        'Motion device at index [%s] updated to [%s]',
+                        str(index), devices[index])
+            # Do not loop when status flag is false
+            if loop is False:
+                logger.debug('Breaking out of update_motion_status loop')
+                break
+            # Otherwise wait a pre-determined time period, then re-run the task
+            logger.debug(
+                'Sleeping update motion device status task for '
+                '%s seconds before running again', str(sleep))
+            await asyncio.sleep(sleep)
+        except KeyboardInterrupt:
+            logging.debug(
+                'Stopping update motion device status process loop')
             break
             break
 
@@ -149,3 +149,33 @@ async def update_enviro_status(devices, nest, credentials, loop, logger):
                 'Stopping update enviro status process loop')
             break
             break
+
+
+# Device cmd logic ************************************************************
+async def update_adevice_cmd(devices, wemo, sun, loop, logger):
+    """ test """
+    sleep = 5
+    while True:
+        try:
+            # Evaluate each device in turn
+            for index, device in enumerate(devices):
+                # Wemo devices are querried for the current state
+                if device.rule == "dusk to dawn":
+                    devices[index], wemo = await rpihome_v3.dusk_to_dawn(
+                        devices[index], wemo, sun, logger)
+
+            # Do not loop when status flag is false
+            if loop is False:
+                logger.debug('Breaking out of update_device_status loop')
+                break
+            # Otherwise wait a pre-determined time period, then re-run the task
+            logger.debug(
+                'Sleeping update automation device status task for '
+                '%s seconds before running again', str(sleep))
+            await asyncio.sleep(sleep)
+        except KeyboardInterrupt:
+            logging.debug(
+                'Stopping update automation device status process loop')
+            break
+            break
+                                    

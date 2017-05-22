@@ -21,35 +21,6 @@ __email__ = "csmaue@gmail.com"
 __status__ = "Development"
 
 
-# Device cmd logic ************************************************************
-async def update_adevice_cmd(devices, wemo, sun, loop, logger):
-    """ test """
-    sleep = 5
-    while True:
-        try:
-            # Evaluate each device in turn
-            for index, device in enumerate(devices):
-                # Wemo devices are querried for the current state
-                if device.rule == "dusk to dawn":
-                    devices[index], wemo = await rpihome_v3.dusk_to_dawn(
-                        devices[index], wemo, sun, logger)
-
-            # Do not loop when status flag is false
-            if loop is False:
-                logger.debug('Breaking out of update_device_status loop')
-                break
-            # Otherwise wait a pre-determined time period, then re-run the task
-            logger.debug(
-                'Sleeping update automation device status task for '
-                '%s seconds before running again', str(sleep))
-            await asyncio.sleep(sleep)
-        except KeyboardInterrupt:
-            logging.debug(
-                'Stopping update automation device status process loop')
-            break
-            break
-
-
 # Dusk to dawn function *******************************************************
 async def dusk_to_dawn(device, wemo, sun, logger):
     """ test """

@@ -64,6 +64,10 @@ class GoogleCalSync(object):
         self.SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
         self.CLIENT_SECRET_FILE = 'client_secret.json'
         self.APPLICATION_NAME = 'Google Calendar Read via Google Sheets API'
+        self.result = None
+        self.events = None
+        self._last_run = datetime.datetime.now() + datetime.timedelta(hours=-2)
+
 
 
     def get_credentials(self):
@@ -126,7 +130,53 @@ class GoogleCalSync(object):
 
         if not self.events:
             self.logger.debug("No upcoming events found")
-            return None
         else:
             self.logger.debug('Returning event list: %s', self.events)
-            return self.events
+
+
+    def should_rerun(self, when=None):
+        """ checks input data vs. last run of class to determine if a new
+        round of calculations is necessary """
+        if when != None:
+            if when > self._last_run + datetime.timedelta(hours=1):
+                return True
+        elif when == None:
+            if datetime.datetime.now() > self._last_run + datetime.timedelta(hours=1):
+                return True
+        else:
+            return False
+
+
+    def sched_by_name(self, name=None):
+        """ returns on/off schedule info for a specific device """
+        # Check if calandar data currently in memory is current
+        if self.should_rerun(datetime.datetime.now()) is True:
+            self.read_data()    # Re-read if data is more than an hour old
+
+        # Obtain schedule info for named device
+        if name != None:
+            for index, event in enumerate(self.events):
+                if self.extract_name(event) == name.lower():
+                    return (
+                        self.extract_name(event),
+                        self.extract_start_time(event),
+                        self.extract_end_time(event)
+                        )
+        else:
+            return None
+
+
+    def extract_name(self, event):
+        return str(event['summary']).lower()
+
+
+    def extract_start_time(self, event):
+        return (
+            str(event['start'].get('dateTime'))[0:4],
+            str(event['start'].get('dateTime'))[5:7],
+            str(event['start'].get('dateTime'))[8:10])
+
+
+
+    def extract_end_time(self, event):
+        pass
