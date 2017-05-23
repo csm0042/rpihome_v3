@@ -28,29 +28,66 @@ class TestGoogCal(unittest.TestCase):
     """ unittests for logger.py """
     def setUp(self):
         self.logger = logging.getLogger(__name__)
-
-
-    def test_read_data(self):
-        """ test for credentials and data read """
         self.cal_object = rpihome_v3.GoogleCalSync(logger=self.logger)
         self.cal_object.read_data(
             cal_id='r68pvu542kle1jm7jj9hjdp9o0@group.calendar.google.com')
+
+
+    def test_extract_name(self):
+        """ test name extraction method """
+        print("***** NAMES *************************************")
         for event in self.cal_object.events:
-            print(
-                'Device [%s]  On for [%s]' %
-                (str(event['summary']),
-                 str(event['start'].get('dateTime')))
-                )
+            print(self.cal_object.extract_name(event))
+
+
+    def test_extract_start_date(self):
+        """ test start date conversion method """
+        print("***** START DATES *******************************")
+        for event in self.cal_object.events:
+            print(self.cal_object.extract_start_date(event))
 
 
     def test_extract_start_time(self):
-        """ test start time extraction """
-        self.cal_object = rpihome_v3.GoogleCalSync(logger=self.logger)
-        self.cal_object.read_data(
-            cal_id='r68pvu542kle1jm7jj9hjdp9o0@group.calendar.google.com')
+        """ test start time conversion method """
+        print("***** START TIMES *******************************")
         for event in self.cal_object.events:
             print(self.cal_object.extract_start_time(event))
 
+
+    def test_extract_start(self):
+        """ test start datetime conversion method """
+        print("***** START DATETIMES ***************************")
+        for event in self.cal_object.events:
+            print(self.cal_object.extract_start(event))
+
+
+    def test_extract_end_date(self):
+        """ test end date conversion method """
+        print("***** END DATES *******************************")
+        for event in self.cal_object.events:
+            print(self.cal_object.extract_end_date(event))
+
+
+    def test_extract_end_time(self):
+        """ test end time conversion method """
+        print("***** END TIMES *******************************")
+        for event in self.cal_object.events:
+            print(self.cal_object.extract_end_time(event))
+
+
+    def test_extract_end(self):
+        """ test end datetime conversion method """
+        print("***** END DATETIMES ***************************")
+        for event in self.cal_object.events:
+            print(self.cal_object.extract_end(event))
+
+
+    def test_convert_data(self):
+        """ test calendar data conversion method """
+        print('***** CONVERTED CALENDAR **********************')
+        self.cal_object.convert_data()
+        for conv_event in self.cal_object.schedule:
+            print(conv_event)
 
 
 

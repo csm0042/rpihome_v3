@@ -5,6 +5,7 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import typing
+import datetime
 
 
 # Authorship Info *************************************************************
@@ -28,4 +29,10 @@ class Device(typing.NamedTuple):
     last_seen: str
     cmd: str
     cmd_mem: str
-    rule: str  
+    rule: str
+
+
+class Sched(typing.NamedTuple):
+    name: str
+    start: datetime.datetime
+    end: datetime.datetime
