@@ -4,6 +4,7 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 #from __future__ import print_function
+import copy
 import httplib2
 import os
 from apiclient import discovery
@@ -47,6 +48,7 @@ class GoogleCalSync(object):
         self.result = None
         self.events = None
         self.schedule = []
+        self.result_list = []
         self._last_run = datetime.datetime.now() + datetime.timedelta(hours=-2)
 
 
@@ -104,9 +106,10 @@ class GoogleCalSync(object):
         # Check if read operation returned any data
         if not self.events:
             self.logger.debug("No upcoming events found")
+            return False
         else:
             self.logger.debug('Events found')
-            #print(self.events)
+            return True
 
 
     def convert_data(self):
@@ -119,6 +122,17 @@ class GoogleCalSync(object):
                 self.extract_name(event),
                 self.extract_start(event),
                 self.extract_end(event)))
+
+
+    def update_schedule(self, cal_id=None):
+        """ Triggers a re-read of the data from google and updates the
+        internal schedule snap-shot as long as the read was successful.
+        If the read was not successful, it leaves the last batch of valid
+        data in place to continue using until the next update """
+        if cal_id != None:
+            if self.read_data(cal_id) is True:
+                self.convert_data()
+                self._last_run = datetime.datetime.now()
 
 
     def extract_name(self, event):
@@ -187,21 +201,18 @@ class GoogleCalSync(object):
 
     def sched_by_name(self, name=None):
         """ returns on/off schedule info for a specific device """
-        # Check if calandar data currently in memory is current
+        # Check if calandar data currently in memory is current and perform
+        # update if it is stale
         if self.should_rerun(datetime.datetime.now()) is True:
-            self.read_data()    # Re-read if data is more than an hour old
-
+            self.update_schedule()
         # Obtain schedule info for named device
+        self.result_list = []
         if name != None:
-            for index, event in enumerate(self.events):
-                if self.extract_name(event) == name.lower():
-                    return (
-                        self.extract_name(event),
-                        self.extract_start_time(event),
-                        self.extract_end_time(event)
-                        )
-        else:
-            return None
+            for index, sched in enumerate(self.schedule):
+                if sched.name == name:
+                    self.result_list.append(copy.copy(sched))
+        # Return results to main program
+        return self.result_list
 
 
     

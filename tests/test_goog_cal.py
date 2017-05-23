@@ -29,7 +29,7 @@ class TestGoogCal(unittest.TestCase):
     def setUp(self):
         self.logger = logging.getLogger(__name__)
         self.cal_object = rpihome_v3.GoogleCalSync(logger=self.logger)
-        self.cal_object.read_data(
+        self.cal_object.update_schedule(
             cal_id='r68pvu542kle1jm7jj9hjdp9o0@group.calendar.google.com')
 
 
@@ -88,6 +88,11 @@ class TestGoogCal(unittest.TestCase):
         self.cal_object.convert_data()
         for conv_event in self.cal_object.schedule:
             print(conv_event)
+
+    def test_sched_by_name(self):
+        """ test schedule pull by device name """
+        print('***** SCHEDULE FOR br1lt2 **********************')
+        print(self.cal_object.sched_by_name('br1lt2'))
 
 
 
