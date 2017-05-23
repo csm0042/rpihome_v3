@@ -34,7 +34,8 @@ __status__ = "Development"
 # Class Definitions ***********************************************************
 class GoogleCalSync(object):
     """ Class and methods necessary to read items from a google calendar  """
-    def __init__(self, logger=None):
+    def __init__(self, cal_id=None, logger=None):
+        self.cal_id = cal_id
         self.logger = logger or logging.getLogger(__name__)
         self.home_dir = str()
         self.credential_dir = str()
@@ -50,6 +51,7 @@ class GoogleCalSync(object):
         self.schedule = []
         self.result_list = []
         self._last_run = datetime.datetime.now() + datetime.timedelta(hours=-2)
+        self.update_schedule()
 
 
     def get_credentials(self):
@@ -87,7 +89,7 @@ class GoogleCalSync(object):
         return self.credentials
 
 
-    def read_data(self, cal_id=None):
+    def read_data(self):
         """ Returns all events for the next 14 days using the
         google calendar API """
         self.credentials = self.get_credentials()
@@ -96,7 +98,7 @@ class GoogleCalSync(object):
         self.now = datetime.datetime.utcnow().isoformat() + 'Z'
         # Perform call to Google calendar API
         self.result = self.service.events().list(
-            calendarId=cal_id,
+            calendarId=self.cal_id,
             timeMin=self.now,
             maxResults=100,
             singleEvents=True,
@@ -124,13 +126,13 @@ class GoogleCalSync(object):
                 self.extract_end(event)))
 
 
-    def update_schedule(self, cal_id=None):
+    def update_schedule(self):
         """ Triggers a re-read of the data from google and updates the
         internal schedule snap-shot as long as the read was successful.
         If the read was not successful, it leaves the last batch of valid
         data in place to continue using until the next update """
         if cal_id != None:
-            if self.read_data(cal_id) is True:
+            if self.read_data() is True:
                 self.convert_data()
                 self._last_run = datetime.datetime.now()
 

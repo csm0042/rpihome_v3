@@ -28,9 +28,9 @@ class TestGoogCal(unittest.TestCase):
     """ unittests for logger.py """
     def setUp(self):
         self.logger = logging.getLogger(__name__)
-        self.cal_object = rpihome_v3.GoogleCalSync(logger=self.logger)
-        self.cal_object.update_schedule(
-            cal_id='r68pvu542kle1jm7jj9hjdp9o0@group.calendar.google.com')
+        self.cal_object = rpihome_v3.GoogleCalSync(
+            cal_id='r68pvu542kle1jm7jj9hjdp9o0@group.calendar.google.com',
+            logger=self.logger)
 
 
     def test_extract_name(self):

@@ -152,7 +152,7 @@ async def update_enviro_status(devices, nest, credentials, loop, logger):
 
 
 # Device cmd logic ************************************************************
-async def update_adevice_cmd(devices, wemo, sun, loop, logger):
+async def update_adevice_cmd(devices, wemo, cal, sun, loop, logger):
     """ test """
     sleep = 5
     while True:

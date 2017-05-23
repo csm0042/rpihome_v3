@@ -42,7 +42,9 @@ def main():
     sun = rpihome_v3.Sun(38.566268, -90.409878, -5, logger)
 
     # Create connection to calendar
-    cal = rpihome_v3.GoogleCalSync(logger)
+    cal = rpihome_v3.GoogleCalSync(
+        cal_id='r68pvu542kle1jm7jj9hjdp9o0@group.calendar.google.com',
+        logger=logger)
 
     # Get main event loop *****************************************************
     logger.info('Getting main event loop')
@@ -57,10 +59,10 @@ def main():
         event_loop.run_until_complete(
             asyncio.gather(
                 rpihome_v3.update_adevice_status(devices, wemo, True, logger),
-                rpihome_v3.update_pdevice_status(devices, True, logger),                
+                rpihome_v3.update_pdevice_status(devices, True, logger),
                 rpihome_v3.update_mdevice_status(devices, True, logger),
                 #rpihome_v3.update_enviro_status(devices, nest, credentials, True, logger),
-                rpihome_v3.update_adevice_cmd(devices, wemo, sun, True, logger),
+                rpihome_v3.update_adevice_cmd(devices, wemo, cal, sun, True, logger),
                 rpihome_v3.update_database(database, devices, True, logger)
                 ))
         logger.info('Tasks are started')
