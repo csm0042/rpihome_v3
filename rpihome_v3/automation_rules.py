@@ -3,7 +3,6 @@
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
-import asyncio
 import copy
 import datetime
 import pywemo
@@ -22,7 +21,7 @@ __status__ = "Development"
 
 
 # Dusk to dawn function *******************************************************
-async def dusk_to_dawn(device, wemo, sun, logger):
+def dusk_to_dawn(device, wemo, sun, logger):
     """ test """
     # Turn on light if after sunset or before sunrise and not already on
     if ((datetime.datetime.now().time() < sun.sunrise()
@@ -31,7 +30,7 @@ async def dusk_to_dawn(device, wemo, sun, logger):
             and
             device.cmd.lower() != 'on'):
         logger.info('Turning on [%s] based on dusk to dawn rule', device.name)
-        device, wemo = await rpihome_v3.wemo_set_on(device, wemo, logger)
+        device, wemo = rpihome_v3.wemo_set_on(device, wemo, logger)
     # Turn off light if after sunrise and before sunset and currently on
     if ((datetime.datetime.now().time() >= sun.sunrise()
          and
@@ -39,6 +38,28 @@ async def dusk_to_dawn(device, wemo, sun, logger):
             and
             device.cmd.lower() != 'off'):
         logger.info('Turning off [%s] based on dusk to dawn rule', device.name)
-        device, wemo = await rpihome_v3.wemo_set_off(device, wemo, logger)
+        device, wemo = rpihome_v3.wemo_set_off(device, wemo, logger)
     # Return updated list to calling routine
-    return device, wemo
+    return device
+
+
+# Dusk to dawn function *******************************************************
+def schedule(device, wemo, sched, logger):
+    """ test """
+    # Get schedule sub-set for device
+    sched_subet = rpihome_v3.sched_by_name(name=device.name)
+    # Initialize state
+    desired_state = 'off'
+    # Cycle through schedule sub-set looking for match
+    for s in sched_subset:
+        if (datetime.datetime.now() >= sched_subset.start and
+                datetime.datetime.now() < sched_subset.end):
+            desired_state = 'on'
+    # Check for change of state and send commands if necessary
+    if device.cmd != desired_state:
+        if desired_state == 'on':
+            device = rpihome_v3.wemo_set_on(device, wemo, logger)
+        if desired_state == 'off':
+            device = rpihome_v3.wemo_set_off(device, wemo, logger)
+    # Return updated device to calling routine
+    return device
