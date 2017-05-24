@@ -7,7 +7,9 @@ import asyncio
 import copy
 import datetime
 import pywemo
+from threading import Thread
 import rpihome_v3
+
 
 
 # Authorship Info *************************************************************
@@ -22,160 +24,77 @@ __status__ = "Development"
 
 
 # Update automation device status *********************************************
-async def update_adevice_status(devices, wemo, loop, logger):
+def update_adev_status(devices, wemo, logger):
     """ test """
-    sleep = 5
-    while True:
-        try:
-            # Evaluate each device in turn
-            for index, device in enumerate(devices):
-                # Wemo devices are querried for the current state
-                if device.devtype == "wemo_switch":
-                    devices[index], wemo = await rpihome_v3.wemo_read_status(
-                        devices[index], wemo, logger)
-                    logger.debug(
-                        'Wemo device at index [%s] updated to [%s]',
-                        str(index), devices[index])
-                await asyncio.sleep(sleep)
-
-            # Do not loop when status flag is false
-            if loop is False:
-                logger.debug('Breaking out of update_device_status loop')
-                break
-            # Otherwise wait a pre-determined time period, then re-run the task
-            logger.debug(
-                'Sleeping update automation device status task for '
-                '%s seconds before running again', str(sleep))
-            await asyncio.sleep(sleep)
-        except KeyboardInterrupt:
-            logging.debug(
-                'Stopping update automation device status process loop')
-            break
-            break
+    threads = []
+    for index, device in enumerate(devices):
+        if device.devtype == "wemo_switch":
+            threads.append(Thread(
+                target=rpihome_v3.wemo_read_status,
+                args=(devices[index], wemo, logger)))
+            logger.debug('Spawning thread to check status of device [%s]',
+                         device.name)
+    for thread in threads:
+        thread.start()
+        logger.debug('Starting thread to check status of device [%s]',
+                     device.name)
 
 
-# Update personal device status ***********************************************
-async def update_pdevice_status(devices, loop, logger):
+# Update automation device status *********************************************
+def update_pdev_status(devices, logger):
     """ test """
-    sleep = 15
-    while True:
-        try:
-            # Evaluate each device in turn
-            for index, device in enumerate(devices):
-                # Personal devices get ping'd to detect if they are on
-                # the network or not
-                if device.devtype == 'personal':
-                    devices[index] = await rpihome_v3.ping_device(
-                        devices[index], logger)
-                    logger.debug(
-                        'Personal device at index [%s] updated to [%s]',
-                        str(index), devices[index])
-                await asyncio.sleep(sleep)
-            # Do not loop when status flag is false
-            if loop is False:
-                logger.debug('Breaking out of update_device_status loop')
-                break
-            # Otherwise wait a pre-determined time period, then re-run the task
-            logger.debug(
-                'Sleeping update personal device status task for '
-                '%s seconds before running again', str(sleep))
-            await asyncio.sleep(sleep)
-        except KeyboardInterrupt:
-            logging.debug(
-                'Stopping update personal device status process loop')
-            break
-            break
+    threads = []
+    for index, device in enumerate(devices):
+        if device.devtype == "personal":
+            threads.append(Thread(
+                target=rpihome_v3.ping_device,
+                args=(devices[index], logger)))
+            logger.debug('Spawning thread to check status of device [%s]',
+                         device.name)
+    for thread in threads:
+        thread.start()
+        logger.debug('Starting thread to check status of device [%s]',
+                     device.name)
 
 
-# Update motion sensor status *************************************************
-async def update_mdevice_status(devices, loop, logger):
+# Update automation device status *********************************************
+def update_mdev_status(devices, logger):
     """ test """
-    sleep = 2
-    while True:
-        try:
-            # Evaluate each device in turn
-            for index, device in enumerate(devices):
-                # Personal devices get ping'd to detect if they are on
-                # the network or not
-                if device.devtype == 'motion_capture':
-                    devices[index] = await rpihome_v3.check_motion(
-                        devices[index], logger)
-                    logger.debug(
-                        'Motion device at index [%s] updated to [%s]',
-                        str(index), devices[index])
-            # Do not loop when status flag is false
-            if loop is False:
-                logger.debug('Breaking out of update_motion_status loop')
-                break
-            # Otherwise wait a pre-determined time period, then re-run the task
-            logger.debug(
-                'Sleeping update motion device status task for '
-                '%s seconds before running again', str(sleep))
-            await asyncio.sleep(sleep)
-        except KeyboardInterrupt:
-            logging.debug(
-                'Stopping update motion device status process loop')
-            break
-            break
+    threads = []
+    for index, device in enumerate(devices):
+        if device.devtype == "motion_capture":
+            threads.append(Thread(
+                target=rpihome_v3.check_motion,
+                args=(devices[index], logger)))
+            logger.debug('Spawning thread to check status of device [%s]',
+                         device.name)
+    for thread in threads:
+        thread.start()
+        logger.debug('Starting thread to check status of device [%s]',
+                     device.name)
 
 
-# Update enviro device status *************************************************
-async def update_enviro_status(devices, nest, credentials, loop, logger):
+# Update automation device status *********************************************
+def update_adev_cmd(devices, wemo, cal, sched, logger):
     """ test """
-    sleep = 300
-    while True:
-        try:
-            # Evaluate each device in turn
-            for index, device in enumerate(devices):
-                # Personal devices get ping'd to detect if they are on
-                # the network or not
-                if device.devtype == 'nest':
-                    devices[index], nest = await rpihome_v3.current_conditions(
-                        devices[index], nest, credentials, logger)
-                    logger.debug(
-                        'Enviro device at index [%s] updated to [%s]',
-                        str(index), devices[index])
-            # Do not loop when status flag is false
-            if loop is False:
-                logger.debug('Breaking out of update_enviro_status loop')
-                break
-            # Otherwise wait a pre-determined time period, then re-run the task
-            logger.debug(
-                'Sleeping update enviro status task for '
-                '%s seconds before running again', str(sleep))
-            await asyncio.sleep(sleep)
-        except KeyboardInterrupt:
-            logging.debug(
-                'Stopping update enviro status process loop')
-            break
-            break
-
-
-# Device cmd logic ************************************************************
-async def update_adevice_cmd(devices, wemo, cal, sun, loop, logger):
-    """ test """
-    sleep = 5
-    while True:
-        try:
-            # Evaluate each device in turn
-            for index, device in enumerate(devices):
-                # Wemo devices are querried for the current state
-                if device.rule == "dusk to dawn":
-                    devices[index], wemo = await rpihome_v3.dusk_to_dawn(
-                        devices[index], wemo, sun, logger)
-
-            # Do not loop when status flag is false
-            if loop is False:
-                logger.debug('Breaking out of update_device_status loop')
-                break
-            # Otherwise wait a pre-determined time period, then re-run the task
-            logger.debug(
-                'Sleeping update automation device status task for '
-                '%s seconds before running again', str(sleep))
-            await asyncio.sleep(sleep)
-        except KeyboardInterrupt:
-            logging.debug(
-                'Stopping update automation device status process loop')
-            break
-            break
+    threads = []
+    for index, device in enumerate(devices):
+        # Dusk to dawn rule
+        if device.devtype == "dusk_to_dawn":
+            threads.append(Thread(
+                target=rpihome_v3.dusk_to_dawn,
+                args=(devices[index], wemo, sun, logger)))
+            logger.debug('Spawning thread to check d-to-d rule for device [%s]',
+                         device.name)
+        # Schedule rule
+        if device.devtype == "schedule":
+            threads.append(Thread(
+                target=rpihome_v3.schedule,
+                args=(devices[index], wemo, sched, logger)))
+            logger.debug('Spawning thread to check schedule rule for device [%s]',
+                         device.name)
+    for thread in threads:
+        thread.start()
+        logger.debug('Starting thread to check rule for device [%s]',
+                     device.name)
                                     
