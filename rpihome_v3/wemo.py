@@ -144,7 +144,7 @@ class WemoAPI(object):
         # Perform command, followed by status query
         if self.wemo_device is not None:
             self.wemo_device.on()
-            self.status = '1'
+            self.status = 'on'
             self.logger.debug(
                 '"on" command sent to wemo device [%s]', self.wemo_device.name)
             # Re-define device record based on response from status query
@@ -190,7 +190,7 @@ class WemoAPI(object):
         # Perform command, followed by status query
         if self.wemo_device is not None:
             self.wemo_device.off()
-            self.status = '0'
+            self.status = 'off'
             self.logger.debug(
                 '"off" command sent to wemo device [%s]', self.wemo_device.name)
             # Re-define device record based on response from status query
