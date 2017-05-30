@@ -49,7 +49,7 @@ def main():
     """ main function for the rpihome application """
 
     # Get configuration from INI file for this run
-    logger, credentials, database, devices = (
+    logger, credentials, database, tasks, devices = (
         rpihome_v3.configure_all('rpihome_v3//config.ini'))
     logger.info('Configuration imported from INI file *********************')
 
@@ -80,11 +80,11 @@ def main():
                     rpihome_v3.update_mdev_status(devices, logger),
                     True, 2, logger),
                 asyncio_wrapper(
-                    rpihome_v3.update_adev_cmd(devices, wemo, cal, sched, logger),
-                    True, 5, logger),
-                asyncio_wrapper(
-                    rpihome_v3.update_database(database, devices, logger),
-                    True, 5, logger)
+                    rpihome_v3.update_adev_cmd(devices, wemo, sun, sched, logger),
+                    True, 5, logger)#,
+                #asyncio_wrapper(
+                #    rpihome_v3.update_database(database, devices, logger),
+                #    True, 5, logger)
                 )
             )
         logger.info('Tasks are started')

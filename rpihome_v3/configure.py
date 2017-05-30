@@ -84,6 +84,33 @@ def configure_database(filename, credentials, logger):
     return database
 
 
+# Config Task's to Start Function *********************************************
+def configure_tasks(filename, logger):
+    # Define connection to configuration file
+    config_file = configparser.ConfigParser()
+    config_file.read(filename)
+    # Determine which tasks to start
+    if config_file['TASKS']['adevstat'] == 'yes':
+        adevstat = True
+    else:
+        adevstat = False
+    if config_file['TASKS']['pdevstat'] == 'yes':
+        pdevstat = True
+    else:
+        pdevstat = False
+    if config_file['TASKS']['mdevstat'] == 'yes':
+        mdevstat = True
+    else:
+        mdevstat = False
+    if config_file['TASKS']['adevcmd'] == 'yes':
+        adevcmd = True
+    else:
+        adevcmd = False
+    # Return configured objects to main program
+    return (adevstat, pdevstat, mdevstat, adevcmd)
+
+
+
 # Config Automation Device List Function **************************************
 def configure_device(filename, logger):
     # Define connection to configuration file
@@ -124,7 +151,8 @@ def configure_all(filename):
     logger = configure_logger(filename)
     credentials = configure_credentials(filename, logger)
     database = configure_database(filename, credentials, logger)
+    tasks = configure_tasks(filename, logger)
     devices = configure_device(filename, logger)
     logger.debug('Finished call to configuration function')
     # Return results to main program
-    return (logger, credentials, database, devices)
+    return (logger, credentials, database, tasks, devices)
