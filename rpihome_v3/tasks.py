@@ -30,8 +30,8 @@ def update_adev_status(devices, wemo, logger):
     for index, device in enumerate(devices):
         if device.devtype == "wemo_switch":
             threads.append(Thread(
-                target=rpihome_v3.wemo_read_status,
-                args=(devices[index], wemo, logger)))
+                target=wemo.wemo_read_status,
+                args=(devices[index])))
             logger.debug('Spawning thread to check status of device [%s]',
                          device.name)
     for thread in threads:
@@ -75,7 +75,7 @@ def update_mdev_status(devices, logger):
 
 
 # Update automation device status *********************************************
-def update_adev_cmd(devices, wemo, cal, sched, logger):
+def update_adev_cmd(devices, wemo, sun, sched, logger):
     """ test """
     threads = []
     for index, device in enumerate(devices):
