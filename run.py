@@ -22,28 +22,6 @@ __status__ = "Development"
 
 
 
-# Async wrapper function ******************************************************
-async def asyncio_wrapper(function, loop, sleep, logger):
-    """ test """
-    while True:
-        try:
-            # Perform desired function on args
-            function
-
-            # Do not loop when status flag is false
-            if loop is False:
-                logger.debug('Breaking out of update_device_status loop')
-                break
-            # Otherwise wait a pre-determined time period, then re-run the task
-            logger.debug('Sleeping task for %s seconds', str(sleep))
-            await asyncio.sleep(sleep)
-        except KeyboardInterrupt:
-            logging.debug(
-                'Killing task')
-            break
-            break
-
-
 # Main event loop function ****************************************************
 def main():
     """ main function for the rpihome application """
@@ -54,11 +32,15 @@ def main():
     logger.info('Configuration imported from INI file *********************')
 
     # Create various support objects
+    logger.debug('Creating wemo gateway')
     wemo = rpihome_v3.WemoAPI(logger)
+    logger.debug('Creating sunrise/sunset class')
     sun = rpihome_v3.Sun(38.566268, -90.409878, -5, logger)
+    logger.debug('Polling online device schedule')
     sched = rpihome_v3.GoogleCalSync(
         cal_id='r68pvu542kle1jm7jj9hjdp9o0@group.calendar.google.com',
         logger=logger)
+    logger.debug('Creating Nest device class')
     nest = []
 
     # Get main event loop *****************************************************
@@ -69,33 +51,17 @@ def main():
     try:
         logger.info('Call run_until_complete on task list')
         if tasks[0] is True:
-            asyncio.async(
-                asyncio_wrapper(
-                    rpihome_v3.update_adev_status(devices, wemo, logger),
-                    True, 5, logger
-                    )
-                )
+            asyncio.ensure_future(
+                rpihome_v3.update_adev_status(devices, wemo, True, 15, logger))
         if tasks[1] is True:
-            asyncio.async(
-                asyncio_wrapper(
-                    rpihome_v3.update_pdev_status(devices, logger),
-                    True, 15, logger
-                    )
-                )
+            asyncio.ensure_future(
+                rpihome_v3.update_pdev_status(devices, True, 15, logger))
         if tasks[2] is True:
-            asyncio.async(
-                asyncio_wrapper(
-                    rpihome_v3.update_mdev_status(devices, logger),
-                    True, 2, logger
-                    )
-                )
+            asyncio.ensure_future(
+                rpihome_v3.update_mdev_status(devices, True, 2, logger))
         if tasks[3] is True:
-            asyncio.async(
-                asyncio_wrapper(
-                    rpihome_v3.update_adev_cmd(devices, wemo, sun, sched, logger),
-                    True, 5, logger
-                    )
-                )
+            asyncio.ensure_future(
+                rpihome_v3.update_adev_cmd(devices, wemo, sun, sched, True, 5, logger))
         logger.info('Tasks are started')
         event_loop.run_forever()
     except KeyboardInterrupt:
