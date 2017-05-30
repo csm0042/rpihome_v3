@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" main.py:
+""" run.py:
     Main entry-point into the RPiHome application.
 """
 
@@ -68,26 +68,36 @@ def main():
     # Run event loop until keyboard interrupt received ************************
     try:
         logger.info('Call run_until_complete on task list')
-        event_loop.run_until_complete(
-            asyncio.gather(
+        if tasks[0] is True:
+            asyncio.async(
                 asyncio_wrapper(
                     rpihome_v3.update_adev_status(devices, wemo, logger),
-                    True, 5, logger),
+                    True, 5, logger
+                    )
+                )
+        if tasks[1] is True:
+            asyncio.async(
                 asyncio_wrapper(
                     rpihome_v3.update_pdev_status(devices, logger),
-                    True, 15, logger),
+                    True, 15, logger
+                    )
+                )
+        if tasks[2] is True:
+            asyncio.async(
                 asyncio_wrapper(
                     rpihome_v3.update_mdev_status(devices, logger),
-                    True, 2, logger),
+                    True, 2, logger
+                    )
+                )
+        if tasks[3] is True:
+            asyncio.async(
                 asyncio_wrapper(
                     rpihome_v3.update_adev_cmd(devices, wemo, sun, sched, logger),
-                    True, 5, logger)#,
-                #asyncio_wrapper(
-                #    rpihome_v3.update_database(database, devices, logger),
-                #    True, 5, logger)
+                    True, 5, logger
+                    )
                 )
-            )
         logger.info('Tasks are started')
+        event_loop.run_forever()
     except KeyboardInterrupt:
         logger.debug('Closing connection to database')
         database.close()
