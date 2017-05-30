@@ -131,7 +131,7 @@ class GoogleCalSync(object):
         internal schedule snap-shot as long as the read was successful.
         If the read was not successful, it leaves the last batch of valid
         data in place to continue using until the next update """
-        if cal_id != None:
+        if self.cal_id != None:
             if self.read_data() is True:
                 self.convert_data()
                 self._last_run = datetime.datetime.now()
