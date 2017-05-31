@@ -76,7 +76,7 @@ def update_pdev_status(devices, loop, sleep, logger):
 
 # Update automation device status *********************************************
 @asyncio.coroutine
-async def update_mdev_status(devices, loop, sleep, logger):
+def update_mdev_status(devices, loop, sleep, logger):
     """ test """
     logger.debug('Starting update personal device status task')
     while True:
@@ -101,7 +101,7 @@ async def update_mdev_status(devices, loop, sleep, logger):
 
 # Update automation device status *********************************************
 @asyncio.coroutine
-async def update_adev_cmd(devices, wemo, sun, sched, loop, sleep, logger):
+def update_adev_cmd(devices, wemo, sun, sched, loop, sleep, logger):
     """ test """
     logger.debug('Starting update personal device status task')
     while True:
