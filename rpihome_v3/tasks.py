@@ -32,7 +32,16 @@ def update_adev_status(devices, wemo, loop, sleep, logger):
         try:
             for index, device in enumerate(devices):
                 if device.devtype == "wemo_switch":
-                    devices[index] = yield from wemo.wemo_read_status(devices[index])
+                    logger.debug(
+                        'Before status check: %s, %s, %s, %s, %s, %s, %s',
+                        device.name, device.devtype, device.address,
+                        device.status, device.last_seen, device.cmd, device.rule)
+                    wemo.wemo_read_status(devices[index])
+                    logger.debug(
+                        'After status check: %s, %s, %s, %s, %s, %s, %s',
+                        device.name, device.devtype, device.address,
+                        device.status, device.last_seen, device.cmd, device.rule)
+                    logger.debug('finished processing device [%s]', device.name)
             # Do not loop when status flag is false
             if loop is False:
                 logger.debug('Breaking out of update_device_status loop')
@@ -41,9 +50,8 @@ def update_adev_status(devices, wemo, loop, sleep, logger):
             logger.debug('Sleeping task for %s seconds', str(sleep))
             yield from asyncio.sleep(sleep)
         except KeyboardInterrupt:
-            logging.debug(
+            logger.debug(
                 'Killing task')
-            break
             break
 
 
@@ -57,7 +65,7 @@ def update_pdev_status(devices, loop, sleep, logger):
             for index, device in enumerate(devices):
                 if device.devtype == "personal":
                     logger.debug('Executing ping for device [%s]', device.name)
-                    devices[index] = yield from rpihome_v3.ping_device(
+                    yield from rpihome_v3.ping_device(
                         devices[index], logger)
             # Do not loop when status flag is false
             if loop is False:
@@ -67,11 +75,9 @@ def update_pdev_status(devices, loop, sleep, logger):
             logger.debug('Sleeping task for %s seconds', str(sleep))
             yield from asyncio.sleep(sleep)
         except KeyboardInterrupt:
-            logging.debug(
+            logger.debug(
                 'Killing task')
             break
-            break
-
 
 
 # Update automation device status *********************************************
@@ -83,7 +89,7 @@ def update_mdev_status(devices, loop, sleep, logger):
         try:
             for index, device in enumerate(devices):
                 if device.devtype == "motion_capture":
-                    devices[index] = yield from rpihome_v3.check_motion(
+                    yield from rpihome_v3.check_motion(
                         devices[index], logger)
             # Do not loop when status flag is false
             if loop is False:
@@ -93,9 +99,8 @@ def update_mdev_status(devices, loop, sleep, logger):
             logger.debug('Sleeping task for %s seconds', str(sleep))
             yield from asyncio.sleep(sleep)
         except KeyboardInterrupt:
-            logging.debug(
+            logger.debug(
                 'Killing task')
-            break
             break
 
 
@@ -109,7 +114,7 @@ def update_adev_cmd(devices, wemo, sun, sched, loop, sleep, logger):
             for index, device in enumerate(devices):
                 # Dusk to dawn rule
                 if device.devtype == "dusk_to_dawn":
-                    devices[index] = yield from rpihome_v3.dusk_to_dawn(
+                    yield from rpihome_v3.dusk_to_dawn(
                         devices[index], wemo, sun, logger)
                 # Schedule rule
                 if device.devtype == "schedule":
@@ -123,7 +128,6 @@ def update_adev_cmd(devices, wemo, sun, sched, loop, sleep, logger):
             logger.debug('Sleeping task for %s seconds', str(sleep))
             yield from asyncio.sleep(sleep)
         except KeyboardInterrupt:
-            logging.debug(
+            logger.debug(
                 'Killing task')
-            break
             break

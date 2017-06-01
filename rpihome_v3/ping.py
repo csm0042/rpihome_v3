@@ -25,7 +25,8 @@ __status__ = "Development"
 
 # Ping Function ***************************************************************
 async def ping_device(device, logger):
-    # Personal devices get ping'd to detect if they are on the network or not
+    """ Personal devices get ping'd to detect if they are on the network
+    Ior not """
     logger.debug(
         'Pinging device [%s] at [%s], original status [%s / %s]',
         device.name,
@@ -48,30 +49,10 @@ async def ping_device(device, logger):
 
     # evaluate result
     if result == 0:
-        device = rpihome_v3.Device(
-            device.name,
-            device.devtype,
-            device.address,
-            'true',
-            device.status_mem,
-            str(datetime.datetime.now()),
-            device.cmd,
-            device.cmd_mem,
-            device.rule
-            )
+        device.status = 'true'
+        device.last_seen = str(datetime.datetime.now())
     else:
-        device = rpihome_v3.Device(
-            device.name,
-            device.devtype,
-            device.address,
-            'false',
-            device.status_mem,
-            device.last_seen,
-            device.cmd,
-            device.cmd_mem,
-            device.rule
-            )
+        device.status = 'false'
     logger.debug(
         'Updating device status to [%s / %s]',
         device.status, device.last_seen)
-    return device

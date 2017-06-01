@@ -50,7 +50,7 @@ class WemoAPI(object):
     def wemo_discover(self, device):
         """ discovers wemo device on network based upon known IP address """
         if check_ipv4(device.address) is True:
-            logger.debug('Valid IP address provided')
+            self.logger.debug('Valid IP address provided')
             # Attempt to discover wemo device
             try:
                 self.wemo_device = None
@@ -71,12 +71,11 @@ class WemoAPI(object):
                     self.wemo_url,
                     None)
                 self.logger.debug('[%s] discovery successful', device.name)
-                return self.wemo_device
             except:
                 self.logger.debug('[%s] discovery failed', device.name)
-                return None
+                self.wemo_device = None
         else:
-            return None
+            self.wemo_device = None
 
 
     def wemo_read_status(self, device):
@@ -91,10 +90,10 @@ class WemoAPI(object):
             (index for index, wemodev in enumerate(self.wemo_known)
              if wemodev.name == device.name), None)
         # Point to existing list record or recently discovered device
-        if self.result == None:
-            self.wemo_device = self.wemo_discover(device)
-        else:
+        if self.result != None:
             self.wemo_device = self.wemo_known[self.result]
+        else:
+            self.wemo_discover(device)
         # Perform status query
         if self.wemo_device is not None:
             self.status = str(self.wemo_device.get_state(force_update=True))
@@ -102,10 +101,8 @@ class WemoAPI(object):
                 'Wemo device [%s] found with status [%s]',
                 device.name, self.status)
             # Re-define device record based on response from status query
-            device = rpihome_v3.Device(
-                device.name, device.devtype, device.address,
-                copy.copy(self.status), device.status_mem, str(datetime.datetime.now()),
-                device.cmd, device.cmd_mem, device.rule)
+            device.status = copy.copy(self.status)
+            device.last_seen = str(datetime.datetime.now())
             # If device was not previously in wemo list, add it for next time
             if self.result == None:
                 self.wemo_known.append(copy.copy(self.wemo_device))
@@ -114,11 +111,7 @@ class WemoAPI(object):
             self.logger.debug(
                 'Wemo device [%s] discovery failed.  Status set to [%s]',
                 device.name, self.status)
-            device = rpihome_v3.Device(
-                device.name, device.devtype, device.address,
-                copy.copy(self.status), device.status_mem, str(datetime.datetime.now()),
-                device.cmd, device.cmd_mem, device.rule)
-        return device
+            device.status = copy.copy(self.status)
 
 
     # Wemo set to on function *****************************************************
@@ -148,23 +141,20 @@ class WemoAPI(object):
             self.logger.debug(
                 '"on" command sent to wemo device [%s]', self.wemo_device.name)
             # Re-define device record based on response from status query
-            device = rpihome_v3.Device(
-                device.name, device.devtype, device.address,
-                copy.copy(self.status), device.status_mem, str(datetime.datetime.now()),
-                device.cmd, device.cmd_mem, device.rule)
+            device.status = copy.copy(self.status)
+            device.last_seen = str(datetime.datetime.now())
+            device.cmd = 'on'
             # If device was not previously in wemo list, add it for next time
             if self.result == None:
                 self.wemo_known.append(copy.copy(self.wemo_device))
         else:
             self.status = 'offline'
+            device.cmd = ''
             self.logger.debug(
                 'Wemo device [%s] discovery failed.  Status set to [%s]',
                 device.name, self.status)
-            device = rpihome_v3.Device(
-                device.name, device.devtype, device.address,
-                copy.copy(self.status), device.status_mem, str(datetime.datetime.now()),
-                'on', device.cmd_mem, device.rule)
-        return device
+            device.status = copy.copy(self.status)
+            device.cmd = 'on'
 
 
     # Wemo set to off function ****************************************************
@@ -194,10 +184,9 @@ class WemoAPI(object):
             self.logger.debug(
                 '"off" command sent to wemo device [%s]', self.wemo_device.name)
             # Re-define device record based on response from status query
-            device = rpihome_v3.Device(
-                device.name, device.devtype, device.address,
-                copy.copy(self.status), device.status_mem, str(datetime.datetime.now()),
-                'off', device.cmd_mem, device.rule)
+            device.status = copy.copy(self.status)
+            device.last_seen = str(datetime.datetime.now())
+            device.cmd = 'off'
             # If device was not previously in wemo list, add it for next time
             if self.result == None:
                 self.wemo_known.append(copy.copy(self.wemo_device))
@@ -206,8 +195,5 @@ class WemoAPI(object):
             self.logger.debug(
                 'Wemo device [%s] discovery failed.  Status set to [%s]',
                 device.name, self.status)
-            device = rpihome_v3.Device(
-                device.name, device.devtype, device.address,
-                copy.copy(self.status), device.status_mem, str(datetime.datetime.now()),
-                device.cmd, device.cmd_mem, device.rule)
-        return device
+            device.status = copy.copy(self.status)
+            device.cmd =  ''
