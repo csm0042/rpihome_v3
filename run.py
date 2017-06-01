@@ -32,16 +32,19 @@ def main():
     logger.info('Configuration imported from INI file *********************')
 
     # Create various support objects
-    logger.debug('Creating wemo gateway')
-    wemo = rpihome_v3.WemoAPI(logger)
-    logger.debug('Creating sunrise/sunset class')
-    sun = rpihome_v3.Sun(38.566268, -90.409878, -5, logger)
-    logger.debug('Polling online device schedule')
-    sched = rpihome_v3.GoogleCalSync(
-        cal_id='r68pvu542kle1jm7jj9hjdp9o0@group.calendar.google.com',
-        logger=logger)
-    logger.debug('Creating Nest device class')
-    nest = []
+    if tasks[0] is True or tasks[3] is True:
+        logger.debug('Creating wemo gateway')
+        wemo = rpihome_v3.WemoAPI(logger)
+    if tasks[3] is True:
+        logger.debug('Creating sunrise/sunset class')
+        sun = rpihome_v3.Sun(38.566268, -90.409878, -5, logger)
+    if tasks[3] is True:
+        logger.debug('Polling online device schedule')
+        sched = rpihome_v3.GoogleCalSync(
+            cal_id='r68pvu542kle1jm7jj9hjdp9o0@group.calendar.google.com',
+            logger=logger)
+        logger.debug('Creating Nest device class')
+        nest = []
 
     # Get main event loop *****************************************************
     logger.info('Getting main event loop')
@@ -62,12 +65,14 @@ def main():
         if tasks[3] is True:
             asyncio.ensure_future(
                 rpihome_v3.update_adev_cmd(devices, wemo, sun, sched, True, 5, logger))
+        if tasks[4] is True:
+            asyncio.ensure_future(
+                rpihome_v3.update_database(database, devices, True, 5, logger))
         logger.info('Tasks are started')
         event_loop.run_forever()
     except KeyboardInterrupt:
         logger.debug('Closing connection to database')
         database.close()
-        pass
     finally:
         logger.info(
             'Main event loop terminated @ [%s] ******************************',
