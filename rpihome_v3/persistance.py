@@ -23,39 +23,23 @@ __status__ = "Development"
 
 
 # Main event loop function ****************************************************
-async def update_database(database, devices, loop, sleep, logger):
+def insert_record(database, device, logger):
     """ test """
-    while True:
-        try:
-            # Check first if valid database connection was made
-            if database is not None:
-                # Check each device in-turn for updates
-                for index, device in enumerate(devices):
-                    # Log changes of state in automation device status
-                    if device.status != device.status_mem:
-                        cursor = database.cursor()
-                        query = ("INSERT INTO device_log "
-                                 "(device, status, timestamp) "
-                                 "VALUES (%s, %s, %s)")
-                        data = (device.name, device.status, device.last_seen)
-                        cursor.execute(query, data)
-                        database.commit()
-                        cursor.close()
-                        devices[index].status_mem = copy.copy(devices[index].status)
-            else:
-                logger.warning(
-                    'No connection to database. Updates are not being logged')
-
-            # Do not loop when status flag is false
-            if loop is False:
-                logger.debug('Breaking out of log_status_updates loop')
-                break
-            # Otherwise wait a pre-determined time period, then re-run the task
-            logger.debug(
-                'Sleeping log_status_updates task for 10 seconds before running again')
-            await asyncio.sleep(sleep)
-        except KeyboardInterrupt:
-            logging.debug('Closing connection to database')
-            database.close()
-            logging.debug('Stopping log_status_updates process loop')
-            break
+    try:
+        # Check first if valid database connection was made
+        if database is not None:
+            cursor = database.cursor()
+            query = ("INSERT INTO device_log "
+                     "(device, status, timestamp) "
+                     "VALUES (%s, %s, %s)")
+            data = (device.name, device.status, device.last_seen)
+            cursor.execute(query, data)
+            database.commit()
+            cursor.close()
+        else:
+            logger.warning(
+                'No connection to database. Updates are not being logged')
+    except:
+        logger.warning(
+            'Attempt to inesrt record into database failed'
+        )

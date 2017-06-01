@@ -8,6 +8,7 @@ import asyncio
 import datetime
 import logging
 import typing
+from concurrent.futures import ThreadPoolExecutor
 import rpihome_v3
 
 # Authorship Info *************************************************************
@@ -48,6 +49,7 @@ def main():
 
     # Get main event loop *****************************************************
     logger.info('Getting main event loop')
+    executor = ThreadPoolExecutor(5)
     event_loop = asyncio.get_event_loop()
 
     # Run event loop until keyboard interrupt received ************************
@@ -55,19 +57,24 @@ def main():
         logger.info('Call run_until_complete on task list')
         if tasks[0] is True:
             asyncio.ensure_future(
-                rpihome_v3.update_adev_status(devices, wemo, True, 15, logger))
+                rpihome_v3.update_adev_status(
+                    devices, wemo, event_loop, executor, 15, logger))
         if tasks[1] is True:
             asyncio.ensure_future(
-                rpihome_v3.update_pdev_status(devices, True, 15, logger))
+                rpihome_v3.update_pdev_status(
+                    devices, event_loop, executor, 15, logger))
         if tasks[2] is True:
             asyncio.ensure_future(
-                rpihome_v3.update_mdev_status(devices, True, 2, logger))
+                rpihome_v3.update_mdev_status(
+                    devices, event_loop, executor, 2, logger))
         if tasks[3] is True:
             asyncio.ensure_future(
-                rpihome_v3.update_adev_cmd(devices, wemo, sun, sched, True, 5, logger))
+                rpihome_v3.update_adev_cmd(
+                    devices, wemo, sun, sched, event_loop, executor, 5, logger))
         if tasks[4] is True:
             asyncio.ensure_future(
-                rpihome_v3.update_database(database, devices, True, 5, logger))
+                rpihome_v3.update_database(
+                    database, devices, event_loop, executor, 5, logger))
         logger.info('Tasks are started')
         event_loop.run_forever()
     except KeyboardInterrupt:

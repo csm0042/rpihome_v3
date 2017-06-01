@@ -3,7 +3,6 @@
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
-import asyncio
 import collections
 import datetime
 import logging
@@ -24,7 +23,7 @@ __status__ = "Development"
 
 
 # Ping Function ***************************************************************
-async def ping_device(device, logger):
+def ping_device(device, logger):
     """ Personal devices get ping'd to detect if they are on the network
     Ior not """
     logger.debug(
