@@ -23,7 +23,7 @@ __status__ = "Development"
 
 
 # Main event loop function ****************************************************
-async def update_database(database, devices, logger):
+async def update_database(database, devices, loop, sleep, logger):
     """ test """
     while True:
         try:
@@ -41,10 +41,7 @@ async def update_database(database, devices, logger):
                         cursor.execute(query, data)
                         database.commit()
                         cursor.close()
-                        devices[index] = rpihome_v3.Device(
-                            device.name, device.devtype, device.address,
-                            device.status, device.status, device.last_seen,
-                            device.cmd, device.cmd_mem, device.rule)
+                        devices[index].status_mem = copy.copy(devices[index].status)
             else:
                 logger.warning(
                     'No connection to database. Updates are not being logged')
@@ -56,7 +53,7 @@ async def update_database(database, devices, logger):
             # Otherwise wait a pre-determined time period, then re-run the task
             logger.debug(
                 'Sleeping log_status_updates task for 10 seconds before running again')
-            await asyncio.sleep(10)
+            await asyncio.sleep(sleep)
         except KeyboardInterrupt:
             logging.debug('Closing connection to database')
             database.close()
