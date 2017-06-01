@@ -106,8 +106,12 @@ def configure_tasks(filename, logger):
         adevcmd = True
     else:
         adevcmd = False
+    if config_file['TASKS']['persist'] == 'yes':
+        persist = True
+    else:
+        persist = False
     # Return configured objects to main program
-    return (adevstat, pdevstat, mdevstat, adevcmd)
+    return (adevstat, pdevstat, mdevstat, adevcmd, persist)
 
 
 
@@ -119,28 +123,31 @@ def configure_device(filename, logger):
     # Create list of automation devices defined in config.ini file
     devices = []
     logger.debug('Begining search for device configuration in config file')
-    for i in range(1, 50, 1):
+    device_num = int(config_file['DEVICES']['device_num']) + 1
+    logger.debug('Importing configuration for %s devices', str(device_num))
+    for i in range(1, device_num, 1):
         try:
             if len(str(i)) == 1:
                 device_id = 'device0' + str(i)
             elif len(str(i)) == 2:
                 device_id = 'device' + str(i)
             devices.append(rpihome_v3.Device(
-                config_file['DEVICES'][device_id + '_name'],
-                config_file['DEVICES'][device_id + '_devtype'],
-                config_file['DEVICES'][device_id + '_address'],
-                '',
-                '',
-                str(datetime.datetime.now()),
-                '',
-                '',
-                config_file['DEVICES'][device_id + '_rule']))
+                name=config_file['DEVICES'][device_id + '_name'],
+                devtype=config_file['DEVICES'][device_id + '_devtype'],
+                address=config_file['DEVICES'][device_id + '_address'],
+                last_seen=str(datetime.datetime.now()),
+                rule=config_file['DEVICES'][device_id + '_rule']))
             logger.debug(
                 'Device %s added to automation device list',
                 (config_file['DEVICES'][device_id + '_name']))
         except:
             pass
-    logger.debug('Completed automation device list: %s', str(devices))
+    logger.debug('Completed automation device list:')
+    for device in devices:
+        logger.debug(
+            '%s, %s, %s, %s, %s, %s, %s',
+            device.name, device.devtype, device.address,
+            device.status, device.last_seen, device.cmd, device.rule)
     # Return configured objects to main program
     return devices
 
