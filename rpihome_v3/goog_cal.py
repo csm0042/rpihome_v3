@@ -121,9 +121,10 @@ class GoogleCalSync(object):
         # Cycle through raw event list and convert to a usable format
         for index, event in enumerate(self.events):
             self.schedule.append(rpihome_v3.Sched(
-                self.extract_name(event),
-                self.extract_start(event),
-                self.extract_end(event)))
+                logger=self.logger,
+                name=self.extract_name(event),
+                start=self.extract_start(event),
+                end=self.extract_end(event)))
 
 
     def update_schedule(self):
