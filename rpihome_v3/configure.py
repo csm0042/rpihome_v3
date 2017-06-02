@@ -81,8 +81,12 @@ def configure_tasks(filename, logger):
         persist = True
     else:
         persist = False
+    if config_file['TASKS']['nest'] == 'yes':
+        enviro = True
+    else:
+        enviro = False
     # Return configured objects to main program
-    return (adevstat, pdevstat, mdevstat, adevcmd, persist)
+    return (adevstat, pdevstat, mdevstat, adevcmd, persist, enviro)
 
 
 # Config Location *************************************************************

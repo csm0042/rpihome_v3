@@ -43,9 +43,9 @@ def setup_log_handlers(name, debug_logfile, info_logfile):
     console_handler.setLevel(logging.INFO)
     # Create individual formats for each handler
     debug_formatter = logging.Formatter(
-        '%(asctime)-25s %(levelname)-18s %(filename)-18s %(funcName)-20s %(message)s')
+        '%(asctime)-25s %(levelname)-10s %(filename)-18s %(funcName)-22s %(message)s')
     info_formatter = logging.Formatter(
-        '%(asctime)-25s %(levelname)-18s %(filename)-18s %(funcName)-20s %(message)s')
+        '%(asctime)-25s %(levelname)-10s %(filename)-18s %(funcName)-22s %(message)s')
     console_formatter = logging.Formatter(
         '%(asctime)s - %(levelname)s - %(message)s')
     # Set formatting options for each handler
