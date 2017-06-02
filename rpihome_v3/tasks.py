@@ -5,11 +5,8 @@
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
 import copy
-import datetime
-import pywemo
-from threading import Thread
+import logging
 import rpihome_v3
-
 
 
 # Authorship Info *************************************************************
@@ -28,7 +25,7 @@ __status__ = "Development"
 def update_adev_status(devices, wemo, loop, executor, sleep, logger):
     """ test """
     # Configure logger
-    logger = logger or logging.getLogger(__name__)    
+    logger = logger or logging.getLogger(__name__)
     logger.debug('Starting update personal device status task')
     while True:
         try:
@@ -37,7 +34,7 @@ def update_adev_status(devices, wemo, loop, executor, sleep, logger):
                     logger.debug('Checking status of device [%s]', device.name)
                     yield from loop.run_in_executor(
                         executor,
-                        wemo.wemo_read_status,
+                        wemo.read_status,
                         devices[index])
             # Wait a pre-determined time period, then re-run the task
             logger.debug('Sleeping task for %s seconds', str(sleep))
@@ -52,7 +49,7 @@ def update_adev_status(devices, wemo, loop, executor, sleep, logger):
 def update_pdev_status(devices, loop, executor, sleep, logger):
     """ test """
     # Configure logger
-    logger = logger or logging.getLogger(__name__)    
+    logger = logger or logging.getLogger(__name__)
     logger.debug('Starting update personal device status task')
     while True:
         try:
@@ -99,7 +96,7 @@ def update_mdev_status(devices, loop, executor, sleep, logger):
 def update_adev_cmd(devices, wemo, sun, sched, loop, executor, sleep, logger):
     """ test """
     # Configure logger
-    logger = logger or logging.getLogger(__name__)    
+    logger = logger or logging.getLogger(__name__)
     logger.debug('Starting update personal device status task')
     while True:
         try:
@@ -129,7 +126,7 @@ def update_adev_cmd(devices, wemo, sun, sched, loop, executor, sleep, logger):
 def update_database(database, devices, loop, executor, sleep, logger):
     """ test """
     # Configure logger
-    logger = logger or logging.getLogger(__name__)    
+    logger = logger or logging.getLogger(__name__)
     logger.debug('Starting update personal device status task')
     while True:
         try:

@@ -51,7 +51,7 @@ class WemoAPI(object):
         self.status = str()
 
 
-    def wemo_discover(self, device):
+    def discover(self, device):
         """ discovers wemo device on network based upon known IP address """
         if check_ipv4(device.address) is True:
             self.logger.debug('Valid IP address provided')
@@ -82,7 +82,7 @@ class WemoAPI(object):
             self.wemo_device = None
 
 
-    def wemo_read_status(self, device):
+    def read_status(self, device):
         """ method to send a status query message to the physical device to
         request that it report its current status back to this program """
         self.logger.debug(
@@ -99,7 +99,7 @@ class WemoAPI(object):
         if self.result != None:
             self.wemo_device = self.wemo_known[self.result]
         else:
-            self.wemo_discover(device)
+            self.discover(device)
         # Perform status query
         if self.wemo_device is not None:
             self.status = str(self.wemo_device.get_state(force_update=True))
@@ -121,7 +121,7 @@ class WemoAPI(object):
 
 
     # Wemo set to on function *****************************************************
-    def wemo_set_on(self, device):
+    def turn_on(self, device):
         """ Send 'turn on' command to a specific wemo device """
         self.logger.debug(
             'Setting device [%s] at [%s], state to "on"',
@@ -134,7 +134,7 @@ class WemoAPI(object):
         # Point to existing list record or recently discovered device
         if self.result == None:
             self.logger.debug('Device not in wemo list.  Running discovery')
-            self.wemo_device = self.wemo_discover(device)
+            self.wemo_device = self.discover(device)
         else:
             self.logger.debug(
                 'Device already in wemo list as [%s]',
@@ -164,7 +164,7 @@ class WemoAPI(object):
 
 
     # Wemo set to off function ****************************************************
-    def wemo_set_off(self, device):
+    def turn_off(self, device):
         """ Send 'turn off' command to a specific wemo device """
         self.logger.debug(
             'Setting device [%s] at [%s], state to "off"',
@@ -177,7 +177,7 @@ class WemoAPI(object):
         # Point to existing list record or recently discovered device
         if self.result == None:
             self.logger.debug('Device not in wemo list.  Running discovery')
-            self.wemo_device = self.wemo_discover(device)
+            self.wemo_device = self.discover(device)
         else:
             self.logger.debug(
                 'Device already in wemo list as [%s]',

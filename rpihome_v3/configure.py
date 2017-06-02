@@ -130,7 +130,7 @@ def configure_database(filename, credentials, logger):
 
 
 # Config Automation Device List Function **************************************
-def configure_device(filename, logger):
+def configure_devices(filename, logger):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
@@ -174,7 +174,7 @@ def configure_all(filename):
     location = configure_location(filename, logger)
     tasks = configure_tasks(filename, logger)
     database = configure_database(filename, credentials, logger)
-    devices = configure_device(filename, logger)
+    devices = configure_devices(filename, logger)
     logger.debug('Finished call to configuration function')
     # Return results to main program
     return (logger, credentials, location, tasks, database, devices)

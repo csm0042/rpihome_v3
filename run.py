@@ -25,13 +25,30 @@ __status__ = "Development"
 def main():
     """ main function for the rpihome application """
 
-    # Get configuration from INI file for this run ****************************
-    logger, credentials, location, tasks, database, devices = (
-        rpihome_v3.configure_all('rpihome_v3//config.ini'))
+    # Configure Logging *******************************************************
+    logger = rpihome_v3.configure_logger('rpihome_v3//config.ini')
     logger.info('RpiHome v3 Application started @ [%s]',
                 str(datetime.datetime.now()))
-    logger.debug('Logger started')
-    logger.info('Configuration imported from INI file')
+
+    # Get user credentials ****************************************************
+    credentials = rpihome_v3.configure_credentials('rpihome_v3//config.ini', logger)
+    logger.info('Credential info imported')
+
+    # Get location info *******************************************************
+    location = rpihome_v3.configure_location('rpihome_v3//config.ini', logger)
+    logger.info('Location info imported')
+
+    # Determine what tasks should run *****************************************
+    tasks = rpihome_v3.configure_tasks('rpihome_v3//config.ini', logger)
+    logger.info('Desired task setup info imported')
+
+    # Get database connection info ********************************************
+    database = rpihome_v3.configure_database('rpihome_v3//config.ini', credentials, logger)
+    logger.info('Database connection info imported')
+
+    # Get list of system devices to monitor/control ***************************
+    devices = rpihome_v3.configure_devices('rpihome_v3//config.ini', logger)
+    logger.info('System device info imported')
 
     # Create wemo gateway class ***********************************************
     if tasks[0] is True or tasks[3] is True:
