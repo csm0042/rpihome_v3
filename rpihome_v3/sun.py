@@ -27,6 +27,7 @@ class Sun(object):
     def __init__(self, latitude, longitude, offset_hours, logger):
         # Configure logger
         self._logger = logger or logging.getLogger(__name__)
+        # Create other class objects
         self._latitude = latitude
         self._longitude = longitude
         self._offset_hours = offset_hours

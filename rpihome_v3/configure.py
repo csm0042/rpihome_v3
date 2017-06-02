@@ -55,35 +55,6 @@ def configure_credentials(filename, logger):
     return credentials
 
 
-# Config Database Connection Function *****************************************
-def configure_database(filename, credentials, logger):
-    # Define connection to configuration file
-    config_file = configparser.ConfigParser()
-    config_file.read(filename)
-    credential_file = configparser.ConfigParser()
-    credential_file.read(credentials)
-    # Set up database connection
-    try:
-        database = mysql.connector.connect(
-            host=config_file['DATABASE']['host'],
-            port=config_file['DATABASE']['port'],
-            database=config_file['DATABASE']['schema'],
-            user=credential_file['DATABASE']['username'],
-            password=credential_file['DATABASE']['password'])
-        logger.debug("Successfully connected to database")
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            database = None
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            database = None
-        else:
-            database = None
-        pass
-        logger.debug("Could not connect to database")
-    # Return configured objects to main program
-    return database
-
-
 # Config Task's to Start Function *********************************************
 def configure_tasks(filename, logger):
     # Define connection to configuration file
@@ -114,6 +85,45 @@ def configure_tasks(filename, logger):
     return (adevstat, pdevstat, mdevstat, adevcmd, persist)
 
 
+# Config Location *************************************************************
+def configure_location(filename, logger):
+    # Define connection to configuration file
+    config_file = configparser.ConfigParser()
+    config_file.read(filename)
+    latitude = float(config_file['LOCATION']['latitude'])
+    longitude = float(config_file['LOCATION']['longitude'])
+    # Return configured objects to main program
+    return (latitude, longitude)
+
+
+# Config Database Connection Function *****************************************
+def configure_database(filename, credentials, logger):
+    # Define connection to configuration file
+    config_file = configparser.ConfigParser()
+    config_file.read(filename)
+    credential_file = configparser.ConfigParser()
+    credential_file.read(credentials)
+    # Set up database connection
+    try:
+        database = mysql.connector.connect(
+            host=config_file['DATABASE']['host'],
+            port=config_file['DATABASE']['port'],
+            database=config_file['DATABASE']['schema'],
+            user=credential_file['DATABASE']['username'],
+            password=credential_file['DATABASE']['password'])
+        logger.debug("Successfully connected to database")
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            database = None
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            database = None
+        else:
+            database = None
+        pass
+        logger.debug("Could not connect to database")
+    # Return configured objects to main program
+    return database
+
 
 # Config Automation Device List Function **************************************
 def configure_device(filename, logger):
@@ -135,7 +145,7 @@ def configure_device(filename, logger):
                 name=config_file['DEVICES'][device_id + '_name'],
                 devtype=config_file['DEVICES'][device_id + '_devtype'],
                 address=config_file['DEVICES'][device_id + '_address'],
-                last_seen=str(datetime.datetime.now()),
+                last_seen=datetime.datetime.now(),
                 rule=config_file['DEVICES'][device_id + '_rule']))
             logger.debug(
                 'Device %s added to automation device list',
@@ -157,9 +167,10 @@ def configure_all(filename):
     """ Gather application configuration data from config.ini file """
     logger = configure_logger(filename)
     credentials = configure_credentials(filename, logger)
-    database = configure_database(filename, credentials, logger)
+    location = configure_location(filename, logger)
     tasks = configure_tasks(filename, logger)
+    database = configure_database(filename, credentials, logger)
     devices = configure_device(filename, logger)
     logger.debug('Finished call to configuration function')
     # Return results to main program
-    return (logger, credentials, database, tasks, devices)
+    return (logger, credentials, location, tasks, database, devices)

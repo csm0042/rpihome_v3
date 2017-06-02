@@ -28,8 +28,10 @@ __email__ = "csmaue@gmail.com"
 __status__ = "Development"
 
 
-# Defined named tuples for various object types *******************************
+# Device Class Definition *****************************************************
 class Device(object):
+    """ Class used to define the objects and methods associated with a physical
+    device that will be interfaced to/from this application """
     def __init__(self, logger=None, **kwargs):
         # Configure logger
         self.logger = logger or logging.getLogger(__name__)
@@ -38,7 +40,7 @@ class Device(object):
         self._address = str()
         self._status = str()
         self._status_mem = str()
-        self._last_seen = str()
+        self._last_seen = datetime.datetime
         self._cmd = str()
         self._rule = str()
         # Process input variables if present
@@ -105,7 +107,8 @@ class Device(object):
 
     @last_seen.setter
     def last_seen(self, value):
-        self._last_seen = str(value)
+        if isinstance(value, datetime.datetime):
+            self._last_seen = value
 
     @property
     def cmd(self):
@@ -124,7 +127,10 @@ class Device(object):
         self._rule = str(value)
 
 
+# Schedule Class Definition ***************************************************
 class Sched(object):
+    """ Class used to define a schedule object used for automatic on/off control of
+    devices that will be controlled from this application """
     def __init__(self, logger=None, **kwargs):
         # Configure logger
         self.logger = logger or logging.getLogger(__name__)
@@ -143,26 +149,40 @@ class Sched(object):
 
     @property
     def name(self):
+        """ returns the name of the device this schedule items is
+        associated with """
         return self._name
 
     @name.setter
     def name(self, value):
+        """ setter for the device name this schedule item corresponds
+        to """
         self._name = value
 
     @property
     def start(self):
+        """ returns "start" time associated with this line-item on the
+        schedule.  This typically corresponds to the time the device
+        is to be set to its non-default state (usually on) """
         return self._start
 
     @start.setter
     def start(self, value):
+        """ setter used to verify only proper data is entered into
+        the "start" time field """
         if isinstance(value, datetime.datetime):
             self._start = value
 
     @property
     def end(self):
-        return self._start
+        """ returns "end" time associated with this line-item on the
+        schedule.  This typically corresponds to the time the device
+        is to be returned to its default state (usually off) """
+        return self._end
 
     @end.setter
     def end(self, value):
+        """ setter used to verify only proper data is entered into
+        the "end" time field """
         if isinstance(value, datetime.datetime):
             self._end = value

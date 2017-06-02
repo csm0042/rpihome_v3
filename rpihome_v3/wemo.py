@@ -3,9 +3,9 @@
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
-import asyncio
 import copy
 import datetime
+import logging
 import pywemo
 import re
 import rpihome_v3
@@ -24,6 +24,8 @@ __status__ = "Development"
 
 # IPv4 Format helper function *************************************************
 def check_ipv4(address):
+    """ simple function used to determine if the contents of a string are
+    compatable with an ipv4 address """
     ipv4_regex = r'\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.' \
                  r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.' \
                  r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.' \
@@ -38,7 +40,9 @@ def check_ipv4(address):
 class WemoAPI(object):
     """ Class and methods necessary to read items from a google calendar  """
     def __init__(self, logger=None):
+        # Configure logger
         self.logger = logger or logging.getLogger(__name__)
+        # Configure other class objects
         self.wemo_device = None
         self.wemo_port = None
         self.wemo_url = str()
@@ -79,12 +83,14 @@ class WemoAPI(object):
 
 
     def wemo_read_status(self, device):
+        """ method to send a status query message to the physical device to
+        request that it report its current status back to this program """
         self.logger.debug(
             'Querrying device [%s] at [%s], original status [%s / %s]',
             device.name,
             device.address,
             device.status,
-            device.last_seen)
+            str(device.last_seen))
         # Check if device is already in the list of known wemo devices
         self.result = next(
             (index for index, wemodev in enumerate(self.wemo_known)
@@ -102,7 +108,7 @@ class WemoAPI(object):
                 device.name, self.status)
             # Re-define device record based on response from status query
             device.status = copy.copy(self.status)
-            device.last_seen = str(datetime.datetime.now())
+            device.last_seen = datetime.datetime.now()
             # If device was not previously in wemo list, add it for next time
             if self.result == None:
                 self.wemo_known.append(copy.copy(self.wemo_device))
@@ -142,7 +148,7 @@ class WemoAPI(object):
                 '"on" command sent to wemo device [%s]', self.wemo_device.name)
             # Re-define device record based on response from status query
             device.status = copy.copy(self.status)
-            device.last_seen = str(datetime.datetime.now())
+            device.last_seen = datetime.datetime.now()
             device.cmd = 'on'
             # If device was not previously in wemo list, add it for next time
             if self.result == None:
@@ -185,7 +191,7 @@ class WemoAPI(object):
                 '"off" command sent to wemo device [%s]', self.wemo_device.name)
             # Re-define device record based on response from status query
             device.status = copy.copy(self.status)
-            device.last_seen = str(datetime.datetime.now())
+            device.last_seen = datetime.datetime.now()
             device.cmd = 'off'
             # If device was not previously in wemo list, add it for next time
             if self.result == None:

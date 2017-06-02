@@ -23,6 +23,8 @@ __status__ = "Development"
 # Dusk to dawn function *******************************************************
 def dusk_to_dawn(device, wemo, sun, logger):
     """ test """
+    # Configure logger
+    logger = logger or logging.getLogger(__name__)    
     # Turn on light if after sunset or before sunrise and not already on
     if ((datetime.datetime.now().time() < sun.sunrise()
          or
@@ -46,6 +48,8 @@ def dusk_to_dawn(device, wemo, sun, logger):
 # Dusk to dawn function *******************************************************
 def schedule(device, wemo, sched, logger):
     """ test """
+    # Configure logger
+    logger = logger or logging.getLogger(__name__)    
     # Get schedule sub-set for device
     sched_subet = rpihome_v3.sched_by_name(name=device.name)
     # Initialize state

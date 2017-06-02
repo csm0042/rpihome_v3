@@ -3,8 +3,6 @@
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
-import asyncio
-import copy
 import logging
 import mysql.connector
 import mysql.connector.errorcode as errorcode
@@ -25,6 +23,9 @@ __status__ = "Development"
 # Main event loop function ****************************************************
 def insert_record(database, device, logger):
     """ test """
+    # Configure logger
+    logger = logger or logging.getLogger(__name__)
+    # Attempt database record insert
     try:
         # Check first if valid database connection was made
         if database is not None:
@@ -32,7 +33,7 @@ def insert_record(database, device, logger):
             query = ("INSERT INTO device_log "
                      "(device, status, timestamp) "
                      "VALUES (%s, %s, %s)")
-            data = (device.name, device.status, device.last_seen)
+            data = (device.name, device.status, str(device.last_seen))
             cursor.execute(query, data)
             database.commit()
             cursor.close()
@@ -41,5 +42,4 @@ def insert_record(database, device, logger):
                 'No connection to database. Updates are not being logged')
     except:
         logger.warning(
-            'Attempt to inesrt record into database failed'
-        )
+            'Attempt to inesrt record into database failed')

@@ -26,12 +26,14 @@ __status__ = "Development"
 def ping_device(device, logger):
     """ Personal devices get ping'd to detect if they are on the network
     Ior not """
+    # Configure logger
+    logger = logger or logging.getLogger(__name__)    
     logger.debug(
         'Pinging device [%s] at [%s], original status [%s / %s]',
         device.name,
         device.address,
         device.status,
-        device.last_seen)
+        str(device.last_seen))
 
     # Set ping command flags based upon operating system used
     if platform.system().lower() == "windows":
@@ -49,9 +51,9 @@ def ping_device(device, logger):
     # evaluate result
     if result == 0:
         device.status = 'true'
-        device.last_seen = str(datetime.datetime.now())
+        device.last_seen = datetime.datetime.now()
     else:
         device.status = 'false'
     logger.debug(
         'Updating device status to [%s / %s]',
-        device.status, device.last_seen)
+        device.status, str(device.last_seen))

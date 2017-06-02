@@ -28,6 +28,8 @@ __status__ = "Development"
 
 # NEST connect and query functions ********************************************
 async def connect_to_nest(device, credentials, logger):
+    # Configure logger
+    logger = logger or logging.getLogger(__name__)
     # Get credentials for login
     logger.debug('Getting NEST credentials from file')
     credential_file = configparser.ConfigParser()

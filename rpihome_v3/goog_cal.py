@@ -35,8 +35,10 @@ __status__ = "Development"
 class GoogleCalSync(object):
     """ Class and methods necessary to read items from a google calendar  """
     def __init__(self, cal_id=None, logger=None):
-        self.cal_id = cal_id
+        # Configure logger
         self.logger = logger or logging.getLogger(__name__)
+        # Create other class objects
+        self.cal_id = cal_id
         self.home_dir = str()
         self.credential_dir = str()
         self.store = str()

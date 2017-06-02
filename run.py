@@ -28,7 +28,7 @@ def main():
     """ main function for the rpihome application """
 
     # Get configuration from INI file for this run
-    logger, credentials, database, tasks, devices = (
+    logger, credentials, location, tasks, database, devices = (
         rpihome_v3.configure_all('rpihome_v3//config.ini'))
     logger.info('Configuration imported from INI file *********************')
 
@@ -38,7 +38,7 @@ def main():
         wemo = rpihome_v3.WemoAPI(logger)
     if tasks[3] is True:
         logger.debug('Creating sunrise/sunset class')
-        sun = rpihome_v3.Sun(38.566268, -90.409878, -5, logger)
+        sun = rpihome_v3.Sun(location[0], location[1], -5, logger)
     if tasks[3] is True:
         logger.debug('Polling online device schedule')
         sched = rpihome_v3.GoogleCalSync(
