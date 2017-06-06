@@ -55,6 +55,21 @@ def configure_credentials(filename, logger):
     return credentials
 
 
+# Obtain GUI ******************************************************************
+def configure_gui(filename, logger):
+    # Define connection to configuration file
+    config_file = configparser.ConfigParser()
+    config_file.read(filename)
+    # Read gui url from file
+    try:
+        gui_url = config_file['GUI']['path']
+        logger.debug('GUI url found')
+    except:
+        logger.error('No GUI url found')
+    # Return configured objects to main program
+    return gui_url
+
+
 # Config Task's to Start Function *********************************************
 def configure_tasks(filename, logger):
     # Define connection to configuration file

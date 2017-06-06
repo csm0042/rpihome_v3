@@ -7,6 +7,7 @@
 import asyncio
 import datetime
 from concurrent.futures import ThreadPoolExecutor
+import webbrowser
 import rpihome_v3
 
 # Authorship Info *************************************************************
@@ -33,6 +34,11 @@ def main():
     # Get user credentials ****************************************************
     credentials = rpihome_v3.configure_credentials('rpihome_v3//config.ini', logger)
     logger.info('Credential info imported')
+
+    # Get gui url *************************************************************
+    url = rpihome_v3.configure_gui('rpihome_v3//config.ini', logger)
+    logger.info('GUI url info imported')
+    webbrowser.open(url, new=2, autoraise=True)
 
     # Get location info *******************************************************
     location = rpihome_v3.configure_location('rpihome_v3//config.ini', logger)
@@ -72,6 +78,8 @@ def main():
     if tasks[5] is True:
         logger.debug('Creating Nest device gateway')
         nest = []
+
+
 
     # Get main event loop *****************************************************
     logger.info('Getting main event loop')
