@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" run.py:
+""" app.py:
     Main entry-point into the RPiHome application.
 """
 
@@ -7,8 +7,9 @@
 import asyncio
 import datetime
 from concurrent.futures import ThreadPoolExecutor
+from flask import Flask, render_template
 import webbrowser
-import rpihome_v3
+from . import *
 
 # Authorship Info *************************************************************
 __author__ = "Christopher Maue"
@@ -20,6 +21,21 @@ __maintainer__ = "Christopher Maue"
 __email__ = "csmaue@gmail.com"
 __status__ = "Development"
 
+
+# Flash App for Gui ***********************************************************
+app = Flask(__name__)
+
+@app.route("/")
+def index():
+    return render_template('index.html')
+
+@app.route('/start')
+def start():
+    return 'Started'
+
+@app.route('/stop')
+def stop():
+    return 'stopped'
 
 
 # Main event loop function ****************************************************
@@ -128,4 +144,5 @@ def main():
 
 # Call as script if run as __main__ *******************************************
 if __name__ == '__main__':
-    main()
+    app.run()
+    #main()

@@ -15,6 +15,7 @@ from .ping import *
 from .sun import *
 from .tasks import *
 from .wemo import *
+from .app import app
 
 
 # Authorship Info *************************************************************
