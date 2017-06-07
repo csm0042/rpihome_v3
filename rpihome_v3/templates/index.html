@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-<title>Basic 87</title>
+<title>RpiHome_v3</title>
 <meta charset="iso-8859-1">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
 <!--[if lt IE 9]><script src="scripts/html5shiv.js"></script><![endif]-->
@@ -10,16 +10,16 @@
 <div class="wrapper row1">
   <header id="header" class="clear">
     <div id="hgroup">
-      <h1><a href="#">Basic 87</a></h1>
-      <h2>Free HTML5 Website Template</h2>
+      <h1><a href="#">B.O.B. Home Automation</a></h1>
+      <h2>{{status}}</h2>
     </div>
     <nav>
       <ul>
+        <li><a href="{{ url_for('start') }}">Start</a></li>
+        <li><a href="{{ url_for('stop') }}">Stop</a></li>
         <li><a href="#">Text Link</a></li>
         <li><a href="#">Text Link</a></li>
-        <li><a href="#">Text Link</a></li>
-        <li><a href="#">Text Link</a></li>
-        <li class="last"><a href="#">Text Link</a></li>
+        <li class="last"><a href="{{url_for('shutdown')}}">Shutdown</a></li>
       </ul>
     </nav>
   </header>
@@ -32,22 +32,22 @@
       <!-- One Quarter -->
       <section id="latest" class="clear">
         <article class="one_quarter">
-          <figure><img src="images/demo/215x315.gif" width="215" height="315" alt="">
+          <figure><img src="{{url_for('static', filename='215x315.gif')}}" width="215" height="315" alt="">
             <figcaption>Image Caption Here</figcaption>
           </figure>
         </article>
         <article class="one_quarter">
-          <figure><img src="images/demo/215x315.gif" width="215" height="315" alt="">
+          <figure><img src="{{url_for('static', filename='215x315.gif')}}" width="215" height="315" alt="">
             <figcaption>Image Caption Here</figcaption>
           </figure>
         </article>
         <article class="one_quarter">
-          <figure><img src="images/demo/215x315.gif" width="215" height="315" alt="">
+          <figure><img src="{{url_for('static', filename='215x315.gif')}}" width="215" height="315" alt="">
             <figcaption>Image Caption Here</figcaption>
           </figure>
         </article>
         <article class="one_quarter lastbox">
-          <figure><img src="images/demo/215x315.gif" width="215" height="315" alt="">
+          <figure><img src="{{url_for('static', filename='215x315.gif')}}" width="215" height="315" alt="">
             <figcaption>Image Caption Here</figcaption>
           </figure>
         </article>
@@ -63,7 +63,7 @@
         <ul>
           <li>
             <article class="clear">
-              <figure><img src="images/demo/180x150.gif" alt="">
+              <figure><img src="{{url_for('static', filename='180x150.gif')}}" alt="">
                 <figcaption>
                   <h2>Indonectetus facilis leo nibh</h2>
                   <p>This is a W3C compliant free website template from <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a>. For full terms of use of this template please read our <a href="http://www.os-templates.com/template-terms">website template licence</a>.</p>
@@ -74,7 +74,7 @@
           </li>
           <li class="last">
             <article class="clear">
-              <figure><img src="images/demo/180x150.gif" alt="">
+              <figure><img src="{{url_for('static', filename='180x150.gif')}}" alt="">
                 <figcaption>
                   <h2>Indonectetus facilis leo nibh</h2>
                   <p>You can use and modify the template for both personal and commercial use. You must keep all copyright information and credit links in the template and associated files. For more HTML5 templates visit <a href="http://www.os-templates.com/">free website templates</a>.</p>

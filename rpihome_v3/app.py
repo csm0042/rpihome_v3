@@ -27,15 +27,20 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template('index.html', status='Control Disabled')
 
 @app.route('/start')
 def start():
-    return 'Started'
+    return render_template('index.html', status='RUNNING')
 
 @app.route('/stop')
 def stop():
-    return 'stopped'
+    return render_template('index.html', status='Control Disabled')
+
+@app.route('/shutdown', methods=['POST'])
+def shutdown():
+    shutdown_server()
+    return 'Server shutting down'
 
 
 # Main event loop function ****************************************************
