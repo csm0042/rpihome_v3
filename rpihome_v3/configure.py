@@ -182,14 +182,32 @@ def configure_devices(filename, logger):
 
 
 # Run all configuration functions in-turn *************************************
-def configure_all(filename):
-    """ Gather application configuration data from config.ini file """
-    logger = configure_logger(filename)
-    credentials = configure_credentials(filename, logger)
-    location = configure_location(filename, logger)
-    tasks = configure_tasks(filename, logger)
-    database = configure_database(filename, credentials, logger)
-    devices = configure_devices(filename, logger)
-    logger.debug('Finished call to configuration function')
-    # Return results to main program
+def configure_application(ini_file):
+    """ function to configure application settings using an INI file """
+    # Configure Logging *******************************************************
+    logger = rpihome_v3.configure_logger(ini_file)
+    logger.info('RpiHome v3 Application started @ [%s]',
+                str(datetime.datetime.now()))
+
+    # Get user credentials ****************************************************
+    credentials = rpihome_v3.configure_credentials(ini_file, logger)
+    logger.info('Credential info imported')
+
+    # Get location info *******************************************************
+    location = rpihome_v3.configure_location(ini_file, logger)
+    logger.info('Location info imported')
+
+    # Determine what tasks should run *****************************************
+    tasks = rpihome_v3.configure_tasks(ini_file, logger)
+    logger.info('Desired task setup info imported')
+
+    # Get database connection info ********************************************
+    database = rpihome_v3.configure_database(ini_file, credentials, logger)
+    logger.info('Database connection info imported')
+
+    # Get list of system devices to monitor/control ***************************
+    devices = rpihome_v3.configure_devices(ini_file, logger)
+    logger.info('System device info imported')
+
+    # Return results
     return (logger, credentials, location, tasks, database, devices)

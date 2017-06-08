@@ -6,6 +6,7 @@
 from .automation_rules import *
 from .configure import *
 from .dst import *
+from .event_loop import *
 from .goog_cal import *
 from .log_support import *
 from .motion import *
@@ -15,7 +16,6 @@ from .ping import *
 from .sun import *
 from .tasks import *
 from .wemo import *
-from .app import app
 
 
 # Authorship Info *************************************************************
