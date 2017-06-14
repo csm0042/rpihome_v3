@@ -8,7 +8,6 @@ import datetime
 import logging
 import os
 import platform
-import rpihome_v3
 
 
 # Authorship Info *************************************************************
@@ -27,7 +26,7 @@ def ping_device(device, logger):
     """ Personal devices get ping'd to detect if they are on the network
     Ior not """
     # Configure logger
-    logger = logger or logging.getLogger(__name__)    
+    logger = logger or logging.getLogger(__name__)
     logger.debug(
         'Pinging device [%s] at [%s], original status [%s / %s]',
         device.name,

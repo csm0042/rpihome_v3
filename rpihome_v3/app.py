@@ -130,13 +130,13 @@ def event_loop(logger, credentials, location, tasks, database, devices):
 
 # Call as script if run as __main__ *******************************************
 if __name__ == '__main__':
-    # Get configuration 
+    # Get configuration
     logger, credentials, location, tasks, database, devices = \
         rpihome_v3.configure_application('config.ini')
 
-    
+
     # Start event loop
-    rpihome_v3.event_loop(
+    event_loop(
         logger, credentials, location, tasks, database, devices)
 
 
