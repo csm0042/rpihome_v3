@@ -22,7 +22,7 @@ __status__ = "Development"
 
 # Update automation device status *********************************************
 @asyncio.coroutine
-def update_adev_status(devices, wemo, loop, executor, sleep, logger):
+def update_adev_status(devices, wemo, loop, executor, sleep, logger, sd):
     """ test """
     # Configure logger
     logger = logger or logging.getLogger(__name__)
@@ -42,11 +42,13 @@ def update_adev_status(devices, wemo, loop, executor, sleep, logger):
         except KeyboardInterrupt:
             logger.debug('Killing task')
             break
+        if sd:
+            break
 
 
 # Update automation device status *********************************************
 @asyncio.coroutine
-def update_pdev_status(devices, loop, executor, sleep, logger):
+def update_pdev_status(devices, loop, executor, sleep, logger, sd):
     """ test """
     # Configure logger
     logger = logger or logging.getLogger(__name__)
@@ -66,11 +68,13 @@ def update_pdev_status(devices, loop, executor, sleep, logger):
         except KeyboardInterrupt:
             logger.debug('Killing task')
             break
+        if sd:
+            break
 
 
 # Update automation device status *********************************************
 @asyncio.coroutine
-def update_mdev_status(devices, loop, executor, sleep, logger):
+def update_mdev_status(devices, loop, executor, sleep, logger, sd):
     """ test """
     # Configure logger
     logger = logger or logging.getLogger(__name__)
@@ -89,11 +93,13 @@ def update_mdev_status(devices, loop, executor, sleep, logger):
         except KeyboardInterrupt:
             logger.debug('Killing task')
             break
+        if sd:
+            break
 
 
 # Update automation device status *********************************************
 @asyncio.coroutine
-def update_adev_cmd(devices, wemo, sun, sched, loop, executor, sleep, logger):
+def update_adev_cmd(devices, wemo, sun, sched, loop, executor, sleep, logger, sd):
     """ test """
     # Configure logger
     logger = logger or logging.getLogger(__name__)
@@ -119,11 +125,13 @@ def update_adev_cmd(devices, wemo, sun, sched, loop, executor, sleep, logger):
         except KeyboardInterrupt:
             logger.debug('Killing task')
             break
+        if sd:
+            break
 
 
 # Update automation device status *********************************************
 @asyncio.coroutine
-def update_database(database, devices, loop, executor, sleep, logger):
+def update_database(database, devices, loop, executor, sleep, logger, sd):
     """ test """
     # Configure logger
     logger = logger or logging.getLogger(__name__)
@@ -143,4 +151,6 @@ def update_database(database, devices, loop, executor, sleep, logger):
             yield from asyncio.sleep(sleep)
         except KeyboardInterrupt:
             logger.debug('Killing task')
+            break
+        if sd:
             break

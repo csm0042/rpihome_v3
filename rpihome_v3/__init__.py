@@ -6,6 +6,7 @@
 from .automation_rules import *
 from .configure import *
 from .dst import *
+from .event import *
 from .goog_cal import *
 from .log_support import *
 from .motion import *
