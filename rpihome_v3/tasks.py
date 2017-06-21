@@ -22,7 +22,7 @@ __status__ = "Development"
 
 # Update automation device status *********************************************
 @asyncio.coroutine
-def update_adev_status(devices, wemo, loop, executor, sleep, logger, sd):
+def update_adev_status(devices, wemo, loop, executor, sleep, logger, shutdown):
     """ test """
     # Configure logger
     logger = logger or logging.getLogger(__name__)
@@ -42,13 +42,13 @@ def update_adev_status(devices, wemo, loop, executor, sleep, logger, sd):
         except KeyboardInterrupt:
             logger.debug('Killing task')
             break
-        if sd:
+        if shutdown:
             break
 
 
 # Update automation device status *********************************************
 @asyncio.coroutine
-def update_pdev_status(devices, loop, executor, sleep, logger, sd):
+def update_pdev_status(devices, loop, executor, sleep, logger, shutdown):
     """ test """
     # Configure logger
     logger = logger or logging.getLogger(__name__)
@@ -68,13 +68,13 @@ def update_pdev_status(devices, loop, executor, sleep, logger, sd):
         except KeyboardInterrupt:
             logger.debug('Killing task')
             break
-        if sd:
+        if shutdown:
             break
 
 
 # Update automation device status *********************************************
 @asyncio.coroutine
-def update_mdev_status(devices, loop, executor, sleep, logger, sd):
+def update_mdev_status(devices, loop, executor, sleep, logger, shutdown):
     """ test """
     # Configure logger
     logger = logger or logging.getLogger(__name__)
@@ -93,13 +93,13 @@ def update_mdev_status(devices, loop, executor, sleep, logger, sd):
         except KeyboardInterrupt:
             logger.debug('Killing task')
             break
-        if sd:
+        if shutdown:
             break
 
 
 # Update automation device status *********************************************
 @asyncio.coroutine
-def update_adev_cmd(devices, wemo, sun, sched, loop, executor, sleep, logger, sd):
+def update_adev_cmd(devices, wemo, sun, sched, loop, executor, sleep, logger, shutdown):
     """ test """
     # Configure logger
     logger = logger or logging.getLogger(__name__)
@@ -125,13 +125,13 @@ def update_adev_cmd(devices, wemo, sun, sched, loop, executor, sleep, logger, sd
         except KeyboardInterrupt:
             logger.debug('Killing task')
             break
-        if sd:
+        if shutdown:
             break
 
 
 # Update automation device status *********************************************
 @asyncio.coroutine
-def update_database(database, devices, loop, executor, sleep, logger, sd):
+def update_database(database, devices, loop, executor, sleep, logger, shutdown):
     """ test """
     # Configure logger
     logger = logger or logging.getLogger(__name__)
@@ -152,5 +152,44 @@ def update_database(database, devices, loop, executor, sleep, logger, sd):
         except KeyboardInterrupt:
             logger.debug('Killing task')
             break
-        if sd:
+        if shutdown:
+            break
+
+
+# Update automation device status *********************************************
+@asyncio.coroutine
+def update_commands(database, devices, loop, executor, sleep, logger, shutdown):
+    """ test """
+    # Configure logger
+    logger = logger or logging.getLogger(__name__)
+    logger.debug('Starting update personal device status task')
+    while True:
+        try:
+            # Query pending commands from database
+            pending_cmds = yield from loop.run_in_executor(
+                executor,
+                rpihome_v3.query_cmds,
+                database, logger)
+            # Check if any pending commands were returned
+            if len(pending_cmds) > 0:
+                # Cycle through pending command list and process
+                for index, cmd in enumerate(pending_cmds):
+                    # Search for matching device, then process command
+                    for device in devices:
+                        if device.name == pending_cmds.name:
+                            # do something
+                            pass
+                    # Perform update query to database to mark command as "sent"
+                    yield from loop.run_in_executor(
+                        executor,
+                        rpihome_v3.update_record,
+                        database, record, logger)
+
+            # Wait a pre-determined time period, then re-run the task
+            logger.debug('Sleeping task for %s seconds', str(sleep))
+            yield from asyncio.sleep(sleep)
+        except KeyboardInterrupt:
+            logger.debug('Killing task')
+            break
+        if shutdown:
             break

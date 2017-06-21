@@ -49,10 +49,11 @@ def start():
 
 @app.route('/stop')
 def stop():
-    shutdown = True
-    loop.stop()
-    print('Shutting down')
-    time.sleep(10)
+    #shutdown = True
+    #loop.stop()
+    #print('Shutting down')
+    #time.sleep(10)
+    return render_template('index.html', event_loop_status='STOPPING')
 
 @app.route('/shutdown', methods=['POST'])
 def shutdown():
