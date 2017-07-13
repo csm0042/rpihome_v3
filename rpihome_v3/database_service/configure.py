@@ -25,36 +25,36 @@ __status__ = "Development"
 
 
 # Config Function Def *********************************************************
-def configure_logger(filename):
+def configure_log(filename):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
     # Set up application logging
-    logger = database_service.setup_log_handlers(
+    log = database_service.setup_log_handlers(
         __file__,
         config_file['LOG FILES']['debug_log_file'],
         config_file['LOG FILES']['info_log_file'])
     # Return configured objects to main program
-    return logger
+    return log
 
 
 # Obtain Credentials **********************************************************
-def configure_credentials(filename, logger):
+def configure_credentials(filename, log):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
     # Read credential info from file
     try:
         credentials = config_file['CREDENTIALS']['file']
-        logger.debug('Credentails file found')
+        log.debug('Credentails file found')
     except:
-        logger.error('No credentials file found')
+        log.error('No credentials file found')
     # Return configured objects to main program
     return credentials
 
 
 # Config Database Connection Function *****************************************
-def configure_database(filename, credentials, logger):
+def configure_database(filename, credentials, log):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
@@ -68,7 +68,7 @@ def configure_database(filename, credentials, logger):
             database=config_file['DATABASE']['schema'],
             user=credential_file['DATABASE']['username'],
             password=credential_file['DATABASE']['password'])
-        logger.debug("Successfully connected to database")
+        log.debug("Successfully connected to database")
     except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
             database = None
@@ -77,13 +77,13 @@ def configure_database(filename, credentials, logger):
         else:
             database = None
         pass
-        logger.debug("Could not connect to database")
+        log.debug("Could not connect to database")
     # Return configured objects to main program
     return database
 
 
 # Configure service socket server *********************************************
-def configure_server(filename, logger):
+def configure_server(filename, log):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
@@ -91,9 +91,9 @@ def configure_server(filename, logger):
     try:
         address = config_file['SOCKET SERVER']['address']
         port = int(config_file['SOCKET SERVER']['port'])
-        logger.debug('Address and port found: %s:%s', address, port)
+        log.debug('Address and port found: %s:%s', address, port)
     except:
-        logger.error('No address or port configuration found')
+        log.error('No address or port configuration found')
         address = None
         port = 0
     # Return configured objects to main program
@@ -102,10 +102,10 @@ def configure_server(filename, logger):
 
 # Simple function test ********************************************************
 if __name__ == "__main__":
-    logger = configure_logger('config.ini')
-    credentials = configure_credentials('config.ini', logger)
+    log = configure_log('config.ini')
+    credentials = configure_credentials('config.ini', log)
     print(credentials)
-    database = configure_database('config.ini', credentials, logger)
+    database = configure_database('config.ini', credentials, log)
     print(database)
-    address, port = configure_server('config.ini', logger)
+    address, port = configure_server('config.ini', log)
     print(address, ":", port)

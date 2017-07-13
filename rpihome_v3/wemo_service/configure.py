@@ -23,21 +23,21 @@ __status__ = "Development"
 
 
 # Config Function Def *********************************************************
-def configure_logger(filename):
+def configure_log(filename):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
     # Set up application logging
-    logger = wemo_service.setup_log_handlers(
+    log = wemo_service.setup_log_handlers(
         __file__,
         config_file['LOG FILES']['debug_log_file'],
         config_file['LOG FILES']['info_log_file'])
     # Return configured objects to main program
-    return logger
+    return log
 
 
 # Configure service socket server *********************************************
-def configure_server(filename, logger):
+def configure_server(filename, log):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
@@ -45,9 +45,9 @@ def configure_server(filename, logger):
     try:
         address = config_file['SOCKET SERVER']['address']
         port = int(config_file['SOCKET SERVER']['port'])
-        logger.debug('Address and port found: %s:%s', address, port)
+        log.debug('Address and port found: %s:%s', address, port)
     except:
-        logger.error('No address or port configuration found')
+        log.error('No address or port configuration found')
         address = None
         port = 0
     # Return configured objects to main program
@@ -56,6 +56,6 @@ def configure_server(filename, logger):
 
 # Simple function test ********************************************************
 if __name__ == "__main__":
-    logger = configure_logger('config.ini')
-    address, port = configure_server('config.ini', logger)
+    log = configure_log('config.ini')
+    address, port = configure_server('config.ini', log)
     print(address, ":", port)

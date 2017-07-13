@@ -24,34 +24,56 @@ __status__ = "Development"
 # Socket Server for external comms ********************************************
 @asyncio.coroutine
 def handle_echo(reader, writer):
-    data = yield from reader.read(100)
+    data = yield from reader.read()
     message = data.decode()
     addr = writer.get_extra_info('peername')
-    print('Received %r from %r' % (message, addr))
+    log.debug('Received %r from %r' % (message, addr))
 
-    print('Send: %r' % message)
+    # Acknowledge receipt of message
+    log.debug("ACK'ing message: %r", message)
     writer.write(data)
     yield from writer.drain()
 
-    print('Close the client socket')
+    log.debug('Closing the socket after response')
     writer.close()
+    
+    # Break up message for decoding purposes
+    msg_seg = message.split(",")
+
+    # Process device status requests
+    if msg_seg[0] == "001":
+        log.debug('Received message is a status request')
+        status, last_seen = wemo_gw.read_status(msg_seg[1], msg_seg[2], msg_seg[3], msg_seg[4])
+        log.debug('Updated status: %s/%s', status, last_seen)
+        reply_msg = msg_seg[0] + ',' + msg_seg[1] + ',' + status + ',' + last_seen
+        log.debug('Sending response message: %s', reply_msg)
+
+
+
+# Main ************************************************************************
+def main():
+    log.debug('Starting main')
+
+    loop = asyncio.get_event_loop()
+    server = asyncio.start_server(handle_echo, host=address, port=port, loop=loop)
+    server_task = loop.run_until_complete(server)
+
+    # Serve requests until Ctrl+C is pressed
+    print('Serving on {}'.format(server_task.sockets[0].getsockname()))
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        pass
+
+    # Close the server
+    server_task.close()
+    loop.run_until_complete(server_task.wait_closed())
+    loop.close()
 
 
 # Service *********************************************************************
-logger = wemo_service.configure_logger('config.ini')
-address, port = wemo_service.configure_server('config.ini', logger)
-loop = asyncio.get_event_loop()
-coro = asyncio.start_server(handle_echo, address, port, loop=loop)
-server = loop.run_until_complete(coro)
+log = wemo_service.configure_log('config.ini')
+address, port = wemo_service.configure_server('config.ini', log)
+wemo_gw = wemo_service.WemoAPI(log)
 
-# Serve requests until Ctrl+C is pressed
-print('Serving on {}'.format(server.sockets[0].getsockname()))
-try:
-    loop.run_forever()
-except KeyboardInterrupt:
-    pass
-
-# Close the server
-server.close()
-loop.run_until_complete(server.wait_closed())
-loop.close()
+main()

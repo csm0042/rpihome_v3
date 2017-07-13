@@ -24,7 +24,7 @@ __status__ = "Development"
 
 
 # Insert Record into log table in database function ***************************
-def insert_record(database, device, logger):
+def insert_record(database, name, status, last_seen, logger):
     """ Inserts a new record into the device log table """
     # Configure logger
     logger = logger or logging.getLogger(__name__)
@@ -39,7 +39,7 @@ def insert_record(database, device, logger):
             query = ("INSERT INTO device_log "
                      "(device, status, timestamp) "
                      "VALUES (%s, %s, %s)")
-            data = (device.name, device.status, str(device.last_seen))
+            data = (name, status, str(last_seen))
             full_query = query % data
             logger.debug('Ready to execute query: %s', full_query)            
             cursor.execute(query, data)
