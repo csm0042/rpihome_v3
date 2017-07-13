@@ -47,6 +47,11 @@ def event_loop(executor, loop, logger, shutdown, credentials, location, tasks, d
         logger.debug('Creating Nest device gateway')
         nest = []
 
+    # Create environmental status class (Nest device) *************************
+    if tasks[6] is True:
+        logger.debug('Creating database command processor')
+       
+
     # Schedule tasks for execution ********************************************
     if tasks[0] is True:
         asyncio.ensure_future(
@@ -73,6 +78,11 @@ def event_loop(executor, loop, logger, shutdown, credentials, location, tasks, d
             rpihome_v3.update_database(
                 database, devices, loop, executor, 5, logger, shutdown))
         logger.info('Scheduling update persistance task')
+    if tasks[6] is True:
+        asyncio.ensure_future(
+            rpihome_v3.update_db_cmd(
+                database, devices, wemo, loop, executor, 0.25, logger, shutdown))
+        logger.info('Scheduling update persistance task')        
 
     # Run event loop until keyboard interrupt received ************************
     try:

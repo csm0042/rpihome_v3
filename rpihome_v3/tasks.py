@@ -193,3 +193,33 @@ def update_commands(database, devices, loop, executor, sleep, logger, shutdown):
             break
         if shutdown:
             break
+
+
+@asyncio.coroutine
+def update_db_cmd(database, devices, wemo, loop, executor, sleep, logger, shutdown):
+    """ test """
+    # Configure logger
+    logger = logger or logging.getLogger(__name__)
+    logger.debug('update_db_cmd function called')
+    while True:
+        try:
+            cmd_list = rpihome_v3.query_command(database, logger)
+            for cmd in cmd_list:
+                if cmd.name in devices.name:
+                    
+
+            for index, device in enumerate(devices):
+                if device.devtype == "wemo_switch":
+                    logger.debug('Checking status of device [%s]', device.name)
+                    yield from loop.run_in_executor(
+                        executor,
+                        wemo.read_status,
+                        devices[index])
+            # Wait a pre-determined time period, then re-run the task
+            logger.debug('Sleeping task for %s seconds', str(sleep))
+            yield from asyncio.sleep(sleep)
+        except KeyboardInterrupt:
+            logger.debug('Killing task')
+            break
+        if shutdown:
+            break

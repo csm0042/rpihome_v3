@@ -100,8 +100,12 @@ def configure_tasks(filename, logger):
         enviro = True
     else:
         enviro = False
+    if config_file['TASKS']['dbcmd'] == 'yes':
+        dbcmd = True
+    else:
+        dbcmd = False        
     # Return configured objects to main program
-    return (adevstat, pdevstat, mdevstat, adevcmd, persist, enviro)
+    return (adevstat, pdevstat, mdevstat, adevcmd, persist, enviro, dbcmd)
 
 
 # Config Location *************************************************************
