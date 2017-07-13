@@ -36,7 +36,7 @@ def configure_logger(filename):
     return logger
 
 
-# Obtain Credentials **********************************************************
+# Configure service socket server *********************************************
 def configure_server(filename, logger):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
