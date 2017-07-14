@@ -44,12 +44,12 @@ def configure_server(filename, log):
     # Read credential info from file
     try:
         address = config_file['SOCKET SERVER']['address']
-        port = int(config_file['SOCKET SERVER']['port'])
+        port = config_file['SOCKET SERVER']['port']
         log.debug('Address and port found: %s:%s', address, port)
     except:
         log.error('No address or port configuration found')
         address = None
-        port = 0
+        port = None
     # Return configured objects to main program
     return address, port
 
