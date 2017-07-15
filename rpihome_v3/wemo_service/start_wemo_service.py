@@ -32,11 +32,21 @@ msg_out_que = asyncio.Queue()
 loop = asyncio.get_event_loop()
 
 ref_num_gen = wemo_service.RefNum()
-test_msg1 = '042,127.0.0.1,27001,102,br1lt2,192.168.86.28,,2017-07-01 12:00:00'
-test_msg2 = '042,127.0.0.1,27001,104,br1lt2,192.168.86.28,,2017-07-01 12:00:00'
-test_msg = '042,127.0.0.1,27001,payload'
-msg_out_que.put_nowait(test_msg1)
-msg_out_que.put_nowait(test_msg2)
+test_msg = []
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',102,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',102,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',100,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',100,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',104,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',104,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',100,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',100,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
+for msg in test_msg:
+    msg_out_que.put_nowait(msg)
+
+#test_msg = '042,127.0.0.1,27001,payload'
+
+
 
 
 # Incoming message handler ****************************************************
@@ -116,8 +126,8 @@ def service_main():
                 next_msg = msg_in_que.get_nowait()
 
                 next_msg_seg = next_msg.split(sep=',')
-                msgHeader = next_msg_seg[:3]
-                msgPayload = next_msg_seg[3:]
+                msgHeader = next_msg_seg[:5]
+                msgPayload = next_msg_seg[5:]
                 
                 # Wemo Device Status Queries
                 if msgPayload[0] == '100':
@@ -178,8 +188,10 @@ def service_main():
 def get_wemo_status(msgH, msgP):
     """ Function to properly process wemo device status requests """
     msgRef = msgH[0]
-    msgAdd = msgH[1]
-    msgPort = msgH[2]
+    msgDestAdd = msgH[1]
+    msgDestPort = msgH[2]
+    msgSourceAdd = msgH[3]
+    msgSourcePort = msgH[4]
     devName = msgP[1]
     devAdd = msgP[2]
     devStatus = msgP[3]
@@ -192,7 +204,7 @@ def get_wemo_status(msgH, msgP):
     log.debug('Generating new ref number for response message')
     ref_num = ref_num_gen.new()
     log.debug('Building response message header')
-    response_header = ref_num + ',' + msgAdd + ',' + msgPort
+    response_header = ref_num + ',' + msgSourceAdd + ',' + msgSourcePort + ',' + msgDestAdd + ',' + msgDestPort
     log.debug('Resulting header: [%s]', response_header)
     log.debug('Building response message payload')
     response_payload = '101,' + devName + ',' + str(devStatusNew) + \
@@ -209,8 +221,10 @@ def get_wemo_status(msgH, msgP):
 def set_wemo_on(msgH, msgP):
     """ Function to set state of wemo device to "on" """
     msgRef = msgH[0]
-    msgAdd = msgH[1]
-    msgPort = msgH[2]
+    msgDestAdd = msgH[1]
+    msgDestPort = msgH[2]
+    msgSourceAdd = msgH[3]
+    msgSourcePort = msgH[4]
     devName = msgP[1]
     devAdd = msgP[2]
     devStatus = msgP[3]
@@ -223,7 +237,7 @@ def set_wemo_on(msgH, msgP):
     log.debug('Generating new ref number for response message')
     ref_num = ref_num_gen.new()
     log.debug('Building response message header')
-    response_header = ref_num + ',' + msgAdd + ',' + msgPort
+    response_header = ref_num + ',' + msgSourceAdd + ',' + msgSourcePort + ',' + msgDestAdd + ',' + msgDestPort
     log.debug('Resulting header: [%s]', response_header)
     log.debug('Building response message payload')
     response_payload = '103,' + devName + ',' + str(devStatusNew) + \
@@ -240,8 +254,10 @@ def set_wemo_on(msgH, msgP):
 def set_wemo_off(msgH, msgP):
     """ Function to set state of wemo device to "off" """
     msgRef = msgH[0]
-    msgAdd = msgH[1]
-    msgPort = msgH[2]
+    msgDestAdd = msgH[1]
+    msgDestPort = msgH[2]
+    msgSourceAdd = msgH[3]
+    msgSourcePort = msgH[4]
     devName = msgP[1]
     devAdd = msgP[2]
     devStatus = msgP[3]
@@ -254,7 +270,7 @@ def set_wemo_off(msgH, msgP):
     log.debug('Generating new ref number for response message')
     ref_num = ref_num_gen.new()
     log.debug('Building response message header')
-    response_header = ref_num + ',' + msgAdd + ',' + msgPort
+    response_header = ref_num + ',' + msgSourceAdd + ',' + msgSourcePort + ',' + msgDestAdd + ',' + msgDestPort
     log.debug('Resulting header: [%s]', response_header)
     log.debug('Building response message payload')
     response_payload = '105,' + devName + ',' + str(devStatusNew) + \
