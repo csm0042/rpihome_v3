@@ -25,7 +25,7 @@ class WemoAPI(object):
     """ Class and methods necessary to read items from a google calendar  """
     def __init__(self, log=None):
         # Configure log
-        self.log = log or logging.getlog(__name__)
+        self.log = log or logging.getLogger(__name__)
         # Configure other class objects
         self.wemo_device = None
         self.wemo_port = None
@@ -33,6 +33,10 @@ class WemoAPI(object):
         self.wemo_known = []
         self.result = None
         self.status = str()
+        self.log.info('Performing initial scan for wemo devices on network')
+        self.wemo_known = pywemo.discover_devices()
+        for device in self.wemo_known:
+            self.log.info('Found: %s', device)
 
 
     def discover(self, name, address):
@@ -109,63 +113,54 @@ class WemoAPI(object):
 
 
     # Wemo set to on function *****************************************************
-    def turn_on(self, device):
+    def turn_on(self, name, address, status, last_seen):
         """ Send 'turn on' command to a specific wemo device """
-        self.log.debug(
-            'Setting device [%s] at [%s], state to "on"',
-            device.name,
-            device.address)
+        self.log.debug('Setting device [%s] at [%s], state to "on"',
+            name, address)
         # Check if device is already in the list of known wemo devices
         self.result = next(
             (index for index, wemodev in enumerate(self.wemo_known)
-             if wemodev.name == device.name), None)
+             if wemodev.name == name), None)
         # Point to existing list record or recently discovered device
         if self.result == None:
             self.log.debug('Device not in wemo list.  Running discovery')
-            self.wemo_device = self.discover(device)
+            self.wemo_device = self.discover(name, address)
         else:
-            self.log.debug(
-                'Device already in wemo list as [%s]',
+            self.log.debug('Device already in wemo list as [%s]',
                 self.wemo_known[self.result])
             self.wemo_device = self.wemo_known[self.result]
         # Perform command, followed by status query
         if self.wemo_device is not None:
             self.wemo_device.on()
             self.status = 'on'
-            self.log.debug(
-                '"on" command sent to wemo device [%s]', self.wemo_device.name)
-            # Re-define device record based on response from status query
-            device.status = copy.copy(self.status)
-            device.last_seen = datetime.datetime.now()
-            device.cmd = 'on'
+            self.log.debug('"on" command sent to wemo device [%s]',
+                           self.wemo_device.name)
+            last_seen = str(datetime.datetime.now())
             # If device was not previously in wemo list, add it for next time
             if self.result == None:
                 self.wemo_known.append(copy.copy(self.wemo_device))
         else:
             self.status = 'offline'
-            device.cmd = ''
-            self.log.debug(
-                'Wemo device [%s] discovery failed.  Status set to [%s]',
-                device.name, self.status)
-            device.status = copy.copy(self.status)
-            device.cmd = 'on'
+            self.log.debug('Wemo device [%s] discovery failed.  Status set to [%s]',
+                name, self.status)
+        return self.status, last_seen
 
 
     # Wemo set to off function ****************************************************
-    def turn_off(self, device):
+    def turn_off(self, name, address, status, last_seen):
         """ Send 'turn off' command to a specific wemo device """
         self.log.debug(
             'Setting device [%s] at [%s], state to "off"',
-            device.name,
-            device.address)
+            name,
+            address)
         # Check if device is already in the list of known wemo devices
         self.result = next(
             (index for index, wemodev in enumerate(self.wemo_known)
-             if wemodev.name == device.name), None)
+             if wemodev.name == name), None)
         # Point to existing list record or recently discovered device
         if self.result == None:
             self.log.debug('Device not in wemo list.  Running discovery')
-            self.wemo_device = self.discover(device)
+            self.wemo_device = self.discover(name, address)
         else:
             self.log.debug(
                 'Device already in wemo list as [%s]',
@@ -178,16 +173,12 @@ class WemoAPI(object):
             self.log.debug(
                 '"off" command sent to wemo device [%s]', self.wemo_device.name)
             # Re-define device record based on response from status query
-            device.status = copy.copy(self.status)
-            device.last_seen = datetime.datetime.now()
-            device.cmd = 'off'
+            last_seen = str(datetime.datetime.now())
             # If device was not previously in wemo list, add it for next time
             if self.result == None:
                 self.wemo_known.append(copy.copy(self.wemo_device))
         else:
             self.status = 'offline'
-            self.log.debug(
-                'Wemo device [%s] discovery failed.  Status set to [%s]',
-                device.name, self.status)
-            device.status = copy.copy(self.status)
-            device.cmd =  ''
+            self.log.debug('Wemo device [%s] discovery failed.  Status set to [%s]',
+                name, self.status)
+        return self.status, last_seen
