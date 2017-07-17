@@ -41,7 +41,7 @@ def handle_msg_in(reader, writer):
     """ Callback used to send ACK messages back to acknowledge messages
     received """
     log.debug('Yielding to reader.read()')
-    data_in = yield from reader.read()
+    data_in = yield from reader.read(200)
     log.debug('Decoding read data')
     message = data_in.decode()
     log.debug('Extracting address from socket connection')
@@ -85,7 +85,7 @@ def handle_msg_out():
                 writer_out.write(msg_to_send.encode())
 
                 log.debug('Waiting for ack')
-                data_ack = yield from reader_out.read()
+                data_ack = yield from reader_out.read(200)
                 ack = data_ack.decode()
                 log.debug('Received: %r', ack)
                 if ack.split(',')[0] == msg_seg_out[0]:
@@ -173,7 +173,24 @@ def service_main():
 # Internal Service Work Subtask - wemo get status *****************************
 @asyncio.coroutine
 def log_status_update(msgH, msgP):
-    """ Function to properly process wemo device status requests """
+    """ Function to insert status updates into device_log table 
+    Msg Header format: 
+    aaa,bbb.bbb.bbb.bbb.bbb,ccccc,ddd.ddd.ddd.ddd.eeeee
+    where
+    aaa = ref number
+    bbb.bbb.bbb.bbb = destination IP address for message
+    ccccc = destination port for message
+    ddd.ddd.ddd.ddd = IP where message originated
+    eeeee = port where message originated
+
+    Msg Payload format:
+    aaa,bbbb,ccc.ccc.ccc.ccc,dddd,eeee
+    aaa = msg type (100 for status update, 101 for status update ACK)
+    bbbb = device name
+    ccc.ccc.ccc.ccc = device address
+    dddd = device status to log
+    eeee = timestamp associated with device status change
+    """
     # Map message header to usable tags
     msgRef = msgH[0]
     msgDestAdd = msgH[1]
@@ -213,7 +230,20 @@ def log_status_update(msgH, msgP):
 # Internal Service Work Subtask - wemo turn on ********************************
 @asyncio.coroutine
 def read_device_cmd(msgH, msgP):
-    """ Function to query database for any un-processed device commands """
+    """ Function to query database for any un-processed device commands 
+    Msg Header format: 
+    aaa,bbb.bbb.bbb.bbb.bbb,ccccc,ddd.ddd.ddd.ddd.eeeee
+    where
+    aaa = ref number
+    bbb.bbb.bbb.bbb = destination IP address for message
+    ccccc = destination port for message
+    ddd.ddd.ddd.ddd = IP where message originated
+    eeeee = port where message originated
+
+    Msg Payload format:
+    aaa
+    aaa = msg type (102 for cmd query, 103 for cmd query ACK)
+    """
     # Map message header to usable tags
     msgRef = msgH[0]
     msgDestAdd = msgH[1]
@@ -251,7 +281,22 @@ def read_device_cmd(msgH, msgP):
 # Internal Service Work Subtask - wemo turn off *******************************
 @asyncio.coroutine
 def update_device_cmd(msgH, msgP):
-    """ Function to set state of wemo device to "off" """
+    """ Function to set state of wemo device to "off"
+    Msg Header format: 
+    aaa,bbb.bbb.bbb.bbb.bbb,ccccc,ddd.ddd.ddd.ddd.eeeee
+    where
+    aaa = ref number
+    bbb.bbb.bbb.bbb = destination IP address for message
+    ccccc = destination port for message
+    ddd.ddd.ddd.ddd = IP where message originated
+    eeeee = port where message originated
+
+    Msg Payload format:
+    aaa,bbbb,cccc
+    aaa = msg type (104 for cmd update, 105 for cmd update ACK)
+    bbbb = record ID
+    cccc = processed timestamp
+    """
     # Map message header to usable tags
     msgRef = msgH[0]
     msgDestAdd = msgH[1]
@@ -264,7 +309,7 @@ def update_device_cmd(msgH, msgP):
     cmdProcessed = msgP[2]
     # Execute update Query
     log.debug('Querying database to mark command with ID [%s] as complete with timestamp [%s]', cmdId, cmdProcessed)
-    database_service.query_command(database, cmdId, cmdProcessed, log)
+    database_service.update_command(database, cmdId, cmdProcessed, log)
     # Send response indicating query was executed
     log.debug('Generating new ref number for response message')
     ref_num = ref_num_gen.new()

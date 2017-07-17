@@ -7,6 +7,7 @@ application.  The following functions are supported here:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
+import copy
 import datetime
 import logging
 
@@ -82,11 +83,10 @@ def query_command(database, log):
             log.debug('Query execution successful')
             row = cursor.fetchone()
             while row is not None:
-                log.debug('Found pending cmd: [%s,%s,%s,%s,%s]',
-                          row[0], row[1], row[2], row[3], row[4])
-                result_list.append(row[0] + ',' + row[1] + ',' + \
-                                   row[2] + ',' + row[3] + ',' + \
-                                   row[4])
+                result = '%s,%s,%s,%s,%s' % (row[0], row[1], row[2], row[3], row[4])
+                log.debug('Found pending cmd: [%s]', result)
+                result_list.append(copy.copy(result))
+                log.debug('Fetching next record in cursor')
                 row = cursor.fetchone()
             log.debug('Select query complete')
         else:

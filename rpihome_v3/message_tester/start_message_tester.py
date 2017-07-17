@@ -32,14 +32,20 @@ loop = asyncio.get_event_loop()
 
 ref_num_gen = message_tester.RefNum()
 test_msg = []
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',102,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',102,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',100,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',100,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',104,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',104,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',100,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',100,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
+"""
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,' + address + ',' + port + ',102,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,' + address + ',' + port + ',102,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,' + address + ',' + port + ',100,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,' + address + ',' + port + ',100,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,' + address + ',' + port + ',104,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,' + address + ',' + port + ',104,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,' + address + ',' + port + ',100,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,' + address + ',' + port + ',100,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
+"""
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27041,' + address + ',' + port + ',100,br1lt2,192.168.86.28,hot,2017-07-17 13:52:00')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27041,' + address + ',' + port + ',102')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27041,' + address + ',' + port + ',104,10,2017-07-17 15:00:01')
+test_msg.append(ref_num_gen.new() + ',127.0.0.1,27041,' + address + ',' + port + ',104,11,2017-07-17 15:00:02')
 for msg in test_msg:
     msg_out_que.put_nowait(msg)
 
@@ -87,7 +93,7 @@ def handle_msg_out():
                 log.debug('Extracting msg destination address and port')
                 msg_seg_out = msg_to_send.split(',')
                 log.debug('Opening outgoing connection to %s:%s',
-                    msg_seg_out[1], msg_seg_out[2])
+                          msg_seg_out[1], msg_seg_out[2])
                 reader_out, writer_out = yield from asyncio.open_connection(
                     msg_seg_out[1], int(msg_seg_out[2]), loop=loop)
                 log.debug('Sending message: [%s]', msg_to_send)
@@ -119,7 +125,7 @@ def service_main():
                 log.debug('Extract next message from incoming queue and '
                              'process')
                 next_msg = msg_in_que.get_nowait()
-                log.debug('Message received: [%s]', next_msg)
+                log.debug('Process message: [%s]', next_msg)
 
             yield from asyncio.sleep(0.25)
         except KeyboardInterrupt:
