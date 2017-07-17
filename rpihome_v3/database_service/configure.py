@@ -7,8 +7,8 @@
 import configparser
 import mysql.connector
 import mysql.connector.errorcode as errorcodes
+import sys
 if __name__ == "__main__":
-    import sys
     sys.path.append("..")
 import database_service
 
