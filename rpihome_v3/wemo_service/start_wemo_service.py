@@ -28,8 +28,8 @@ __status__ = "Development"
 log = wemo_service.configure_log('config.ini')
 address, port = wemo_service.configure_server('config.ini', log)
 
-ref_num_gen = helpers.RefNum()
-wemo_gw = wemo_service.WemoAPI(log)
+rNumGen = helpers.RefNum()
+wemoGw = wemo_service.WemoAPI(log)
 
 msg_in_que = asyncio.Queue()
 msg_out_que = asyncio.Queue()
@@ -69,207 +69,83 @@ def handle_msg_in(reader, writer):
     writer.close()
 
 
-# Outgoing message handler ****************************************************
-@asyncio.coroutine
-def handle_msg_out():
-    """ task to handle outgoing messages """
-    while True:
-        try:
-            if msg_out_que.qsize() > 0:
-                log.debug('Pulling next outgoing message from queue')
-                msg_to_send = msg_out_que.get_nowait()
-                log.debug('Extracting msg destination address and port')
-                msg_seg_out = msg_to_send.split(',')
-                log.debug('Opening outgoing connection to %s:%s',
-                    msg_seg_out[1], msg_seg_out[2])
-                reader_out, writer_out = yield from asyncio.open_connection(
-                    msg_seg_out[1], int(msg_seg_out[2]), loop=loop)
-                log.debug('Sending message: [%s]', msg_to_send)
-                writer_out.write(msg_to_send.encode())
-
-                log.debug('Waiting for ack')
-                data_ack = yield from reader_out.read(100)
-                ack = data_ack.decode()
-                log.debug('Received: %r', ack)
-                if ack.split(',')[0] == msg_seg_out[0]:
-                    log.debug('Successful ACK received')
-                else:
-                    log.debug('Ack received does not match sent message')
-                log.debug('Closing socket')
-                writer_out.close()
-            yield from asyncio.sleep(0.25)
-        except KeyboardInterrupt:
-            log.debug('Killing task')
-            break
-
 
 # Internal Service Work Task **************************************************
 @asyncio.coroutine
 def service_main():
     """ task to handle the work the service is intended to do """
     while True:
-        try:
-            if msg_in_que.qsize() > 0:
-                log.debug('Extract next message from incoming queue and '
-                             'process')
-                next_msg = msg_in_que.get_nowait()
-
-                next_msg_seg = next_msg.split(sep=',')
-                msgHeader = next_msg_seg[:5]
-                msgPayload = next_msg_seg[5:]
-                
-                # Wemo Device Status Queries
-                if msgPayload[0] == '100':
-                    response_msg = yield from get_wemo_status(
-                        msgHeader, msgPayload)
-                    log.debug('Entering response message into outgoing '
-                              'msg queue')
-                    try:
-                        msg_out_que.put_nowait(response_msg)
-                        log.debug('Response message successfully queued')
-                    except:
-                        log.debug('Response message was not successfully '
-                                  'queued')
-                
-                # Wemo Device on commands
-                if msgPayload[0] == '102':
-                    response_msg = yield from set_wemo_on(
-                        msgHeader, msgPayload)
-                    log.debug('Entering response message into outgoing '
-                              'msg queue')
-                    try:
-                        msg_out_que.put_nowait(response_msg)
-                        log.debug('Response message successfully queued')
-                    except:
-                        log.debug('Response message was not successfully '
-                                  'queued')
-                
-                # Wemo Device off commands
-                if msgPayload[0] == '104':
-                    response_msg = yield from set_wemo_off(
-                        msgHeader, msgPayload)
-                    log.debug('Entering response message into outgoing '
-                              'msg queue')
-                    try:
-                        msg_out_que.put_nowait(response_msg)
-                        log.debug('Response message successfully queued')
-                    except:
-                        log.debug('Response message was not successfully '
-                                  'queued')                                     
-
-                
-                # Test response for continuous echo back and forth
-                if msgPayload == "payload":
-                    msg_to_send = copy.copy(next_msg)
-                    log.debug('Move outgoing message [%s] to outgoing '
-                              'msg queue',
-                        msg_to_send)
-                    msg_out_que.put_nowait(msg_to_send)
-
-            yield from asyncio.sleep(0.25)
-        except KeyboardInterrupt:
-            log.debug('Killing task')
-            break
+        if msg_in_que.qsize() > 0:
+            log.debug('Getting Incoming message from queue')
+            next_msg = msg_in_que.get_nowait()
+            log.debug('Splitting message into header / payload')
+            next_msg_seg = next_msg.split(sep=',')
+            msgHeader = next_msg_seg[:5]
+            msgPayload = next_msg_seg[5:]
+            
+            # Wemo Device Status Queries
+            if msgPayload[0] == '100':
+                log.debug('Message is a device status update request')                
+                response_msg_list = yield from wemo_service.get_wemo_status(
+                    rNumGen, wemoGw, log, msgHeader, msgPayload)
+                log.debug('Queueing response message(s)')
+                for response_msg in response_msg_list:
+                    msg_out_que.put_nowait(response_msg)
+                    log.debug('Response message [%s] successfully queued',
+                                response_msg)
+            # Wemo Device on commands
+            if msgPayload[0] == '102':
+                log.debug('Message is a device set "on" command')
+                response_msg = yield from wemo_service.set_wemo_on(
+                    rNumGen, wemoGw, log, msgHeader, msgPayload)
+                log.debug('Queueing response message(s)')
+                for response_msg in response_msg_list:
+                    msg_out_que.put_nowait(response_msg)
+                    log.debug('Response message [%s] successfully queued',
+                                response_msg)
+            # Wemo Device off commands
+            if msgPayload[0] == '104':
+                log.debug('Message is a device set "off" command')
+                response_msg = yield from wemo_service.set_wemo_off(
+                    rNumGen, wemoGw, log, msgHeader, msgPayload)
+                log.debug('Queueing response message(s)')
+                for response_msg in response_msg_list:
+                    msg_out_que.put_nowait(response_msg)
+                    log.debug('Response message [%s] successfully queued',
+                                response_msg)                                      
+        # Yield to other tasks for a while
+        yield from asyncio.sleep(0.25)
 
 
-# Internal Service Work Subtask - wemo get status *****************************
+# Outgoing message handler ****************************************************
 @asyncio.coroutine
-def get_wemo_status(msgH, msgP):
-    """ Function to properly process wemo device status requests """
-    msgRef = msgH[0]
-    msgDestAdd = msgH[1]
-    msgDestPort = msgH[2]
-    msgSourceAdd = msgH[3]
-    msgSourcePort = msgH[4]
-    devName = msgP[1]
-    devAdd = msgP[2]
-    devStatus = msgP[3]
-    devLastSeen = msgP[4]
-    log.debug('Requesting status for [%s] at [%s] with original '
-              'status [%s] and update time [%s]', 
-              devName, devAdd, devStatus, devLastSeen)
-    devStatusNew, devLastSeenNew = wemo_gw.read_status(
-        devName, devAdd, devStatus, devLastSeen)
-    log.debug('Generating new ref number for response message')
-    ref_num = ref_num_gen.new()
-    log.debug('Building response message header')
-    response_header = ref_num + ',' + msgSourceAdd + ',' + msgSourcePort + ',' + msgDestAdd + ',' + msgDestPort
-    log.debug('Resulting header: [%s]', response_header)
-    log.debug('Building response message payload')
-    response_payload = '101,' + devName + ',' + str(devStatusNew) + \
-                       ',' + str(devLastSeenNew)
-    log.debug('Resulting payload: [%s]', response_payload)
-    log.debug('Building complete response message')                    
-    response_msg = response_header + ',' + response_payload
-    log.debug('Complete response message: [%s]', response_msg)
-    return response_msg
+def handle_msg_out():
+    """ task to handle outgoing messages """
+    while True:
+        if msg_out_que.qsize() > 0:
+            log.debug('Pulling next outgoing message from queue')
+            msg_to_send = msg_out_que.get_nowait()
+            log.debug('Extracting msg destination address and port')
+            msg_seg_out = msg_to_send.split(',')
+            log.debug('Opening outgoing connection to %s:%s',
+                msg_seg_out[1], msg_seg_out[2])
+            reader_out, writer_out = yield from asyncio.open_connection(
+                msg_seg_out[1], int(msg_seg_out[2]), loop=loop)
+            log.debug('Sending message: [%s]', msg_to_send)
+            writer_out.write(msg_to_send.encode())
 
-
-# Internal Service Work Subtask - wemo turn on ********************************
-@asyncio.coroutine
-def set_wemo_on(msgH, msgP):
-    """ Function to set state of wemo device to "on" """
-    msgRef = msgH[0]
-    msgDestAdd = msgH[1]
-    msgDestPort = msgH[2]
-    msgSourceAdd = msgH[3]
-    msgSourcePort = msgH[4]
-    devName = msgP[1]
-    devAdd = msgP[2]
-    devStatus = msgP[3]
-    devLastSeen = msgP[4]
-    log.debug('Commanding state to "on" for [%s] at [%s] with original '
-              'status [%s] and update time [%s]', 
-              devName, devAdd, devStatus, devLastSeen)
-    devStatusNew, devLastSeenNew = wemo_gw.turn_on(
-        devName, devAdd, devStatus, devLastSeen)
-    log.debug('Generating new ref number for response message')
-    ref_num = ref_num_gen.new()
-    log.debug('Building response message header')
-    response_header = ref_num + ',' + msgSourceAdd + ',' + msgSourcePort + ',' + msgDestAdd + ',' + msgDestPort
-    log.debug('Resulting header: [%s]', response_header)
-    log.debug('Building response message payload')
-    response_payload = '103,' + devName + ',' + str(devStatusNew) + \
-                       ',' + str(devLastSeenNew)
-    log.debug('Resulting payload: [%s]', response_payload)
-    log.debug('Building complete response message')                    
-    response_msg = response_header + ',' + response_payload
-    log.debug('Complete response message: [%s]', response_msg)
-    return response_msg
-
-
-# Internal Service Work Subtask - wemo turn off *******************************
-@asyncio.coroutine
-def set_wemo_off(msgH, msgP):
-    """ Function to set state of wemo device to "off" """
-    msgRef = msgH[0]
-    msgDestAdd = msgH[1]
-    msgDestPort = msgH[2]
-    msgSourceAdd = msgH[3]
-    msgSourcePort = msgH[4]
-    devName = msgP[1]
-    devAdd = msgP[2]
-    devStatus = msgP[3]
-    devLastSeen = msgP[4]
-    log.debug('Commanding state to "off" for [%s] at [%s] with original '
-              'status [%s] and update time [%s]', 
-              devName, devAdd, devStatus, devLastSeen)
-    devStatusNew, devLastSeenNew = wemo_gw.turn_off(
-        devName, devAdd, devStatus, devLastSeen)
-    log.debug('Generating new ref number for response message')
-    ref_num = ref_num_gen.new()
-    log.debug('Building response message header')
-    response_header = ref_num + ',' + msgSourceAdd + ',' + msgSourcePort + ',' + msgDestAdd + ',' + msgDestPort
-    log.debug('Resulting header: [%s]', response_header)
-    log.debug('Building response message payload')
-    response_payload = '105,' + devName + ',' + str(devStatusNew) + \
-                       ',' + str(devLastSeenNew)
-    log.debug('Resulting payload: [%s]', response_payload)
-    log.debug('Building complete response message')                    
-    response_msg = response_header + ',' + response_payload
-    log.debug('Complete response message: [%s]', response_msg)
-    return response_msg
-
+            log.debug('Waiting for ack')
+            data_ack = yield from reader_out.read(100)
+            ack = data_ack.decode()
+            log.debug('Received: %r', ack)
+            if ack.split(',')[0] == msg_seg_out[0]:
+                log.debug('Successful ACK received')
+            else:
+                log.debug('Ack received does not match sent message')
+            log.debug('Closing socket')
+            writer_out.close()
+        # Yield to other tasks for a while
+        yield from asyncio.sleep(0.25)
 
 
 # Main ************************************************************************

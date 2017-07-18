@@ -1,14 +1,12 @@
 #!/usr/bin/python3
-""" sunrise.py:
+""" sun.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
-import asyncio
 import logging
 import datetime
 from math import cos, sin, acos, asin, tan
 from math import degrees as deg, radians as rad
-import rpihome_v3
 
 
 # Authorship Info *************************************************************
@@ -74,10 +72,8 @@ class Sun(object):
         self._s = None
         self.calc()
         self._last_calc = datetime.datetime.now()
-        self._logger.debug(
-            'Init complete for Sun class for coordinates %s by %s',
-            self._latitude,
-            self._longitude)
+        self._logger.debug('Init complete for Sun class for coordinates '
+                           '%s by %s', self._latitude, self._longitude)
 
 
     def calc(self, when=None):
@@ -172,7 +168,7 @@ class Sun(object):
             self._sunrise_adj = datetime.datetime.combine(
                 datetime.date.today(), self._sunrise_UTC) + self._offset
         elif self._sunrise_UTC_h >= 24:
-            self._sunrise_UTC = time(
+            self._sunrise_UTC = datetime.time(
                 (self._sunrise_UTC_h-24), self._sunrise_UTC_m, self._sunrise_UTC_s)
             self._sunrise_adj = datetime.datetime.combine(
                 (datetime.date.today()+ datetime.timedelta(days=1)),
@@ -200,7 +196,7 @@ class Sun(object):
             self._sunset_UTC = datetime.time(
                 self._sunset_UTC_h, self._sunset_UTC_m, self._sunset_UTC_s)
             self._sunset_adj = datetime.datetime.combine(
-                date.today(), self._sunset_UTC) + self._offset
+                datetime.date.today(), self._sunset_UTC) + self._offset
         elif self._sunset_UTC_h >= 24:
             self._sunset_UTC = datetime.time(
                 (self._sunset_UTC_h-24), self._sunset_UTC_m, self._sunset_UTC_s)
@@ -240,7 +236,7 @@ class Sun(object):
         parameters or current day/time if none are given """
         if self.should_rerun(when) is True:
             self.calc(when)
-        return self._sunrise_adj.time()
+        return self._sunrise_adj
 
 
     def solarnoon(self, when=None):
@@ -248,7 +244,7 @@ class Sun(object):
         parameters or current day/time if none are given """
         if self.should_rerun(when) is True:
             self.calc(when)
-        return self._solarnoon_adj.time()
+        return self._solarnoon_adj
 
 
     def sunset(self, when=None):
@@ -256,7 +252,4 @@ class Sun(object):
         parameters or current day/time if none are given """
         if self.should_rerun(when) is True:
             self.calc(when)
-        return self._sunset_adj.time()
-
-
-
+        return self._sunset_adj

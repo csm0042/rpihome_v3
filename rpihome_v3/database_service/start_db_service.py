@@ -33,7 +33,7 @@ address, port = database_service.configure_server('config.ini', log)
 auto_address, auto_port = database_service.configure_automation_connection(
     'config.ini', log)
 
-ref_num_gen = helpers.RefNum()
+rNumGen = helpers.RefNum()
 
 msg_in_que = asyncio.Queue()
 msg_out_que = asyncio.Queue()
@@ -71,19 +71,82 @@ def handle_msg_in(reader, writer):
     writer.close()
 
 
+# Internal Service Work Task **************************************************
+@asyncio.coroutine
+def service_main():
+    """ task to handle the work the service is intended to do """
+    last_check = time.time()
+    while True:
+        if msg_in_que.qsize() > 0:
+            log.debug('Getting Incoming message from queue')
+            next_msg = msg_in_que.get_nowait()
+            log.debug('Splitting message into header / payload')
+            next_msg_seg = next_msg.split(sep=',')
+            msgHeader = next_msg_seg[:5]
+            msgPayload = next_msg_seg[5:]
+            # Log Device status updates to database
+            if msgPayload[0] == '100':
+                log.debug('Message is a device status update')
+                response_msg_list = yield from database_service.log_status_update(
+                    rNumGen, database, log, msgHeader, msgPayload)
+                log.debug('Queueing response message(s)')
+                for response_msg in response_msg_list:
+                    msg_out_que.put_nowait(response_msg)
+                    log.debug('Response message [%s] successfully queued',
+                                response_msg)
+            # Device command not yet processed query
+            if msgPayload[0] == '102':
+                log.debug('Msg is a device pending cmd query')
+                response_msg_list = yield from database_service.read_device_cmd(
+                    rNumGen, database, log, msgHeader[0], msgHeader[1], msgHeader[2],
+                    msgHeader[3], msgHeader[4])
+                log.debug('Queueing response message(s)')
+                for response_msg in response_msg_list:
+                    msg_out_que.put_nowait(response_msg)
+                    log.debug('Response message [%s] successfully queued',
+                                response_msg)
+            # Device command sent timestamp updates
+            if msgPayload[0] == '104':
+                log.debug('Msg is a device cmd update')
+                response_msg_list = yield from database_service.update_device_cmd(
+                    rNumGen, database, log, msgHeader, msgPayload)
+                log.debug('Queueing response message(s)')
+                for response_msg in response_msg_list:
+                    msg_out_que.put_nowait(response_msg)
+                    log.debug('Response message [%s] successfully queued',
+                                response_msg)
+        else:
+            # Periodically check for pending commands
+            if time.time() >= (last_check + 1):
+                # Device command not yet processed query
+                log.debug('Performing periodic check of pending commands')
+                response_msg_list = yield from database_service.read_device_cmd(
+                    rNumGen, database, log, rNumGen.new(), address, port,
+                    auto_address, auto_port)
+                log.debug('Queueing response message(s)')
+                for response_msg in response_msg_list:
+                    msg_out_que.put_nowait(response_msg)
+                    log.debug('Response message [%s] successfully queued',
+                                response_msg)
+                # Update timestamp
+                last_check = time.time()
+        # Yield to other tasks for a while
+        yield from asyncio.sleep(0.25)
+
+
 # Outgoing message handler ****************************************************
 @asyncio.coroutine
 def handle_msg_out():
     """ task to handle outgoing messages """
     while True:
-        try:
-            if msg_out_que.qsize() > 0:
-                log.debug('Pulling next outgoing message from queue')
-                msg_to_send = msg_out_que.get_nowait()
-                log.debug('Extracting msg destination address and port')
-                msg_seg_out = msg_to_send.split(',')
-                log.debug('Opening outgoing connection to %s:%s',
-                    msg_seg_out[1], msg_seg_out[2])
+        if msg_out_que.qsize() > 0:
+            log.debug('Pulling next outgoing message from queue')
+            msg_to_send = msg_out_que.get_nowait()
+            log.debug('Extracting msg destination address and port')
+            msg_seg_out = msg_to_send.split(',')
+            log.debug('Opening outgoing connection to %s:%s',
+                msg_seg_out[1], msg_seg_out[2])
+            try:
                 reader_out, writer_out = yield from asyncio.open_connection(
                     msg_seg_out[1], int(msg_seg_out[2]), loop=loop)
                 log.debug('Sending message: [%s]', msg_to_send)
@@ -99,248 +162,10 @@ def handle_msg_out():
                     log.debug('Ack received does not match sent message')
                 log.debug('Closing socket')
                 writer_out.close()
-            yield from asyncio.sleep(0.25)
-        except KeyboardInterrupt:
-            log.debug('Killing task')
-            break
-
-
-# Internal Service Work Task **************************************************
-@asyncio.coroutine
-def service_main():
-    """ task to handle the work the service is intended to do """
-    last_check = time.time()
-    while True:
-        try:
-            if msg_in_que.qsize() > 0:
-                log.debug('Extract next message from incoming queue and '
-                          'process')
-                next_msg = msg_in_que.get_nowait()
-
-                next_msg_seg = next_msg.split(sep=',')
-                msgHeader = next_msg_seg[:5]
-                msgPayload = next_msg_seg[5:]
-                
-                # Log Device status updates to database
-                if msgPayload[0] == '100':
-                    log.debug('Message is a device status update. ' 
-                              'Calling update query')
-                    response_msg = yield from log_status_update(
-                        msgHeader, msgPayload)
-                    log.debug('Entering response messages into outgoing '
-                              'msg queue')                    
-                    try:
-                        msg_out_que.put_nowait(response_msg)
-                        log.debug('Response message [%s] successfully queued',
-                        response_msg)
-                    except:
-                        log.error('Response message [%s] was not successfully '
-                                  'queued', response_msg)                    
-                
-                # Device command not yet processed query
-                if msgPayload[0] == '102':
-                    log.debug('Msg is a device pending cmd query.  '
-                              'Calling query')
-                    response_msg_list = yield from read_device_cmd(msgHeader[0],
-                                                                   msgHeader[1],
-                                                                   msgHeader[2],
-                                                                   msgHeader[3],
-                                                                   msgHeader[4])
-                    log.debug('Entering response messages into outgoing '
-                              'msg queue')
-                    for response_msg in response_msg_list:
-                        try:
-                            msg_out_que.put_nowait(response_msg)
-                            log.debug('Response message [%s] successfully queued',
-                            response_msg)
-                        except:
-                            log.error('Response message [%s] was not successfully '
-                                      'queued', response_msg)
-                
-                # Device command sent timestamp updates
-                if msgPayload[0] == '104':
-                    log.debug('Msg is a device pending cmd complete update.  '
-                              'Calling query')                    
-                    response_msg = yield from update_device_cmd(
-                        msgHeader, msgPayload)     
-                    log.debug('Entering response messages into outgoing '
-                              'msg queue')                    
-                    try:
-                        msg_out_que.put_nowait(response_msg)
-                        log.debug('Response message [%s] successfully queued',
-                        response_msg)
-                    except:
-                        log.error('Response message [%s] was not successfully '
-                                  'queued', response_msg)                                                       
-            else:
-                # Periodically check for pending commands
-                if time.time() >= (last_check + 1):
-                    # Device command not yet processed query
-                    log.debug('Performing periodic check of pending device '
-                              'commands.')
-                    response_msg_list = yield from read_device_cmd(ref_num_gen.new(),
-                                                                address,
-                                                                port,
-                                                                auto_address,
-                                                                auto_port)
-                    log.debug('Entering pending command messages into outgoing '
-                              'msg queue')
-                    for response_msg in response_msg_list:
-                        try:
-                            msg_out_que.put_nowait(response_msg)
-                            log.debug('Pending command message [%s] successfully '
-                                      'queued', response_msg)
-                        except:
-                            log.error('Pending command message [%s] was not '
-                                      'successfully queued', response_msg)
-                    # Update timestamp
-                    last_check = time.time()
-
-            yield from asyncio.sleep(0.25)
-        except KeyboardInterrupt:
-            log.debug('Killing task')
-            break
-
-
-# Internal Service Work Subtask - wemo get status *****************************
-@asyncio.coroutine
-def log_status_update(msgH, msgP):
-    """ Function to insert status updates into device_log table 
-    Msg Header format: 
-    aaa,bbb.bbb.bbb.bbb.bbb,ccccc,ddd.ddd.ddd.ddd.eeeee
-    where
-    aaa = ref number
-    bbb.bbb.bbb.bbb = destination IP address for message
-    ccccc = destination port for message
-    ddd.ddd.ddd.ddd = IP where message originated
-    eeeee = port where message originated
-
-    Msg Payload format:
-    aaa,bbbb,ccc.ccc.ccc.ccc,dddd,eeee
-    aaa = msg type (100 for status update, 101 for status update ACK)
-    bbbb = device name
-    ccc.ccc.ccc.ccc = device address
-    dddd = device status to log
-    eeee = timestamp associated with device status change
-    """
-    # Map message header to usable tags
-    msgRef = msgH[0]
-    msgDestAdd = msgH[1]
-    msgDestPort = msgH[2]
-    msgSourceAdd = msgH[3]
-    msgSourcePort = msgH[4]
-    # Map message payload to usable tags
-    msgType = msgP[0]
-    devName = msgP[1]
-    devAdd = msgP[2]
-    devStatus = msgP[3]
-    devLastSeen = msgP[4]
-    # Execute Insert Query
-    log.debug('Logging status change to database for [%s].  New '
-              'status is [%s] with a last seen time of [%s]',
-              devName, devStatus, devLastSeen)
-    database_service.insert_record(database, devName,
-                                   devStatus, devLastSeen, log)
-    # Send response indicating query was executed
-    log.debug('Generating new ref number for response message')
-    ref_num = ref_num_gen.new()
-    log.debug('Building response message header')
-    response_header = ref_num + ',' + msgSourceAdd + ',' + \
-                      msgSourcePort + ',' + msgDestAdd + ',' + \
-                      msgDestPort
-    log.debug('Resulting header: [%s]', response_header)
-    log.debug('Building response message payload')
-    response_payload = '101,' + devName
-    log.debug('Resulting payload: [%s]', response_payload)
-    log.debug('Building complete response message')                    
-    response_msg = response_header + ',' + response_payload
-    log.debug('Complete response message: [%s]', response_msg)
-    # Return response message
-    return response_msg
-
-
-# Internal Service Work Subtask - wemo turn on ********************************
-@asyncio.coroutine
-def read_device_cmd(msgRef, msgDestAdd, msgDestPort, msgSourceAdd, msgSourcePort):
-    """ Function to query database for any un-processed device commands 
-    """
-    # Execute select Query
-    log.debug('Querying database for pending device commands')
-    pending_cmd_list = database_service.query_command(database, log)
-    # Send response message for each record returned by query
-    response_msg_list = []
-    if len(pending_cmd_list) <= 0:
-        log.debug('No pending commands found')
-    else:
-        log.debug('Preparing response messages for pending commands')
-        for pending_cmd in pending_cmd_list:
-            log.debug('Generating new ref number for response message')
-            ref_num = ref_num_gen.new()
-            log.debug('Building response message header')
-            response_header = ref_num + ',' + msgSourceAdd + ',' + \
-                              msgSourcePort + ',' + msgDestAdd + ',' + \
-                              msgDestPort
-            log.debug('Resulting header: [%s]', response_header)
-            log.debug('Building response message payload')
-            response_payload = '103,' + pending_cmd
-            log.debug('Resulting payload: [%s]', response_payload)
-            log.debug('Building complete response message')
-            response_msg = response_header + ',' + response_payload
-            response_msg_list.append(copy.copy(response_msg))
-            log.debug('Complete response message: [%s]', response_msg)
-    # Return list of response messages from query
-    return response_msg_list
-
-
-# Internal Service Work Subtask - wemo turn off *******************************
-@asyncio.coroutine
-def update_device_cmd(msgH, msgP):
-    """ Function to set state of wemo device to "off"
-    Msg Header format: 
-    aaa,bbb.bbb.bbb.bbb.bbb,ccccc,ddd.ddd.ddd.ddd.eeeee
-    where
-    aaa = ref number
-    bbb.bbb.bbb.bbb = destination IP address for message
-    ccccc = destination port for message
-    ddd.ddd.ddd.ddd = IP where message originated
-    eeeee = port where message originated
-
-    Msg Payload format:
-    aaa,bbbb,cccc
-    aaa = msg type (104 for cmd update, 105 for cmd update ACK)
-    bbbb = record ID
-    cccc = processed timestamp
-    """
-    # Map message header to usable tags
-    msgRef = msgH[0]
-    msgDestAdd = msgH[1]
-    msgDestPort = msgH[2]
-    msgSourceAdd = msgH[3]
-    msgSourcePort = msgH[4]
-    # Map message payload to usable tags
-    msgType = msgP[0]
-    cmdId = msgP[1]
-    cmdProcessed = msgP[2]
-    # Execute update Query
-    log.debug('Querying database to mark command with ID [%s] as complete with timestamp [%s]', cmdId, cmdProcessed)
-    database_service.update_command(database, cmdId, cmdProcessed, log)
-    # Send response indicating query was executed
-    log.debug('Generating new ref number for response message')
-    ref_num = ref_num_gen.new()
-    log.debug('Building response message header')
-    response_header = ref_num + ',' + msgSourceAdd + ',' + \
-                      msgSourcePort + ',' + msgDestAdd + ',' + \
-                      msgDestPort
-    log.debug('Resulting header: [%s]', response_header)
-    log.debug('Building response message payload')
-    response_payload = '105,' + cmdId
-    log.debug('Resulting payload: [%s]', response_payload)
-    log.debug('Building complete response message')                    
-    response_msg = response_header + ',' + response_payload
-    log.debug('Complete response message: [%s]', response_msg)
-    # Return response message
-    return response_msg
-
+            except:
+                log.warning('Could not open socket connection to target')
+        # Yield to other tasks for a while
+        yield from asyncio.sleep(0.25)
 
 
 # Main ************************************************************************
