@@ -4,6 +4,7 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
+from contextlib import suppress
 import copy
 import logging
 import sys
@@ -131,13 +132,24 @@ def main():
     log.info('Press CTRL+C to exit')
     try:
         loop.run_forever()
+    except asyncio.CancelledError:
+        log.info('All tasks have been cancelled')
     except KeyboardInterrupt:
         pass
     finally:
-        # Close the server
-        msg_in_task.close()
-        loop.run_until_complete(msg_in_task.wait_closed())
-        loop.close()
+        log.info('Shutting down incoming message server')
+        msg_in_server.close()
+        log.info('Finding all running tasks to shut down')
+        pending = asyncio.Task.all_tasks()
+        log.info('[%s] Task still running.  Closing them now', str(len(pending)))
+        for i, task in enumerate(pending):
+            with suppress(asyncio.CancelledError):
+                log.info('Waiting for task [%s] to shut down', i)
+                task.cancel()
+                loop.run_until_complete(task)
+        log.info('Shutdown complete.  Terminating execution loop')
+    # Terminate the execution loop
+    loop.close()
 
 
 # Call Main *******************************************************************
