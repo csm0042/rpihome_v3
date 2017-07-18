@@ -90,8 +90,8 @@ def configure_server(filename, log):
     config_file.read(filename)
     # Read credential info from file
     try:
-        address = config_file['SOCKET SERVER']['address']
-        port = (config_file['SOCKET SERVER']['port'])
+        address = config_file['PERSISTANCE SERVICE']['address']
+        port = (config_file['PERSISTANCE SERVICE']['port'])
         log.debug('Address and port found: %s:%s', address, port)
     except:
         log.error('No address or port configuration found')
