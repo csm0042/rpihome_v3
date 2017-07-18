@@ -91,12 +91,30 @@ def configure_server(filename, log):
     # Read credential info from file
     try:
         address = config_file['SOCKET SERVER']['address']
-        port = int(config_file['SOCKET SERVER']['port'])
+        port = (config_file['SOCKET SERVER']['port'])
         log.debug('Address and port found: %s:%s', address, port)
     except:
         log.error('No address or port configuration found')
-        address = None
-        port = 0
+        address = '0'
+        port = '0'
+    # Return configured objects to main program
+    return address, port
+
+
+# Configure service socket server *********************************************
+def configure_automation_connection(filename, log):
+    # Define connection to configuration file
+    config_file = configparser.ConfigParser()
+    config_file.read(filename)
+    # Read credential info from file
+    try:
+        address = config_file['AUTOMATION SERVICE']['address']
+        port = config_file['AUTOMATION SERVICE']['port']
+        log.debug('Address and port found: %s:%s', address, port)
+    except:
+        log.error('No address or port configuration found')
+        address = '0'
+        port = '0'
     # Return configured objects to main program
     return address, port
 

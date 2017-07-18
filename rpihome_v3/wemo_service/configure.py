@@ -49,8 +49,8 @@ def configure_server(filename, log):
         log.debug('Address and port found: %s:%s', address, port)
     except:
         log.error('No address or port configuration found')
-        address = None
-        port = None
+        address = '0'
+        port = '0'
     # Return configured objects to main program
     return address, port
 

@@ -83,6 +83,7 @@ def query_command(database, log):
             log.debug('Query execution successful')
             row = cursor.fetchone()
             while row is not None:
+                log.debug('Building result')
                 result = '%s,%s,%s,%s,%s' % (row[0], row[1], row[2], row[3], row[4])
                 log.debug('Found pending cmd: [%s]', result)
                 result_list.append(copy.copy(result))

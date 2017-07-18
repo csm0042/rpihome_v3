@@ -7,6 +7,7 @@ import asyncio
 import copy
 import logging
 import sys
+import time
 if __name__ == "__main__":
     sys.path.append("..")
 import database_service
@@ -29,6 +30,8 @@ log = database_service.configure_log('config.ini')
 credentials = database_service.configure_credentials('config.ini', log)
 database = database_service.configure_database('config.ini', credentials, log)
 address, port = database_service.configure_server('config.ini', log)
+auto_address, auto_port = database_service.configure_automation_connection(
+    'config.ini', log)
 
 ref_num_gen = helpers.RefNum()
 
@@ -106,6 +109,7 @@ def handle_msg_out():
 @asyncio.coroutine
 def service_main():
     """ task to handle the work the service is intended to do """
+    last_check = time.time()
     while True:
         try:
             if msg_in_que.qsize() > 0:
@@ -130,15 +134,18 @@ def service_main():
                         log.debug('Response message [%s] successfully queued',
                         response_msg)
                     except:
-                        log.debug('Response message [%s] was not successfully '
+                        log.error('Response message [%s] was not successfully '
                                   'queued', response_msg)                    
                 
                 # Device command not yet processed query
                 if msgPayload[0] == '102':
                     log.debug('Msg is a device pending cmd query.  '
                               'Calling query')
-                    response_msg_list = yield from read_device_cmd(
-                        msgHeader, msgPayload)
+                    response_msg_list = yield from read_device_cmd(msgHeader[0],
+                                                                   msgHeader[1],
+                                                                   msgHeader[2],
+                                                                   msgHeader[3],
+                                                                   msgHeader[4])
                     log.debug('Entering response messages into outgoing '
                               'msg queue')
                     for response_msg in response_msg_list:
@@ -147,7 +154,7 @@ def service_main():
                             log.debug('Response message [%s] successfully queued',
                             response_msg)
                         except:
-                            log.debug('Response message [%s] was not successfully '
+                            log.error('Response message [%s] was not successfully '
                                       'queued', response_msg)
                 
                 # Device command sent timestamp updates
@@ -163,8 +170,31 @@ def service_main():
                         log.debug('Response message [%s] successfully queued',
                         response_msg)
                     except:
-                        log.debug('Response message [%s] was not successfully '
+                        log.error('Response message [%s] was not successfully '
                                   'queued', response_msg)                                                       
+            else:
+                # Periodically check for pending commands
+                if time.time() >= (last_check + 1):
+                    # Device command not yet processed query
+                    log.debug('Performing periodic check of pending device '
+                              'commands.')
+                    response_msg_list = yield from read_device_cmd(ref_num_gen.new(),
+                                                                address,
+                                                                port,
+                                                                auto_address,
+                                                                auto_port)
+                    log.debug('Entering pending command messages into outgoing '
+                              'msg queue')
+                    for response_msg in response_msg_list:
+                        try:
+                            msg_out_que.put_nowait(response_msg)
+                            log.debug('Pending command message [%s] successfully '
+                                      'queued', response_msg)
+                        except:
+                            log.error('Pending command message [%s] was not '
+                                      'successfully queued', response_msg)
+                    # Update timestamp
+                    last_check = time.time()
 
             yield from asyncio.sleep(0.25)
         except KeyboardInterrupt:
@@ -231,27 +261,9 @@ def log_status_update(msgH, msgP):
 
 # Internal Service Work Subtask - wemo turn on ********************************
 @asyncio.coroutine
-def read_device_cmd(msgH, msgP):
+def read_device_cmd(msgRef, msgDestAdd, msgDestPort, msgSourceAdd, msgSourcePort):
     """ Function to query database for any un-processed device commands 
-    Msg Header format: 
-    aaa,bbb.bbb.bbb.bbb.bbb,ccccc,ddd.ddd.ddd.ddd.eeeee
-    where
-    aaa = ref number
-    bbb.bbb.bbb.bbb = destination IP address for message
-    ccccc = destination port for message
-    ddd.ddd.ddd.ddd = IP where message originated
-    eeeee = port where message originated
-
-    Msg Payload format:
-    aaa
-    aaa = msg type (102 for cmd query, 103 for cmd query ACK)
     """
-    # Map message header to usable tags
-    msgRef = msgH[0]
-    msgDestAdd = msgH[1]
-    msgDestPort = msgH[2]
-    msgSourceAdd = msgH[3]
-    msgSourcePort = msgH[4]
     # Execute select Query
     log.debug('Querying database for pending device commands')
     pending_cmd_list = database_service.query_command(database, log)
@@ -272,7 +284,7 @@ def read_device_cmd(msgH, msgP):
             log.debug('Building response message payload')
             response_payload = '103,' + pending_cmd
             log.debug('Resulting payload: [%s]', response_payload)
-            log.debug('Building complete response message')                    
+            log.debug('Building complete response message')
             response_msg = response_header + ',' + response_payload
             response_msg_list.append(copy.copy(response_msg))
             log.debug('Complete response message: [%s]', response_msg)
