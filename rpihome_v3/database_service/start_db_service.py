@@ -10,6 +10,7 @@ import sys
 if __name__ == "__main__":
     sys.path.append("..")
 import database_service
+import helpers
 
 
 # Authorship Info *************************************************************
@@ -29,7 +30,8 @@ credentials = database_service.configure_credentials('config.ini', log)
 database = database_service.configure_database('config.ini', credentials, log)
 address, port = database_service.configure_server('config.ini', log)
 
-ref_num_gen = database_service.RefNum()
+ref_num_gen = helpers.RefNum()
+
 msg_in_que = asyncio.Queue()
 msg_out_que = asyncio.Queue()
 loop = asyncio.get_event_loop()

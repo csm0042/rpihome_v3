@@ -8,6 +8,7 @@ import configparser
 import sys
 if __name__ == "__main__":
     sys.path.append("..")
+import helpers
 import message_tester
 
 
@@ -28,7 +29,7 @@ def configure_log(filename):
     config_file = configparser.ConfigParser()
     config_file.read(filename)
     # Set up application logging
-    log = message_tester.setup_log_handlers(
+    log = helpers.setup_log_handlers(
         __file__,
         config_file['LOG FILES']['debug_log_file'],
         config_file['LOG FILES']['info_log_file'])

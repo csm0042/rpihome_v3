@@ -9,6 +9,7 @@ import logging
 import sys
 if __name__ == "__main__":
     sys.path.append("..")
+import helpers
 import wemo_service
 
 
@@ -26,25 +27,13 @@ __status__ = "Development"
 # Application wide objects ****************************************************
 log = wemo_service.configure_log('config.ini')
 address, port = wemo_service.configure_server('config.ini', log)
+
+ref_num_gen = helpers.RefNum()
 wemo_gw = wemo_service.WemoAPI(log)
+
 msg_in_que = asyncio.Queue()
 msg_out_que = asyncio.Queue()
 loop = asyncio.get_event_loop()
-
-ref_num_gen = wemo_service.RefNum()
-test_msg = []
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',102,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',102,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',100,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',100,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',104,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',104,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',100,br1lt2,192.168.86.28,,2017-07-01 12:00:00')
-test_msg.append(ref_num_gen.new() + ',127.0.0.1,27001,'+ address + ',' + port + ',100,lrlt1,192.168.86.25,,2017-07-01 12:00:00')
-for msg in test_msg:
-    msg_out_que.put_nowait(msg)
-
-#test_msg = '042,127.0.0.1,27001,payload'
 
 
 

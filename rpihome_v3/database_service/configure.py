@@ -11,6 +11,7 @@ import sys
 if __name__ == "__main__":
     sys.path.append("..")
 import database_service
+import helpers
 
 
 # Authorship Info *************************************************************
@@ -30,7 +31,7 @@ def configure_log(filename):
     config_file = configparser.ConfigParser()
     config_file.read(filename)
     # Set up application logging
-    log = database_service.setup_log_handlers(
+    log = helpers.setup_log_handlers(
         __file__,
         config_file['LOG FILES']['debug_log_file'],
         config_file['LOG FILES']['info_log_file'])

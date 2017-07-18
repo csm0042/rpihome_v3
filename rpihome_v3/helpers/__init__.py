@@ -1,7 +1,8 @@
 #!/usr/bin/python3
-""" wemo service module init
+""" helper module init
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
-from .configure import *
-from .wemo import *
+from .ipv4_help import *
+from .log_support import *
+from .ref_num import *

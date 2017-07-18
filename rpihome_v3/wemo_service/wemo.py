@@ -7,7 +7,11 @@ import copy
 import datetime
 import logging
 import pywemo
-from .ipv4_help import check_ipv4
+import sys
+if __name__ == "__main__":
+    sys.path.append("..")
+import helpers
+
 
 # Authorship Info *************************************************************
 __author__ = "Christopher Maue"
@@ -41,7 +45,7 @@ class WemoAPI(object):
 
     def discover(self, name, address):
         """ discovers wemo device on network based upon known IP address """
-        if check_ipv4(address) is True:
+        if helpers.check_ipv4(address) is True:
             self.log.debug('Valid IP address provided')
             # Attempt to discover wemo device
             try:
