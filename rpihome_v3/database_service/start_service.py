@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" service_manager.py:
+""" start_db_service.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
@@ -7,10 +7,11 @@ import asyncio
 import copy
 import logging
 import sys
+import time
 if __name__ == "__main__":
     sys.path.append("..")
+import database_service
 import helpers
-import wemo_service
 
 
 # Authorship Info *************************************************************
@@ -25,26 +26,27 @@ __status__ = "Development"
 
 
 # Application wide objects ****************************************************
-log = wemo_service.configure_log('config.ini')
-address, port = wemo_service.configure_server('config.ini', log)
+log = database_service.configure_log('config.ini')
+credentials = database_service.configure_credentials('config.ini', log)
+database = database_service.configure_database('config.ini', credentials, log)
+address, port = database_service.configure_server('config.ini', log)
+auto_address, auto_port = database_service.configure_automation_connection(
+    'config.ini', log)
 
 rNumGen = helpers.RefNum()
-wemoGw = wemo_service.WemoAPI(log)
 
 msg_in_que = asyncio.Queue()
 msg_out_que = asyncio.Queue()
 loop = asyncio.get_event_loop()
 
 
-
-
 # Incoming message handler ****************************************************
 @asyncio.coroutine
 def handle_msg_in(reader, writer):
-    """ Callback used to send ACK messages back to acknowledge messages 
+    """ Callback used to send ACK messages back to acknowledge messages
     received """
     log.debug('Yielding to reader.read()')
-    data_in = yield from reader.read(100)
+    data_in = yield from reader.read(200)
     log.debug('Decoding read data')
     message = data_in.decode()
     log.debug('Extracting address from socket connection')
@@ -69,54 +71,6 @@ def handle_msg_in(reader, writer):
     writer.close()
 
 
-
-# Internal Service Work Task **************************************************
-@asyncio.coroutine
-def service_main():
-    """ task to handle the work the service is intended to do """
-    while True:
-        if msg_in_que.qsize() > 0:
-            log.debug('Getting Incoming message from queue')
-            next_msg = msg_in_que.get_nowait()
-            log.debug('Splitting message into header / payload')
-            next_msg_seg = next_msg.split(sep=',')
-            msgHeader = next_msg_seg[:5]
-            msgPayload = next_msg_seg[5:]
-            
-            # Wemo Device Status Queries
-            if msgPayload[0] == '100':
-                log.debug('Message is a device status update request')                
-                response_msg_list = yield from wemo_service.get_wemo_status(
-                    rNumGen, wemoGw, log, msgHeader, msgPayload)
-                log.debug('Queueing response message(s)')
-                for response_msg in response_msg_list:
-                    msg_out_que.put_nowait(response_msg)
-                    log.debug('Response message [%s] successfully queued',
-                                response_msg)
-            # Wemo Device on commands
-            if msgPayload[0] == '102':
-                log.debug('Message is a device set "on" command')
-                response_msg = yield from wemo_service.set_wemo_on(
-                    rNumGen, wemoGw, log, msgHeader, msgPayload)
-                log.debug('Queueing response message(s)')
-                for response_msg in response_msg_list:
-                    msg_out_que.put_nowait(response_msg)
-                    log.debug('Response message [%s] successfully queued',
-                                response_msg)
-            # Wemo Device off commands
-            if msgPayload[0] == '104':
-                log.debug('Message is a device set "off" command')
-                response_msg = yield from wemo_service.set_wemo_off(
-                    rNumGen, wemoGw, log, msgHeader, msgPayload)
-                log.debug('Queueing response message(s)')
-                for response_msg in response_msg_list:
-                    msg_out_que.put_nowait(response_msg)
-                    log.debug('Response message [%s] successfully queued',
-                                response_msg)                                      
-        # Yield to other tasks for a while
-        yield from asyncio.sleep(0.25)
-
-
 # Outgoing message handler ****************************************************
 @asyncio.coroutine
 def handle_msg_out():
@@ -129,21 +83,24 @@ def handle_msg_out():
             msg_seg_out = msg_to_send.split(',')
             log.debug('Opening outgoing connection to %s:%s',
                 msg_seg_out[1], msg_seg_out[2])
-            reader_out, writer_out = yield from asyncio.open_connection(
-                msg_seg_out[1], int(msg_seg_out[2]), loop=loop)
-            log.debug('Sending message: [%s]', msg_to_send)
-            writer_out.write(msg_to_send.encode())
+            try:
+                reader_out, writer_out = yield from asyncio.open_connection(
+                    msg_seg_out[1], int(msg_seg_out[2]), loop=loop)
+                log.debug('Sending message: [%s]', msg_to_send)
+                writer_out.write(msg_to_send.encode())
 
-            log.debug('Waiting for ack')
-            data_ack = yield from reader_out.read(100)
-            ack = data_ack.decode()
-            log.debug('Received: %r', ack)
-            if ack.split(',')[0] == msg_seg_out[0]:
-                log.debug('Successful ACK received')
-            else:
-                log.debug('Ack received does not match sent message')
-            log.debug('Closing socket')
-            writer_out.close()
+                log.debug('Waiting for ack')
+                data_ack = yield from reader_out.read(200)
+                ack = data_ack.decode()
+                log.debug('Received: %r', ack)
+                if ack.split(',')[0] == msg_seg_out[0]:
+                    log.debug('Successful ACK received')
+                else:
+                    log.debug('Ack received does not match sent message')
+                log.debug('Closing socket')
+                writer_out.close()
+            except:
+                log.warning('Could not open socket connection to target')
         # Yield to other tasks for a while
         yield from asyncio.sleep(0.25)
 
@@ -166,13 +123,16 @@ def main():
         sys.exit()
 
     log.debug('Scheduling main task for execution')
-    asyncio.ensure_future(service_main())
+    asyncio.ensure_future(
+        database_service.service_main_task(
+            msg_in_que, msg_out_que, rNumGen, database, 
+            address, port, auto_address, auto_port, log))
 
     log.debug('Scheduling outgoing message task for execution')
     asyncio.ensure_future(handle_msg_out())
 
     # Serve requests until Ctrl+C is pressed
-    log.info('Wemo Gateway Service')
+    log.info('Database Persistance Service')
     log.info('Serving on {}'.format(msg_in_task.sockets[0].getsockname()))
     log.info('Press CTRL+C to exit')
     try:

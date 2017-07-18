@@ -25,6 +25,60 @@ __email__ = "csmaue@gmail.com"
 __status__ = "Development"
 
 
+# Internal Service Work Task **************************************************
+@asyncio.coroutine
+def service_main_task(msg_in_que, msg_out_que, rNumGen, database, address, port,
+                 auto_address, auto_port, log):
+    """ task to handle the work the service is intended to do """
+    # Initialize timestamp for periodic DB checks 
+    last_check = time.time()
+    while True:
+        # Initialize result list
+        response_msg_list = [] 
+        if msg_in_que.qsize() > 0:
+            log.debug('Getting Incoming message from queue')
+            next_msg = msg_in_que.get_nowait()
+            log.debug('Splitting message into header / payload')
+            next_msg_seg = next_msg.split(sep=',')
+            msgHeader = next_msg_seg[:5]
+            msgPayload = next_msg_seg[5:]
+            # Log Device status updates to database
+            if msgPayload[0] == '100':
+                log.debug('Message is a device status update')
+                response_msg_list = yield from log_status_update(
+                    rNumGen, database, log, msgHeader, msgPayload)
+            # Device command not yet processed query
+            if msgPayload[0] == '102':
+                log.debug('Msg is a device pending cmd query')
+                response_msg_list = yield from read_device_cmd(
+                    rNumGen, database, log, msgHeader[1], msgHeader[2],
+                    msgHeader[3], msgHeader[4])
+            # Device command sent timestamp updates
+            if msgPayload[0] == '104':
+                log.debug('Msg is a device cmd update')
+                response_msg_list = yield from update_device_cmd(
+                    rNumGen, database, log, msgHeader, msgPayload)
+        else:
+            # Periodically check for pending commands
+            if time.time() >= (last_check + 1):
+                # Device command not yet processed query
+                log.debug('Performing periodic check of pending commands')
+                response_msg_list = yield from read_device_cmd(
+                    rNumGen, database, log, address, port,
+                    auto_address, auto_port)
+                # Update timestamp
+                last_check = time.time()
+        # Que up response messages in outgoing msg que
+        if len(response_msg_list) > 0:
+            log.debug('Queueing response message(s)')
+            for response_msg in response_msg_list:
+                msg_out_que.put_nowait(response_msg)
+                log.debug('Response message [%s] successfully queued',
+                          response_msg)
+        # Yield to other tasks for a while
+        yield from asyncio.sleep(0.25)
+        
+
 # Internal Service Work Subtask - log status updates **************************
 @asyncio.coroutine
 def log_status_update(rNum, database, log, msgH, msgP):
@@ -67,7 +121,7 @@ def log_status_update(rNum, database, log, msgH, msgP):
 
 # Internal Service Work Subtask - wemo turn on ********************************
 @asyncio.coroutine
-def read_device_cmd(rNum, database, log, msgRef, msgDestAdd, msgDestPort,
+def read_device_cmd(rNum, database, log, msgDestAdd, msgDestPort,
                     msgSourceAdd, msgSourcePort):
     """ Function to query database for any un-processed device commands """
     # Initialize result list
