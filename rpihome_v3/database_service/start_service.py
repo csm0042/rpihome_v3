@@ -10,7 +10,7 @@ import sys
 import time
 if __name__ == "__main__":
     sys.path.append("..")
-import database_service
+import database_service as service
 import helpers
 
 
@@ -26,11 +26,11 @@ __status__ = "Development"
 
 
 # Application wide objects ****************************************************
-log = database_service.configure_log('config.ini')
-credentials = database_service.configure_credentials('config.ini', log)
-database = database_service.configure_database('config.ini', credentials, log)
-address, port = database_service.configure_server('config.ini', log)
-auto_address, auto_port = database_service.configure_automation_connection(
+log = service.configure_log('config.ini')
+credentials = service.configure_credentials('config.ini', log)
+database = service.configure_database('config.ini', credentials, log)
+address, port = service.configure_server('config.ini', log)
+auto_address, auto_port = service.configure_automation_connection(
     'config.ini', log)
 
 rNumGen = helpers.RefNum()
@@ -124,9 +124,9 @@ def main():
 
     log.debug('Scheduling main task for execution')
     asyncio.ensure_future(
-        database_service.service_main_task(
-            msg_in_que, msg_out_que, rNumGen, database, 
-            address, port, auto_address, auto_port, log))
+        service.service_main_task(
+            msg_in_que, msg_out_que, rNumGen, database, log,
+            address, port, auto_address, auto_port))
 
     log.debug('Scheduling outgoing message task for execution')
     asyncio.ensure_future(handle_msg_out())

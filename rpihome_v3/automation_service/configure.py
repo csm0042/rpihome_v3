@@ -4,15 +4,12 @@
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
-import asyncio
-import copy
 import configparser
-import datetime
-import typing
-import mysql.connector
-import mysql.connector.errorcode as errorcode
-from .log_support import setup_log_handlers
-import rpihome_v3
+import sys
+if __name__ == "__main__":
+    sys.path.append("..")
+import automation_service as service
+import helpers
 
 
 # Authorship Info *************************************************************
@@ -27,137 +24,94 @@ __status__ = "Development"
 
 
 # Config Function Def *********************************************************
-def configure_logger(filename):
+def configure_log(filename):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
     # Set up application logging
-    logger = setup_log_handlers(
+    log = helpers.setup_log_handlers(
         __file__,
         config_file['LOG FILES']['debug_log_file'],
         config_file['LOG FILES']['info_log_file'])
     # Return configured objects to main program
-    return logger
+    return log
 
 
-# Obtain Credentials **********************************************************
-def configure_credentials(filename, logger):
+# Configure service socket server *********************************************
+def configure_server(filename, log):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
     # Read credential info from file
     try:
-        credentials = config_file['CREDENTIALS']['file']
-        logger.debug('Credentails file found')
+        address = config_file['AUTOMATION SERVICE']['address']
+        port = (config_file['AUTOMATION SERVICE']['port'])
+        log.debug('Address and port found: %s:%s', address, port)
     except:
-        logger.error('No credentials file found')
+        log.error('No address or port configuration found')
+        address = '0'
+        port = '0'
     # Return configured objects to main program
-    return credentials
+    return address, port
 
 
-# Obtain GUI ******************************************************************
-def configure_gui(filename, logger):
+# Configure service socket server *********************************************
+def configure_db_connection(filename, log):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
-    # Read gui url from file
+    # Read credential info from file
     try:
-        gui_url = config_file['GUI']['path']
-        logger.debug('GUI url found')
+        address = config_file['PERSISTANCE SERVICE']['address']
+        port = config_file['PERSISTANCE SERVICE']['port']
+        log.debug('Address and port found: %s:%s', address, port)
     except:
-        logger.error('No GUI url found')
+        log.error('No address or port configuration found')
+        address = '0'
+        port = '0'
     # Return configured objects to main program
-    return gui_url
+    return address, port
 
 
-# Config Task's to Start Function *********************************************
-def configure_tasks(filename, logger):
+# Configure service socket server *********************************************
+def configure_wemo_connection(filename, log):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
-    # Determine which tasks to start
-    if config_file['TASKS']['adevstat'] == 'yes':
-        adevstat = True
-    else:
-        adevstat = False
-    if config_file['TASKS']['pdevstat'] == 'yes':
-        pdevstat = True
-    else:
-        pdevstat = False
-    if config_file['TASKS']['mdevstat'] == 'yes':
-        mdevstat = True
-    else:
-        mdevstat = False
-    if config_file['TASKS']['adevcmd'] == 'yes':
-        adevcmd = True
-    else:
-        adevcmd = False
-    if config_file['TASKS']['persist'] == 'yes':
-        persist = True
-    else:
-        persist = False
-    if config_file['TASKS']['nest'] == 'yes':
-        enviro = True
-    else:
-        enviro = False
-    if config_file['TASKS']['dbcmd'] == 'yes':
-        dbcmd = True
-    else:
-        dbcmd = False        
+    # Read credential info from file
+    try:
+        address = config_file['WEMO SERVICE']['address']
+        port = config_file['WEMO SERVICE']['port']
+        log.debug('Address and port found: %s:%s', address, port)
+    except:
+        log.error('No address or port configuration found')
+        address = '0'
+        port = '0'
     # Return configured objects to main program
-    return (adevstat, pdevstat, mdevstat, adevcmd, persist, enviro, dbcmd)
+    return address, port
 
 
 # Config Location *************************************************************
-def configure_location(filename, logger):
+def configure_location(filename, log):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
     latitude = float(config_file['LOCATION']['latitude'])
     longitude = float(config_file['LOCATION']['longitude'])
     # Return configured objects to main program
-    return (latitude, longitude)
-
-
-# Config Database Connection Function *****************************************
-def configure_database(filename, credentials, logger):
-    # Define connection to configuration file
-    config_file = configparser.ConfigParser()
-    config_file.read(filename)
-    credential_file = configparser.ConfigParser()
-    credential_file.read(credentials)
-    # Set up database connection
-    try:
-        database = mysql.connector.connect(
-            host=config_file['DATABASE']['host'],
-            port=config_file['DATABASE']['port'],
-            database=config_file['DATABASE']['schema'],
-            user=credential_file['DATABASE']['username'],
-            password=credential_file['DATABASE']['password'])
-        logger.debug("Successfully connected to database")
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            database = None
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            database = None
-        else:
-            database = None
-        pass
-        logger.debug("Could not connect to database")
-    # Return configured objects to main program
-    return database
+    return latitude, longitude
 
 
 # Config Automation Device List Function **************************************
-def configure_devices(filename, logger):
+def configure_devices(filename, log):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
     # Create list of automation devices defined in config.ini file
     devices = []
-    logger.debug('Begining search for device configuration in config file')
+    log.debug('Begining search for device configuration in config file')
     device_num = int(config_file['DEVICES']['device_num']) + 1
-    logger.debug('Importing configuration for %s devices', str(device_num))
+    log.debug('Importing configuration for %s devices', str(device_num))
     for i in range(1, device_num, 1):
         try:
             if len(str(i)) == 1:
@@ -170,48 +124,16 @@ def configure_devices(filename, logger):
                 address=config_file['DEVICES'][device_id + '_address'],
                 last_seen=datetime.datetime.now(),
                 rule=config_file['DEVICES'][device_id + '_rule']))
-            logger.debug(
+            log.debug(
                 'Device %s added to automation device list',
                 (config_file['DEVICES'][device_id + '_name']))
         except:
             pass
-    logger.debug('Completed automation device list:')
+    log.debug('Completed automation device list:')
     for device in devices:
-        logger.debug(
+        log.debug(
             '%s, %s, %s, %s, %s, %s, %s',
             device.name, device.devtype, device.address,
             device.status, device.last_seen, device.cmd, device.rule)
     # Return configured objects to main program
     return devices
-
-
-# Run all configuration functions in-turn *************************************
-def configure_application(ini_file):
-    """ function to configure application settings using an INI file """
-    # Configure Logging *******************************************************
-    logger = rpihome_v3.configure_logger(ini_file)
-    logger.info('RpiHome v3 Application started @ [%s]',
-                str(datetime.datetime.now()))
-
-    # Get user credentials ****************************************************
-    credentials = rpihome_v3.configure_credentials(ini_file, logger)
-    logger.info('Credential info imported')
-
-    # Get location info *******************************************************
-    location = rpihome_v3.configure_location(ini_file, logger)
-    logger.info('Location info imported')
-
-    # Determine what tasks should run *****************************************
-    tasks = rpihome_v3.configure_tasks(ini_file, logger)
-    logger.info('Desired task setup info imported')
-
-    # Get database connection info ********************************************
-    database = rpihome_v3.configure_database(ini_file, credentials, logger)
-    logger.info('Database connection info imported')
-
-    # Get list of system devices to monitor/control ***************************
-    devices = rpihome_v3.configure_devices(ini_file, logger)
-    logger.info('System device info imported')
-
-    # Return results
-    return (logger, credentials, location, tasks, database, devices)

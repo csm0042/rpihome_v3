@@ -8,10 +8,6 @@ import copy
 import logging
 import sys
 import time
-if __name__ == "__main__":
-    sys.path.append("..")
-import wemo_service
-import helpers
 
 
 # Authorship Info *************************************************************

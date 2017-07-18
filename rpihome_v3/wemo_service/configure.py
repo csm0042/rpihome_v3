@@ -9,7 +9,6 @@ import sys
 if __name__ == "__main__":
     sys.path.append("..")
 import helpers
-import wemo_service
 
 
 # Authorship Info *************************************************************

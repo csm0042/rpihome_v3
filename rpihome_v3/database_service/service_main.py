@@ -10,8 +10,8 @@ import sys
 import time
 if __name__ == "__main__":
     sys.path.append("..")
-import database_service
-import helpers
+import database_service as service
+
 
 
 # Authorship Info *************************************************************
@@ -27,8 +27,8 @@ __status__ = "Development"
 
 # Internal Service Work Task **************************************************
 @asyncio.coroutine
-def service_main_task(msg_in_que, msg_out_que, rNumGen, database, address, port,
-                 auto_address, auto_port, log):
+def service_main_task(msg_in_que, msg_out_que, rNumGen, database, log,
+                      address, port, auto_address, auto_port):
     """ task to handle the work the service is intended to do """
     # Initialize timestamp for periodic DB checks 
     last_check = time.time()
@@ -101,7 +101,7 @@ def log_status_update(rNum, database, log, msgH, msgP):
     log.debug('Logging status change to database for [%s].  New '
               'status is [%s] with a last seen time of [%s]',
               devName, devStatus, devLastSeen)
-    database_service.insert_record(
+    service.insert_record(
         database, devName, devStatus, devLastSeen, log)
     # Send response indicating query was executed
     log.debug('Building response message header')
@@ -128,7 +128,7 @@ def read_device_cmd(rNum, database, log, msgDestAdd, msgDestPort,
     response_msg_list = []
     # Execute select Query
     log.debug('Querying database for pending device commands')
-    pending_cmd_list = database_service.query_command(database, log)
+    pending_cmd_list = service.query_command(database, log)
     # Send response message for each record returned by query
     if len(pending_cmd_list) <= 0:
         log.debug('No pending commands found')
@@ -169,7 +169,7 @@ def update_device_cmd(rNum, database, log, msgH, msgP):
     # Execute update Query
     log.debug('Querying database to mark command with ID [%s] as complete '
               'with timestamp [%s]', cmdId, cmdProcessed)
-    database_service.update_command(database, cmdId, cmdProcessed, log)
+    service.update_command(database, cmdId, cmdProcessed, log)
     # Send response indicating query was executed
     log.debug('Building response message header')
     response_header = rNum.new() + ',' + msgSourceAdd + ',' + \

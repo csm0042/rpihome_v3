@@ -10,7 +10,6 @@ import mysql.connector.errorcode as errorcodes
 import sys
 if __name__ == "__main__":
     sys.path.append("..")
-import database_service
 import helpers
 
 
@@ -117,14 +116,3 @@ def configure_automation_connection(filename, log):
         port = '0'
     # Return configured objects to main program
     return address, port
-
-
-# Simple function test ********************************************************
-if __name__ == "__main__":
-    log = configure_log('config.ini')
-    credentials = configure_credentials('config.ini', log)
-    print(credentials)
-    database = configure_database('config.ini', credentials, log)
-    print(database)
-    address, port = configure_server('config.ini', log)
-    print(address, ":", port)
