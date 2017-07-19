@@ -73,6 +73,7 @@ def process_db_messages(rNumGen, devices, msgHeader, msgPayload, log,
     response_msg_list = []        
     # message type 101 - log status update ACK
     if msgPayload[0] == '101':
+        # Need to write this code yet #################################
         pass
     # Message type 103 - device command from DB
     elif msgPayload[0] == '103':
@@ -126,6 +127,7 @@ def process_db_messages(rNumGen, devices, msgHeader, msgPayload, log,
             log.warning('Unrecoginized device name in command received from DB')
     # Message type 105 - device command from
     elif msgPayload[0] == '105':
+        # Need to write this code yet #################################
         pass
     # Return response message
     return response_msg_list        
@@ -139,12 +141,15 @@ def process_wemo_messages(rNumGen, msgHeader, msgPayload, log):
     response_msg_list = []        
     # Message type 101 - wemo status update
     if msgPayload[0] == '101':
+        # Need to write this code yet #################################
         pass
     # Message type 103 - wemo set on ACK
     elif msgPayload[0] == '103':
+        # Need to write this code yet #################################        
         pass
     # Message type 105 - wemo set off ACK
     elif msgPayload[0] == '105':
+        # Need to write this code yet #################################        
         pass
     # Return response message
     return response_msg_list        
