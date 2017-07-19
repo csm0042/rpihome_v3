@@ -1,0 +1,63 @@
+import datetime
+import logging
+
+
+# Schedule Class Definition ***************************************************
+class Sched(object):
+    """ Class used to define a schedule object used for automatic on/off control of
+    devices that will be controlled from this application """
+    def __init__(self, logger=None, **kwargs):
+        # Configure logger
+        self.logger = logger or logging.getLogger(__name__)
+        self._name = str()
+        self._start = datetime.datetime
+        self._end = datetime.datetime
+        # Process input variables if present
+        if kwargs is not None:
+            for key, value in kwargs.items():
+                if key == "name":
+                    self.name = value
+                if key == "start":
+                    self.start = value
+                if key == "end":
+                    self.end = value
+
+    @property
+    def name(self):
+        """ returns the name of the device this schedule items is
+        associated with """
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        """ setter for the device name this schedule item corresponds
+        to """
+        self._name = value
+
+    @property
+    def start(self):
+        """ returns "start" time associated with this line-item on the
+        schedule.  This typically corresponds to the time the device
+        is to be set to its non-default state (usually on) """
+        return self._start
+
+    @start.setter
+    def start(self, value):
+        """ setter used to verify only proper data is entered into
+        the "start" time field """
+        if isinstance(value, datetime.datetime):
+            self._start = value
+
+    @property
+    def end(self):
+        """ returns "end" time associated with this line-item on the
+        schedule.  This typically corresponds to the time the device
+        is to be returned to its default state (usually off) """
+        return self._end
+
+    @end.setter
+    def end(self, value):
+        """ setter used to verify only proper data is entered into
+        the "end" time field """
+        if isinstance(value, datetime.datetime):
+            self._end = value
