@@ -36,17 +36,17 @@ def service_main_task(msg_in_que, msg_out_que, rNumGen, wemoGw, log):
             msgHeader = next_msg_seg[:5]
             msgPayload = next_msg_seg[5:]
             # Wemo Device Status Queries
-            if msgPayload[0] == '100':
+            if msgPayload[0] == '200':
                 log.debug('Message is a device status update request')                
                 response_msg_list = yield from get_wemo_status(
                     rNumGen, wemoGw, log, msgHeader, msgPayload)
             # Wemo Device on commands
-            if msgPayload[0] == '102':
+            if msgPayload[0] == '202':
                 log.debug('Message is a device set "on" command')
                 response_msg_list = yield from set_wemo_on(
                     rNumGen, wemoGw, log, msgHeader, msgPayload)
             # Wemo Device off commands
-            if msgPayload[0] == '104':
+            if msgPayload[0] == '204':
                 log.debug('Message is a device set "off" command')
                 response_msg_list = yield from set_wemo_off(
                     rNumGen, wemoGw, log, msgHeader, msgPayload)
@@ -90,7 +90,7 @@ def get_wemo_status(rNum, wemo_gw, log, msgH, msgP):
                       msgSourcePort + ',' + msgDestAdd + ',' + \
                       msgDestPort
     log.debug('Building response message payload')
-    response_payload = '101,' + devName + ',' + str(devStatusNew) + ',' + \
+    response_payload = '201,' + devName + ',' + str(devStatusNew) + ',' + \
                        str(devLastSeenNew)[:19]
     log.debug('Building complete response message')                    
     response_msg = response_header + ',' + response_payload
@@ -130,7 +130,7 @@ def set_wemo_on(rNum, wemo_gw, log, msgH, msgP):
                       msgSourcePort + ',' + msgDestAdd + ',' + \
                       msgDestPort
     log.debug('Building response message payload')
-    response_payload = '103,' + devName + ',' + \
+    response_payload = '203,' + devName + ',' + \
                        str(devStatusNew) + ',' + str(devLastSeenNew)
     log.debug('Building complete response message')                    
     response_msg = response_header + ',' + response_payload
@@ -170,7 +170,7 @@ def set_wemo_off(rNum, wemo_gw, log, msgH, msgP):
                       msgSourcePort + ',' + msgDestAdd + ',' + \
                       msgDestPort
     log.debug('Building response message payload')
-    response_payload = '105,' + devName + ',' + \
+    response_payload = '205,' + devName + ',' + \
                        str(devStatusNew) + ',' + str(devLastSeenNew)
     log.debug('Building complete response message')                    
     response_msg = response_header + ',' + response_payload
