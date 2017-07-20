@@ -4,6 +4,7 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import copy
+import helpers
 
 
 # Authorship Info *************************************************************
@@ -114,7 +115,7 @@ def process_db_102(rNumGen, log, msgHeader, msgPayload, db_add, db_port):
 def process_db_103(rNumGen, devices, log, msgHeader, msgPayload,
                    address, port, wemo_add, wemo_port):
     """ This function performs the custom operations required when a message
-        type 101 is received. """
+        type 103 is received. """
     # Initialize result list
     outMsgList = []
     # Map header and payload to usable tags
@@ -131,18 +132,20 @@ def process_db_103(rNumGen, devices, log, msgHeader, msgPayload,
     cmdTimestamp = msgPayload[4]
     cmdProcessed = msgPayload[5]
     # Search device table to find device name
-    devPointer = search_device_list(devName, devices)
+    log.debug('Searching device table for [%s]', devName)
+    devPointer = helpers.search_device_list(devName, devices, log)
+    log.debug('Match found at device table index: %s', devPointer)
     if devPointer is not None:
         # Wemo switch commands get sent to the wemo service for handling
-        if devices[devPointer] == 'wemo_switch':
+        if devices[devPointer].devtype == 'wemo_switch':
             log.debug('Building msg header for msg to wemo service')
             outMsgHeader = '%s,%s,%s,%s,%s' % (
                 rNumGen.new(), wemo_add, wemo_port, address, port)
             log.debug('Choosing msg type based on command')
             if devCmd == 'on' or devCmd == '1':
-                cmdType = '102'
+                cmdType = '202'
             elif devCmd == 'off' or devCmd == '0':
-                cmdType = '104'
+                cmdType = '204'
             else:
                 cmdType = 'None'
             log.debug('Building msg payload for msg to wemo service')
@@ -151,13 +154,68 @@ def process_db_103(rNumGen, devices, log, msgHeader, msgPayload,
                 devices[devPointer].status, devices[devPointer].last_seen)
             log.debug('Assembling parts to form complete message')
             outMsg = '%s,%s' % (outMsgHeader, outMsgPayload)
+            log.debug('Loading completed msg into outgoing msg buffer [%s]',
+                      outMsg)
             outMsgList.append(copy.copy(outMsg))
+    else:
+        log.debug('Device name not found in known device table')
     # Return response message
-    return outMsgList            
+    return outMsgList
 
 
-def search_device_list(name, devices):
-    for i, d in enumerate(devices):
-        if name == devices.name:
-            return i
-    return None
+# Process messages type 104 ***************************************************
+def process_db_104(rNumGen, log, msgHeader, msgPayload, db_add, db_port):
+    """ This function performs the custom operations required when a message
+        type 104 is received.  These messages are forwarded to the database
+        service for processing """
+    # Initialize result list
+    outMsgList = []
+    # Map header and payload to usable tags
+    msgRef = msgHeader[0]
+    msgDestAdd = msgHeader[1]
+    msgDestPort = msgHeader[2]
+    msgSourceAdd = msgHeader[3]
+    msgSourcePort = msgHeader[4]
+    # Map message payload to usable tags
+    msgType = msgPayload[0]
+    cmdId = msgPayload[1]
+    cmdProcessed = msgPayload[2]
+    # Build new message to forward to db service
+    log.debug('Building revised message header for msg to to forward '
+              'to DB service')
+    outMsgHeader = '%s,%s,%s,%s,%s' % (
+        rNumGen.new(), db_add, db_port, msgSourceAdd, msgSourcePort)
+    log.debug('Building revised message payload for msg to forward '
+              'to db service')
+    outMsgPayload = '%s,%s,%s' % (
+        msgType, cmdId, cmdProcessed)
+    log.debug('Building complete revised message to forward'
+              'to db service')                    
+    outMsg = '%s,%s' % (outMsgHeader, outMsgPayload)
+    log.debug('Appending complete response message to result '
+              'list: [%s]', outMsg)
+    outMsgList.append(copy.copy(outMsg))
+    # Return response message    
+    return outMsgList   
+
+
+# Process messages type 105 ***************************************************
+def process_db_105(log, msgHeader, msgPayload):
+    """ This function performs the custom operations required when a message
+        type 105 is received. """
+    # Initialize result list
+    outMsgList = []
+    # Map header and payload to usable tags
+    msgRef = msgHeader[0]
+    msgDestAdd = msgHeader[1]
+    msgDestPort = msgHeader[2]
+    msgSourceAdd = msgHeader[3]
+    msgSourcePort = msgHeader[4]
+    # Map message payload to usable tags
+    msgType = msgPayload[0]
+    devName = msgPayload[1]
+    # Log that ACK was received
+    log.debug('Log status update [%s,%s] message successfully acknowledged '
+              'by db service', msgHeader, msgPayload)
+    # Return response message
+    return outMsgList

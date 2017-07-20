@@ -39,28 +39,52 @@ def service_main_task(msg_in_que, msg_out_que, rNumGen, devices, log,
             next_msg = msg_in_que.get_nowait()
             log.debug('Splitting message into header / payload')
             next_msg_seg = next_msg.split(sep=',')
+            
+            # Split message into header and payload
             msgHeader = next_msg_seg[:5]
             msgPayload = next_msg_seg[5:]
+
+            # Map header and payload to usable tags
+            msgRef = msgHeader[0]
+            msgDestAdd = msgHeader[1]
+            msgDestPort = msgHeader[2]
+            msgSourceAdd = msgHeader[3]
+            msgSourcePort = msgHeader[4]
 
             # Process messages from database service
             if msgHeader[3] == db_add:
                 if msgPayload[0] == '100':
+                    log.debug('Message is a DB device status update '
+                              '(type 100)')
                     out_msg_list = automation_service.process_db_100(
                         rNumGen, log, msgHeader, msgPayload, db_add, db_port)
                 elif msgPayload[0] == '101':
+                    log.debug('Message is a DB device status update ACK '
+                              '(type 101)')                    
                     out_msg_list = automation_service.process_db_101(
                         log, msgHeader, msgPayload)
                 elif msgPayload[0] == '102':
+                    log.debug('Message is a read trigger for the DB command '
+                              'table (type 102)')
                     out_msg_list = automation_service.process_db_102(
                         rNumGen, log, msgHeader, msgPayload, db_add, db_port)
                 elif msgPayload[0] == '103':
+                    log.debug('Message is a device command received from the '
+                              'DB device command table (type 103)')                    
                     out_msg_list = automation_service.process_db_103(
                         rNumGen, devices, log, msgHeader, msgPayload,
                         address, port, wemo_add, wemo_port)
                 elif msgPayload[0] == '104':
-                    pass
+                    log.debug('Message is a DB command table record update '
+                              '(type 104)')                    
+                    out_msg_list = automation_service.process_db_104(
+                        rNumGen, log, msgHeader, msgPayload,
+                        db_add, db_port)
                 elif msgPayload[0] == '105':
-                    pass
+                    log.debug('Message is a DB command table record update ACK '
+                              '(type 105)')                    
+                    out_msg_list = automation_service.process_db_105(
+                        log, msgHeader, msgPayload)
 
             # Process messages from wemo service
             if msgHeader[3] == wemo_add:

@@ -1,5 +1,32 @@
+#!/usr/bin/python3
+""" device.py:
+"""
+
+# Import Required Libraries (Standard, Third Party, Local) ********************
 import datetime
 import logging
+
+
+# Authorship Info *************************************************************
+__author__ = "Christopher Maue"
+__copyright__ = "Copyright 2017, The RPi-Home Project"
+__credits__ = ["Christopher Maue"]
+__license__ = "GPL"
+__version__ = "1.0.0"
+__maintainer__ = "Christopher Maue"
+__email__ = "csmaue@gmail.com"
+__status__ = "Development"
+
+
+# Search device list by name **************************************************
+def search_device_list(name, devices, log):
+    log.debug('Starting search of device table for matching name [%s]', name)
+    for i, d in enumerate(devices):
+        if name.lower() == d.name.lower():
+            log.debug('Match found at index: %s', i)
+            return i
+    log.debug('No match found for device name [%s]', name)
+    return None
 
 
 # Device Class Definition *****************************************************
@@ -82,7 +109,7 @@ class Device(object):
     @last_seen.setter
     def last_seen(self, value):
         if isinstance(value, datetime.datetime):
-            self._last_seen = value
+            self._last_seen = str(value)[:19]
 
     @property
     def cmd(self):

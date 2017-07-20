@@ -5,6 +5,7 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import configparser
+import datetime
 import sys
 if __name__ == "__main__":
     sys.path.append("..")
@@ -115,18 +116,20 @@ def configure_devices(filename, log):
     for i in range(1, device_num, 1):
         try:
             if len(str(i)) == 1:
+                log.debug('Single digit device ID number')
                 device_id = 'device0' + str(i)
             elif len(str(i)) == 2:
+                log.debug('Double digit device ID number')
                 device_id = 'device' + str(i)
-            devices.append(rpihome_v3.Device(
-                name=config_file['DEVICES'][device_id + '_name'],
-                devtype=config_file['DEVICES'][device_id + '_devtype'],
-                address=config_file['DEVICES'][device_id + '_address'],
-                last_seen=datetime.datetime.now(),
-                rule=config_file['DEVICES'][device_id + '_rule']))
-            log.debug(
-                'Device %s added to automation device list',
-                (config_file['DEVICES'][device_id + '_name']))
+            devices.append(
+                helpers.Device(
+                    name=config_file['DEVICES'][device_id + '_name'],
+                    devtype=config_file['DEVICES'][device_id + '_devtype'],
+                    address=config_file['DEVICES'][device_id + '_address'],
+                    last_seen=datetime.datetime.now(),
+                    rule=config_file['DEVICES'][device_id + '_rule']))
+            log.debug('Device %s added to automation device list',
+                      config_file['DEVICES'][device_id + '_name'])
         except:
             pass
     log.debug('Completed automation device list:')
