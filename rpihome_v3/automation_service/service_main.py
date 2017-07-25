@@ -73,7 +73,7 @@ def service_main_task(msg_in_que, msg_out_que, rNumGen, devices, log,
                               'DB device command table (type 103)')                    
                     out_msg_list = automation_service.process_db_103(
                         rNumGen, devices, log, msgHeader, msgPayload,
-                        address, port, wemo_add, wemo_port)
+                        address, port, wemo_add, wemo_port, db_add, db_port)
                 elif msgPayload[0] == '104':
                     log.debug('Message is a DB command table record update '
                               '(type 104)')                    
