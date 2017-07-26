@@ -46,7 +46,7 @@ def configure_server(filename, log):
     # Read credential info from file
     try:
         address = config_file['AUTOMATION SERVICE']['address']
-        port = (config_file['AUTOMATION SERVICE']['port'])
+        port = config_file['AUTOMATION SERVICE']['port']
         log.debug('Address and port found: %s:%s', address, port)
     except:
         log.error('No address or port configuration found')

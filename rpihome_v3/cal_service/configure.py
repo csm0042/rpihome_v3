@@ -5,10 +5,12 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import configparser
+import datetime
+import sys
 if __name__ == "__main__":
-    import sys
     sys.path.append("..")
-import wemo_service
+import cal_service as service
+import helpers
 
 
 # Authorship Info *************************************************************
@@ -43,19 +45,30 @@ def configure_server(filename, log):
     config_file.read(filename)
     # Read credential info from file
     try:
-        address = config_file['SOCKET SERVER']['address']
-        port = config_file['SOCKET SERVER']['port']
+        address = config_file['CAL SERVICE']['address']
+        port = config_file['CAL SERVICE']['port']
         log.debug('Address and port found: %s:%s', address, port)
     except:
         log.error('No address or port configuration found')
-        address = None
-        port = None
+        address = '0'
+        port = '0'
     # Return configured objects to main program
     return address, port
 
 
-# Simple function test ********************************************************
-if __name__ == "__main__":
-    log = configure_log('config.ini')
-    address, port = configure_server('config.ini', log)
-    print(address, ":", port)
+# Configure service socket server *********************************************
+def configure_automation_connection(filename, log):
+    # Define connection to configuration file
+    config_file = configparser.ConfigParser()
+    config_file.read(filename)
+    # Read credential info from file
+    try:
+        address = config_file['AUTOMATION SERVICE']['address']
+        port = config_file['AUTOMATION SERVICE']['port']
+        log.debug('Address and port found: %s:%s', address, port)
+    except:
+        log.error('No address or port configuration found')
+        address = '0'
+        port = '0'
+    # Return configured objects to main program
+    return address, port

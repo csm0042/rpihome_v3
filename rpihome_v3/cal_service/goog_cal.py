@@ -17,7 +17,7 @@ import datetime
 import logging
 import sys
 import typing
-import rpihome_v3
+import helpers
 
 
 # Authorship Info *************************************************************
@@ -122,7 +122,7 @@ class GoogleCalSync(object):
         self.schedule = []
         # Cycle through raw event list and convert to a usable format
         for index, event in enumerate(self.events):
-            self.schedule.append(rpihome_v3.Sched(
+            self.schedule.append(helpers.Sched(
                 logger=self.logger,
                 name=self.extract_name(event),
                 start=self.extract_start(event),
