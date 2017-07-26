@@ -92,7 +92,12 @@ class Device(object):
 
     @status.setter
     def status(self, value):
-        self._status = str(value)
+        if value.lower() == '1' or value.lower() == 'on':
+            self._status = 'on'
+        elif value.lower() == '0' or value.lower() == 'off':
+            self._status = 'off'
+        elif value.lower() == 'offline' or value.lower() == '??':
+            self._status = 'offline'
 
     @property
     def status_mem(self):

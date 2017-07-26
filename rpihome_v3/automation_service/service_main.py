@@ -89,17 +89,38 @@ def service_main_task(msg_in_que, msg_out_que, rNumGen, devices, log,
             # Process messages from wemo service
             if msgHeader[3] == wemo_add:
                 if msgPayload[0] == '200':
-                    pass
+                    log.debug('Message is a command to the wemo service to '
+                              'get the current state of a wemo device '
+                              '(type 200)')
+                    out_msg_list = automation_service.process_wemo_200(
+                        rNumGen, log, msgHeader, msgPayload, wemo_add, wemo_port)
                 elif msgPayload[0] == '201':
-                    pass
+                    log.debug('Message is a response from the wemo service with'
+                              'the current state of a wemo device (type 201)')
+                    out_msg_list = automation_service.process_wemo_201(
+                        rNumGen, devices, log, msgHeader, msgPayload)
                 elif msgPayload[0] == '202':
-                    pass
+                    log.debug('Message is a command to the wemo service to'
+                              'turn on a particular wemo device (type 202)')
+                    out_msg_list = automation_service.process_wemo_202(
+                        rNumGen, log, msgHeader, msgPayload, wemo_add, wemo_port)
                 elif msgPayload[0] == '203':
-                    pass
+                    log.debug('Message is a response from the wemo service '
+                              'indicating a wemo device was recently turned '
+                              'on (type 203)')
+                    out_msg_list = automation_service.process_wemo_203(
+                        rNumGen, devices, log, msgHeader, msgPayload)
                 elif msgPayload[0] == '204':
-                    pass
+                    log.debug('Message is a command to the wemo service to'
+                              'turn off a particular wemo device (type 204)')
+                    out_msg_list = automation_service.process_wemo_204(
+                        rNumGen, log, msgHeader, msgPayload, wemo_add, wemo_port)
                 elif msgPayload[0] == '205':
-                    pass
+                    log.debug('Message is a response from the wemo service '
+                              'indicating a wemo device was recently turned '
+                              'off (type 205)')
+                    out_msg_list = automation_service.process_wemo_205(
+                        rNumGen, devices, log, msgHeader, msgPayload)
            
         # Que up response messages in outgoing msg que
         if len(out_msg_list) > 0:
