@@ -125,7 +125,7 @@ def main():
     asyncio.ensure_future(
         service.service_main_task(
             msg_in_que, msg_out_que, rNumGen, log,
-            devices, calendar,
+            devices,
             address, port,
             cal_add, cal_port,
             db_add, db_port,

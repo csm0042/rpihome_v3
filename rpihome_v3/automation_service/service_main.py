@@ -25,7 +25,7 @@ __status__ = "Development"
 # Internal Service Work Task **************************************************
 @asyncio.coroutine
 def service_main_task(msg_in_que, msg_out_que, rNumGen, log,
-                      devices, calendar,
+                      devices,
                       address, port,
                       cal_add, cal_port,
                       db_add, db_port,
@@ -131,7 +131,7 @@ def service_main_task(msg_in_que, msg_out_que, rNumGen, log,
                               'get the current schedule associated with a '
                               'device (type 300)')
                     out_msg_list = service.process_cal_300(
-                        rNumGen, calendar, log, msgHeader, msgPayload)
+                        rNumGen, log, msgHeader, msgPayload)
                 if msgPayload[0] == '301':
                     log.debug('Message is a schedule record item associated '
                               'with a device (type 301)')

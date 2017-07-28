@@ -20,7 +20,7 @@ __status__ = "Development"
 
 
 # Process messages type 300 ***************************************************
-def process_cal_300(rNumGen, calendar, log, msgHeader, msgPayload):
+def process_cal_300(rNumGen, log, msgHeader, msgPayload):
     """ Msg type 300
     """
     # Initialize result list
