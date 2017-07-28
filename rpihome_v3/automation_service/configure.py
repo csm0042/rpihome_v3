@@ -92,6 +92,24 @@ def configure_wemo_connection(filename, log):
     return address, port
 
 
+# Configure service socket server *********************************************
+def configure_cal_connection(filename, log):
+    # Define connection to configuration file
+    config_file = configparser.ConfigParser()
+    config_file.read(filename)
+    # Read credential info from file
+    try:
+        address = config_file['CAL SERVICE']['address']
+        port = config_file['CAL SERVICE']['port']
+        log.debug('Address and port found: %s:%s', address, port)
+    except:
+        log.error('No address or port configuration found')
+        address = '0'
+        port = '0'
+    # Return configured objects to main program
+    return address, port
+
+
 # Config Location *************************************************************
 def configure_location(filename, log):
     # Define connection to configuration file

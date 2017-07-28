@@ -5,10 +5,7 @@
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
 from contextlib import suppress
-import copy
-import logging
 import sys
-import time
 if __name__ == "__main__":
     sys.path.append("..")
 import automation_service as service
@@ -30,6 +27,7 @@ __status__ = "Development"
 log = service.configure_log('config.ini')
 address, port = service.configure_server('config.ini', log)
 db_add, db_port = service.configure_db_connection('config.ini', log)
+cal_add, cal_port = service.configure_cal_connection('config.ini', log)
 wemo_add, wemo_port = service.configure_wemo_connection('config.ini', log)
 cur_lat, cur_long = service.configure_location('config.ini', log)
 devices = service.configure_devices('config.ini', log)
@@ -126,8 +124,10 @@ def main():
     log.debug('Scheduling main task for execution')
     asyncio.ensure_future(
         service.service_main_task(
-            msg_in_que, msg_out_que, rNumGen, devices, log,
-            address, port, 
+            msg_in_que, msg_out_que, rNumGen, log,
+            devices, calendar,
+            address, port,
+            cal_add, cal_port,
             db_add, db_port,
             wemo_add, wemo_port))
     # Create outgoing message task
