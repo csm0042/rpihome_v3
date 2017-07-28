@@ -49,6 +49,12 @@ def service_main_task(msg_in_que, msg_out_que, rNumGen, calendar, log,
             msgSourceAdd = msgHeader[3]
             msgSourcePort = msgHeader[4]
 
+            # Process messages from database service
+            if msgPayload[0] == '300':
+                log.debug('Message is a calendar query (type 300)')
+                out_msg_list = service.process_cal_300(
+                    rNumGen, calendar, log, msgHeader, msgPayload)
+
         # Que up response messages in outgoing msg que
         if len(out_msg_list) > 0:
             log.debug('Queueing response message(s)')

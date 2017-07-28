@@ -133,7 +133,7 @@ def main():
     asyncio.ensure_future(handle_msg_out())
 
     # Serve requests until Ctrl+C is pressed
-    log.info('Automation Service')
+    log.info('Calendar/Schedule Service')
     log.info('Serving on {}'.format(msg_in_task.sockets[0].getsockname()))
     log.info('Press CTRL+C to exit')
     try:
