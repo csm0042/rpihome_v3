@@ -29,10 +29,10 @@ __status__ = "Development"
 # Application wide objects ****************************************************
 log = service.configure_log('config.ini')
 address, port = service.configure_server('config.ini', log)
-auto_address, auto_port = service.configure_automation_connection(
+credentials = service.configure_credentials('config.ini', log)
+calendar = service.configure_calendar('config.ini', credentials, log)
+auto_add, auto_port = service.configure_automation_connection(
     'config.ini', log)
-calendar = service.configure_calendar_connection('config.ini', log)
-
 
 rNumGen = helpers.RefNum()
 msg_in_que = asyncio.Queue()
@@ -127,7 +127,7 @@ def main():
     asyncio.ensure_future(
         service.service_main_task(
             msg_in_que, msg_out_que, rNumGen, calendar, log,
-            address, port, auto_add, auto_port)
+            address, port, auto_add, auto_port))
     # Create outgoing message task
     log.debug('Scheduling outgoing message task for execution')
     asyncio.ensure_future(handle_msg_out())
