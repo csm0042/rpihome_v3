@@ -225,7 +225,43 @@ class GoogleCalSync(object):
                     self.result_list.append(copy.copy(sched))
         # Return results to main program
         return self.result_list
-    
+
+
+    def sched_by_date(self, date=None):
+        """ returns on/off schedule info for all devices with assignments for
+            a specific device """
+        # Check if calandar data currently in memory is current and perform
+        # update if it is stale
+        if self.should_rerun(datetime.datetime.now()) is True:
+            self.update_schedule()
+        # Obtain schedule info for devices with assignments for this date
+        self.result_list = []
+        if date is not None:
+            for sched in self.schedule:
+                if sched.start.date() <= date <= sched.end.date():
+                    self.result_list.append(copy.copy(sched))
+        # Return results to main program
+        return self.result_list
+
+
+    def check_schedule(self, name=None):
+        """ returns true if the device should be on, false if the device should
+            be off """
+        # Rerun schedule update if data is stale
+        if self.should_rerun(datetime.datetime.now()) is True:
+            self.update_schedule()
+        # Check device schedule and prior state command
+        if name is not None:
+            newCmd = False
+            for record in self.schedule:
+                if record.name == name:
+                    if record.start <= datetime.datetime.now():
+                        if record.end >= datetime.datetime.now():
+                            newCmd = True
+        # Return results to main program
+        return newCmd
+
+
 
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stdout)
@@ -236,3 +272,4 @@ if __name__ == '__main__':
         credential_dir='C://python_files//credentials',
         client_secret='C://python_files//credentials//client_secret.json',
         log=log)
+    print(cal.check_schedule(name='test_dev'))

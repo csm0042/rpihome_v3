@@ -63,3 +63,4 @@ def process_cal_301(rNumGen, devices, log, msgHeader, msgPayload):
     outMsgList.append(copy.copy(outMsg))
     # Return response message    
     return outMsgList
+
