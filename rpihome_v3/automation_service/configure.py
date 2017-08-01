@@ -38,76 +38,30 @@ def configure_log(filename):
     return log
 
 
-# Configure service socket server *********************************************
-def configure_server(filename, log):
+# Configure service addresses and ports ***************************************
+def configure_servers(filename, log):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
-    # Read credential info from file
-    try:
-        address = config_file['AUTOMATION SERVICE']['address']
-        port = config_file['AUTOMATION SERVICE']['port']
-        log.debug('Address and port found: %s:%s', address, port)
-    except:
-        log.error('No address or port configuration found')
-        address = '0'
-        port = '0'
-    # Return configured objects to main program
-    return address, port
+    # Create dict with all services defined in INI file
+    service_addresses = {}
+    for option in config_file.options('SERVICES'):
+        service_addresses[option] = config_file['SERVICES'][option]
+    # Return dict of configured addresses and ports to main program
+    return service_addresses
 
 
-# Configure service socket server *********************************************
-def configure_db_connection(filename, log):
+# Configure message types *****************************************************
+def configure_message_types(filename, log):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
-    # Read credential info from file
-    try:
-        address = config_file['PERSISTANCE SERVICE']['address']
-        port = config_file['PERSISTANCE SERVICE']['port']
-        log.debug('Address and port found: %s:%s', address, port)
-    except:
-        log.error('No address or port configuration found')
-        address = '0'
-        port = '0'
-    # Return configured objects to main program
-    return address, port
-
-
-# Configure service socket server *********************************************
-def configure_wemo_connection(filename, log):
-    # Define connection to configuration file
-    config_file = configparser.ConfigParser()
-    config_file.read(filename)
-    # Read credential info from file
-    try:
-        address = config_file['WEMO SERVICE']['address']
-        port = config_file['WEMO SERVICE']['port']
-        log.debug('Address and port found: %s:%s', address, port)
-    except:
-        log.error('No address or port configuration found')
-        address = '0'
-        port = '0'
-    # Return configured objects to main program
-    return address, port
-
-
-# Configure service socket server *********************************************
-def configure_cal_connection(filename, log):
-    # Define connection to configuration file
-    config_file = configparser.ConfigParser()
-    config_file.read(filename)
-    # Read credential info from file
-    try:
-        address = config_file['CAL SERVICE']['address']
-        port = config_file['CAL SERVICE']['port']
-        log.debug('Address and port found: %s:%s', address, port)
-    except:
-        log.error('No address or port configuration found')
-        address = '0'
-        port = '0'
-    # Return configured objects to main program
-    return address, port
+    # Create dict with all services defined in INI file
+    message_types = {}
+    for option in config_file.options('MESSAGE TYPES'):
+        message_types[option] = config_file['MESSAGE TYPES'][option]
+    # Return dict of configured addresses and ports to main program
+    return message_types
 
 
 # Config Location *************************************************************
@@ -148,7 +102,7 @@ def configure_devices(filename, log):
                     rule=config_file['DEVICES'][device_id + '_rule']))
             log.debug('Device %s added to automation device list',
                       config_file['DEVICES'][device_id + '_name'])
-        except:
+        except Exception:
             pass
     log.debug('Completed automation device list:')
     for device in devices:

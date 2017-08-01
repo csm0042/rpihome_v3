@@ -82,37 +82,27 @@ def configure_database(filename, credentials, log):
     return database
 
 
-# Configure service socket server *********************************************
-def configure_server(filename, log):
+# Configure service addresses and ports ***************************************
+def configure_servers(filename, log):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
-    # Read credential info from file
-    try:
-        address = config_file['PERSISTANCE SERVICE']['address']
-        port = (config_file['PERSISTANCE SERVICE']['port'])
-        log.debug('Address and port found: %s:%s', address, port)
-    except:
-        log.error('No address or port configuration found')
-        address = '0'
-        port = '0'
-    # Return configured objects to main program
-    return address, port
+    # Create dict with all services defined in INI file
+    service_addresses = {}
+    for option in config_file.options('SERVICES'):
+        service_addresses[option] = config_file['SERVICES'][option]
+    # Return dict of configured addresses and ports to main program
+    return service_addresses
 
 
-# Configure service socket server *********************************************
-def configure_automation_connection(filename, log):
+# Configure message types *****************************************************
+def configure_message_types(filename, log):
     # Define connection to configuration file
     config_file = configparser.ConfigParser()
     config_file.read(filename)
-    # Read credential info from file
-    try:
-        address = config_file['AUTOMATION SERVICE']['address']
-        port = config_file['AUTOMATION SERVICE']['port']
-        log.debug('Address and port found: %s:%s', address, port)
-    except:
-        log.error('No address or port configuration found')
-        address = '0'
-        port = '0'
-    # Return configured objects to main program
-    return address, port
+    # Create dict with all services defined in INI file
+    message_types = {}
+    for option in config_file.options('MESSAGE TYPES'):
+        message_types[option] = config_file['MESSAGE TYPES'][option]
+    # Return dict of configured addresses and ports to main program
+    return message_types

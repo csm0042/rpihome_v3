@@ -19,7 +19,7 @@ __status__ = "Development"
 
 
 # Search device list by name **************************************************
-def search_device_list(name, devices, log):
+def search_device_list(log, devices, name):
     log.debug('Starting search of device table for matching name [%s]', name)
     for i, d in enumerate(devices):
         if name.lower() == d.name.lower():

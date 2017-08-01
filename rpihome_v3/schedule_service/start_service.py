@@ -5,10 +5,13 @@
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
 from contextlib import suppress
+import copy
+import logging
 import sys
+import time
 if __name__ == "__main__":
     sys.path.append("..")
-import automation_service as service
+import schedule_service as service
 import helpers
 
 
@@ -27,8 +30,8 @@ __status__ = "Development"
 LOG = service.configure_log('config.ini')
 SERVICE_ADDRESSES = service.configure_servers('config.ini', LOG)
 MESSAGE_TYPES = service.configure_message_types('config.ini', LOG)
-CUR_LAT, CUR_LONG = service.configure_location('config.ini', LOG)
-DEVICES = service.configure_devices('config.ini', LOG)
+CREDENTIALS = service.configure_credentials('config.ini', LOG)
+SCHEDULE = service.configure_calendar('config.ini', CREDENTIALS, LOG)
 
 REF_NUM = helpers.RefNum()
 MSG_IN_QUEUE = asyncio.Queue()
@@ -105,32 +108,32 @@ def handle_msg_out():
 def main():
     """ Main application routine """
     LOG.debug('Starting main')
-
+    
     # Create incoming message server
     try:
         LOG.debug('Creating incoming message listening server at [%s:%s]',
-                  SERVICE_ADDRESSES['automation_addr'],
-                  SERVICE_ADDRESSES['automation_port'])
+                  SERVICE_ADDRESSES['schedule_addr'],
+                  SERVICE_ADDRESSES['schedule_port'])
         msg_in_server = asyncio.start_server(
             handle_msg_in,
-            host=SERVICE_ADDRESSES['automation_addr'],
-            port=int(SERVICE_ADDRESSES['automation_port']))
+            host=SERVICE_ADDRESSES['schedule_addr'],
+            port=int(SERVICE_ADDRESSES['schedule_port']))
         LOG.debug('Wrapping servier in future task and scheduling for '
                   'execution')
-        msg_in_task = LOOP.run_until_complete(msg_in_server)
+        msg_in_task = LOOP.run_until_complete(msg_in_server)        
     except Exception:
         LOG.debug('Failed to create socket listening connection at %s:%s',
-                  SERVICE_ADDRESSES['automation_addr'],
-                  SERVICE_ADDRESSES['automation_port'])
+                  SERVICE_ADDRESSES['schedule_addr'],
+                  SERVICE_ADDRESSES['schedule_port'])
         sys.exit()
-
+    
     # Create main task for this service
     LOG.debug('Scheduling main task for execution')
     asyncio.ensure_future(
         service.service_main_task(
             LOG,
             REF_NUM,
-            DEVICES,
+            SCHEDULE,
             MSG_IN_QUEUE,
             MSG_OUT_QUEUE,
             SERVICE_ADDRESSES,
@@ -141,7 +144,7 @@ def main():
     asyncio.ensure_future(handle_msg_out())
 
     # Serve requests until Ctrl+C is pressed
-    LOG.info('Automation Service')
+    LOG.info('Schedule Service')
     LOG.info('Serving on {}'.format(msg_in_task.sockets[0].getsockname()))
     LOG.info('Press CTRL+C to exit')
     try:

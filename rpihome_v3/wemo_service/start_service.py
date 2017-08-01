@@ -26,15 +26,16 @@ __status__ = "Development"
 
 
 # Application wide objects ****************************************************
-log = service.configure_log('config.ini')
-address, port = service.configure_server('config.ini', log)
+LOG = service.configure_log('config.ini')
+SERVICE_ADDRESSES = service.configure_servers('config.ini', LOG)
+MESSAGE_TYPES = service.configure_message_types('config.ini', LOG)
 
-rNumGen = helpers.RefNum()
-wemoGw = service.WemoAPI(log)
+WEMO_GW = service.WemoAPI(LOG)
 
-msg_in_que = asyncio.Queue()
-msg_out_que = asyncio.Queue()
-loop = asyncio.get_event_loop()
+REF_NUM = helpers.RefNum()
+MSG_IN_QUEUE = asyncio.Queue()
+MSG_OUT_QUEUE = asyncio.Queue()
+LOOP = asyncio.get_event_loop()
 
 
 
@@ -42,31 +43,31 @@ loop = asyncio.get_event_loop()
 # Incoming message handler ****************************************************
 @asyncio.coroutine
 def handle_msg_in(reader, writer):
-    """ Callback used to send ACK messages back to acknowledge messages 
+    """ Callback used to send ACK messages back to acknowledge messages
     received """
-    log.debug('Yielding to reader.read()')
+    LOG.debug('Yielding to reader.read()')
     data_in = yield from reader.read(100)
-    log.debug('Decoding read data')
+    LOG.debug('Decoding read data')
     message = data_in.decode()
-    log.debug('Extracting address from socket connection')
+    LOG.debug('Extracting address from socket connection')
     addr = writer.get_extra_info('peername')
-    log.debug('Received %r from %r' % (message, addr))
+    LOG.debug('Received %r from %r' % (message, addr))
 
     # Coping incoming message to message buffer
-    log.debug('Loading message into incoming msg buffer')
-    msg_in_que.put_nowait(message)
-    log.debug('Resulting buffer length: %s', str(msg_in_que.qsize()))
+    LOG.debug('Loading message into incoming msg buffer')
+    MSG_IN_QUEUE.put_nowait(message)
+    LOG.debug('Resulting buffer length: %s', str(MSG_IN_QUEUE.qsize()))
 
     # Acknowledge receipt of message
-    log.debug("ACK'ing message: %r", message)
-    log.debug('Splitting message into constituent parts')
+    LOG.debug("ACK'ing message: %r", message)
+    LOG.debug('Splitting message into constituent parts')
     msg_seg = message.split(',')
-    log.debug('Extracted msg sequence number: [%s]', msg_seg[0])
+    LOG.debug('Extracted msg sequence number: [%s]', msg_seg[0])
     ack_to_send = msg_seg[0].encode()
-    log.debug('Sending response msg: [%s]', ack_to_send)
+    LOG.debug('Sending response msg: [%s]', ack_to_send)
     writer.write(ack_to_send)
     yield from writer.drain()
-    log.debug('Closing the socket after sending ACK')
+    LOG.debug('Closing the socket after sending ACK')
     writer.close()
 
 
@@ -75,28 +76,31 @@ def handle_msg_in(reader, writer):
 def handle_msg_out():
     """ task to handle outgoing messages """
     while True:
-        if msg_out_que.qsize() > 0:
-            log.debug('Pulling next outgoing message from queue')
-            msg_to_send = msg_out_que.get_nowait()
-            log.debug('Extracting msg destination address and port')
+        if MSG_OUT_QUEUE.qsize() > 0:
+            LOG.debug('Pulling next outgoing message from queue')
+            msg_to_send = MSG_OUT_QUEUE.get_nowait()
+            LOG.debug('Extracting msg destination address and port')
             msg_seg_out = msg_to_send.split(',')
-            log.debug('Opening outgoing connection to %s:%s',
+            LOG.debug('Opening outgoing connection to %s:%s',
                 msg_seg_out[1], msg_seg_out[2])
-            reader_out, writer_out = yield from asyncio.open_connection(
-                msg_seg_out[1], int(msg_seg_out[2]), loop=loop)
-            log.debug('Sending message: [%s]', msg_to_send)
-            writer_out.write(msg_to_send.encode())
+            try:
+                reader_out, writer_out = yield from asyncio.open_connection(
+                    msg_seg_out[1], int(msg_seg_out[2]), LOOP=LOOP)
+                LOG.debug('Sending message: [%s]', msg_to_send)
+                writer_out.write(msg_to_send.encode())
 
-            log.debug('Waiting for ack')
-            data_ack = yield from reader_out.read(100)
-            ack = data_ack.decode()
-            log.debug('Received: %r', ack)
-            if ack.split(',')[0] == msg_seg_out[0]:
-                log.debug('Successful ACK received')
-            else:
-                log.debug('Ack received does not match sent message')
-            log.debug('Closing socket')
-            writer_out.close()
+                LOG.debug('Waiting for ack')
+                data_ack = yield from reader_out.read(100)
+                ack = data_ack.decode()
+                LOG.debug('Received: %r', ack)
+                if ack.split(',')[0] == msg_seg_out[0]:
+                    LOG.debug('Successful ACK received')
+                else:
+                    LOG.debug('Ack received does not match sent message')
+                LOG.debug('Closing socket')
+                writer_out.close()
+            except Exception:
+                LOG.warning('Could not open socket connection to target')                
         # Yield to other tasks for a while
         yield from asyncio.sleep(0.25)
 
@@ -104,52 +108,67 @@ def handle_msg_out():
 # Main ************************************************************************
 def main():
     """ Main application routine """
-    log.debug('Starting main')
+    LOG.debug('Starting main')
+
+    # Create incoming message server    
     try:
-        log.debug('Creating incoming message listening server at [%s:%s]', \
-            address, port)
+        LOG.debug('Creating incoming message listening server at [%s:%s]', \
+                  SERVICE_ADDRESSES['wemo_addr']
+                  SERVICE_ADDRESSES['wemo_port'])
         msg_in_server = asyncio.start_server(
-            handle_msg_in, host=address, port=int(port))
-        log.debug('Wrapping servier in future task and scheduling for '
+            handle_msg_in,
+            host=SERVICE_ADDRESSES['wemo_addr'],
+            port=int(SERVICE_ADDRESSES['wemo_port']))
+        LOG.debug('Wrapping servier in future task and scheduling for '
                   'execution')
-        msg_in_task = loop.run_until_complete(msg_in_server)        
-    except:
-        log.debug('Failed to create socket listening connection at %s:%s', \
-            address, port)
+        msg_in_task = LOOP.run_until_complete(msg_in_server)        
+    except Exception:
+        LOG.debug('Failed to create socket listening connection at %s:%s', \
+                  SERVICE_ADDRESSES['wemo_addr'],
+                  SERVICE_ADDRESSES['wemo_port'])
         sys.exit()
 
-    log.debug('Scheduling main task for execution')
+    # Create main task for this service
+    LOG.debug('Scheduling main task for execution')
     asyncio.ensure_future(
         service.service_main_task(
-            msg_in_que, msg_out_que, rNumGen, wemoGw, log))
+            LOG,
+            REF_NUM,
+            WEMO_GW,
+            MSG_IN_QUEUE,
+            MSG_OUT_QUEUE,
+            SERVICE_ADDRESSES,
+            MESSAGE_TYPES))
 
-    log.debug('Scheduling outgoing message task for execution')
+    # Create outgoing message task
+    LOG.debug('Scheduling outgoing message task for execution')
     asyncio.ensure_future(handle_msg_out())
 
     # Serve requests until Ctrl+C is pressed
-    log.info('Wemo Gateway Service')
-    log.info('Serving on {}'.format(msg_in_task.sockets[0].getsockname()))
-    log.info('Press CTRL+C to exit')
+    LOG.info('Wemo Gateway Service')
+    LOG.info('Serving on {}'.format(msg_in_task.sockets[0].getsockname()))
+    LOG.info('Press CTRL+C to exit')
     try:
-        loop.run_forever()
+        LOOP.run_forever()
     except asyncio.CancelledError:
-        log.info('All tasks have been cancelled')
+        LOG.info('All tasks have been cancelled')
     except KeyboardInterrupt:
         pass
     finally:
-        log.info('Shutting down incoming message server')
+        LOG.info('Shutting down incoming message server')
         msg_in_server.close()
-        log.info('Finding all running tasks to shut down')
+        LOG.info('Finding all running tasks to shut down')
         pending = asyncio.Task.all_tasks()
-        log.info('[%s] Task still running.  Closing them now', str(len(pending)))
+        LOG.info('[%s] Task still running.  Closing them now', str(len(pending)))
         for i, task in enumerate(pending):
             with suppress(asyncio.CancelledError):
-                log.info('Waiting for task [%s] to shut down', i)
+                LOG.info('Waiting for task [%s] to shut down', i)
                 task.cancel()
-                loop.run_until_complete(task)
-        log.info('Shutdown complete.  Terminating execution loop')
-    # Terminate the execution loop
-    loop.close()
+                LOOP.run_until_complete(task)
+        LOG.info('Shutdown complete.  Terminating execution LOOP')
+    
+    # Terminate the execution LOOP
+    LOOP.close()
 
 
 # Call Main *******************************************************************
