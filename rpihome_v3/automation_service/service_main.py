@@ -5,6 +5,7 @@
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
 import copy
+import datetime
 import logging
 import sys
 import time
@@ -32,7 +33,7 @@ def service_main_task(msg_in_que, msg_out_que, rNumGen, log,
                       wemo_add, wemo_port):
     """ task to handle the work the service is intended to do """
     # Initialize timestamp for periodic DB checks
-    last_check = time.time()
+    last_check = datetime.datetime.now()
     while True:
         # Initialize result list
         out_msg_list = []
@@ -126,24 +127,33 @@ def service_main_task(msg_in_que, msg_out_que, rNumGen, log,
 
             # Process messages from calendar/schedule service
             if msgHeader[3] == cal_add:
-                if msgPayload[0] == '300':
-                    log.debug('Message is a command to the calendar service to '
-                              'get the current schedule associated with a '
-                              'device (type 300)')
-                    out_msg_list = service.process_cal_300(
-                        rNumGen, log, msgHeader, msgPayload)
                 if msgPayload[0] == '301':
                     log.debug('Message is a schedule record item associated '
                               'with a device (type 301)')
                     out_msg_list = service.process_cal_301(
-                        rNumGen, devices, log, msgHeader, msgPayload)
+                        rNumGen, devices, log, msgHeader, msgPayload,
+                        address, port, wemo_add, wemo_port)
 
-        # Que up response messages in outgoing msg que
-        if len(out_msg_list) > 0:
-            log.debug('Queueing response message(s)')
-            for out_msg in out_msg_list:
-                msg_out_que.put_nowait(out_msg)
-                log.debug('Response message [%s] successfully queued',
-                          out_msg)
+            # Que up response messages in outgoing msg que
+            if len(out_msg_list) > 0:
+                log.debug('Queueing response message(s)')
+                for out_msg in out_msg_list:
+                    msg_out_que.put_nowait(out_msg)
+                    log.debug('Message [%s] successfully queued',
+                            out_msg)
+
+        # Periodically check scheduled on/off commands for devices
+        if datetime.datetime.now() >= (last_check + datetime.timedelta(minutes=1)):
+            out_msg_list = service.create_cal_300(
+                rNumGen, devices, log, address, port, cal_add, cal_port)
+            last_check = datetime.datetime.now()
+
+            # Que up response messages in outgoing msg que
+            if len(out_msg_list) > 0:
+                log.debug('Queueing message(s)')
+                for out_msg in out_msg_list:
+                    msg_out_que.put_nowait(out_msg)
+                    log.debug('Message [%s] successfully queued', out_msg)
+        
         # Yield to other tasks for a while
         yield from asyncio.sleep(0.25)

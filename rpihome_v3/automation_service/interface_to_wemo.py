@@ -160,7 +160,7 @@ def process_wemo_203(rNumGen, devices, log, msgHeader, msgPayload):
     # the device.  If not found, discard the message and do nothing
     if devIndex is not None:
         log.debug('Updating device [%s] status to [%s] and last seen to [%s]',
-                  devStatus, devLastSeen)
+                  devName, devStatus, devLastSeen)
         devices[devIndex].status = copy.copy(devStatus)
         devices[devIndex].last_seen = copy.copy(devLastSeen)
     else:
@@ -236,7 +236,7 @@ def process_wemo_205(rNumGen, devices, log, msgHeader, msgPayload):
     # the device.  If not found, discard the message and do nothing
     if devIndex is not None:
         log.debug('Updating device [%s] status to [%s] and last seen to [%s]', 
-                  devStatus, devLastSeen)
+                  devName, devStatus, devLastSeen)
         devices[devIndex].status = copy.copy(devStatus)
         devices[devIndex].last_seen = copy.copy(devLastSeen)
     else:

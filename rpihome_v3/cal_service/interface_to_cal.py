@@ -23,7 +23,6 @@ def process_cal_300(rNumGen, calendar, log, msgHeader, msgPayload):
     """ Msg type 300
     """
     # Initialize result list
-    resultList = []
     outMsgList = []
     # Map header and payload to usable tags
     msgRef = msgHeader[0]
@@ -35,20 +34,25 @@ def process_cal_300(rNumGen, calendar, log, msgHeader, msgPayload):
     msgType = msgPayload[0]
     devName = msgPayload[1]
 
-    # Query update from google calendar for that device
-    log.debug('Requesting schedule from calendar object for device: [%s]',
+    # Check schedule for device
+    log.debug('Checking schedule to determine desired state of device [%s]',
               devName)
-    resultList = calendar.sched_by_name(name=devName)
-
-    # Build new message to forward to db service
-    for result in resultList:
-        log.debug('Building revised message for schedule item to return '
-                  'to requesting service')
-        outMsg = '%s,%s,%s,%s,%s,%s,%s,%s,%s,' % (
+    desiredCmd = calendar.check_schedule(name=devName)
+    
+    # Create ACK message (type 301) with desired device state per schedule
+    if desiredCmd is True:
+        log.debug('Device [%s] should be "on" according to schedule', devName)
+        outMsg = '%s,%s,%s,%s,%s,%s,%s,%s' % (
             rNumGen.new(), msgSourceAdd, msgSourcePort, msgDestAdd, msgDestPort,
-            '301', devName, str(result.start)[:19], str(result.end)[:19])
-        log.debug('Appending complete response message to outgoing msg queue: '
-                  '[%s]', outMsg)
-        outMsgList.append(copy.copy(outMsg))
+            '301', devName, 'on')
+    else:
+        log.debug('Device [%s] should be "off" according to schedule', devName)
+        outMsg = '%s,%s,%s,%s,%s,%s,%s,%s' % (
+            rNumGen.new(), msgSourceAdd, msgSourcePort, msgDestAdd, msgDestPort,
+            '301', devName, 'off')
+    
+    # Append response message (type 301) to outgoing msg queue
+    log.debug('Returning message: [%s]', outMsg)
+    outMsgList.append(copy.copy(outMsg))
     # Return response message
     return outMsgList
