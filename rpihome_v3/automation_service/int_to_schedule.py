@@ -31,7 +31,7 @@ def create_sched_ccs(log, ref_num, devices, service_addresses, message_types):
     out_msg = str()
     # Create CCS messages for each device in the list
     for d in devices:
-        if d.rule == 'schedule' or 'dusk_to_dawn' or '':
+        if d.rule == 'schedule' or d.rule == 'dusk_to_dawn' or d.rule == '':
             out_msg = '%s,%s,%s,%s,%s,%s,%s' % (
                 ref_num.new(),
                 service_addresses['schedule_addr'],
