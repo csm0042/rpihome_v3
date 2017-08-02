@@ -43,11 +43,15 @@ def service_main_task(log, rNumGen, database,
         if msg_in_queue.qsize() > 0:
             log.debug('Getting Incoming message from queue')
             next_msg = msg_in_queue.get_nowait()
+            log.debug('Message pulled from queue: [%s]', next_msg)
 
+            # Split message into header and payload            
             log.debug('Splitting message into header / payload')
             next_msg_seg = next_msg.split(sep=',')
             msg_header = next_msg_seg[:5]
+            log.debug('Split off message header: [%s]', msg_header)
             msg_payload = next_msg_seg[5:]
+            log.debug('Split off message payload: [%s]', msg_payload)
 
             # Map header and payload to usable tags
             msg_ref = msg_header[0]

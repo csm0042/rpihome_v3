@@ -20,7 +20,7 @@ __status__ = "Development"
 
 
 # Startup Window Mode *********************************************************
-minimize = True
+minimize = False
 maximize = False
 if minimize is True:
     mode = '/MIN'

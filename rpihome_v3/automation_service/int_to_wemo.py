@@ -100,7 +100,8 @@ def process_wemo_gds_ack(log, devices, msg_payload):
 
 
 # Process messages type 202 ***************************************************
-def process_wemo_sds(log, ref_num, devices, msg_header, msg_payload, service_addresses):
+def process_wemo_sds(log, ref_num, devices, msg_header, msg_payload,
+                     service_addresses, message_types):
     """ Set Device Status
         This function takes any SDS messages and forwards them on to the
         wemo service.  The forwarded message is updated to contain the source
@@ -135,7 +136,7 @@ def process_wemo_sds(log, ref_num, devices, msg_header, msg_payload, service_add
             service_addresses['wemo_port'],
             msg_source_addr,
             msg_source_port,
-            msg_type,
+            message_types['wemo_sds'],
             dev_name,
             dev_addr,
             dev_cmd,

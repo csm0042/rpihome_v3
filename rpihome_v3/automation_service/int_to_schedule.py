@@ -104,11 +104,8 @@ def process_sched_ccs_ack(log, ref_num, devices, msg_header, msg_payload,
     msg_source_addr = msg_header[3]
     msg_source_port = msg_header[4]
     msg_type = msg_payload[0]
-    dev_id = msg_payload[1]
-    dev_name = msg_payload[2]
-    dev_cmd = msg_payload[3]
-    dev_timestamp = msg_payload[4]
-    dev_processed = msg_payload[5]
+    dev_name = msg_payload[1]
+    dev_cmd = msg_payload[2]
 
     # Search device table to find device name
     log.debug('Searching device table for [%s]', dev_name)
@@ -129,7 +126,7 @@ def process_sched_ccs_ack(log, ref_num, devices, msg_header, msg_payload,
                 # Build new message to forward to wemo service
                 log.debug('Generating message to wemo service for wemo '
                           'device [%s]', dev_name)
-                out_msg = '%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
+                out_msg = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
                     ref_num.new(),
                     service_addresses['wemo_addr'],
                     service_addresses['wemo_port'],
@@ -138,7 +135,9 @@ def process_sched_ccs_ack(log, ref_num, devices, msg_header, msg_payload,
                     message_types['wemo_sds'],
                     dev_name,
                     devices[dev_pointer].address,
-                    dev_cmd)
+                    dev_cmd,
+                    devices[dev_pointer].status,
+                    devices[dev_pointer].last_seen)
                 # Load message into output list
                 log.debug('Loading completed msg: [%s]', out_msg)
                 out_msg_list.append(copy.copy(out_msg))

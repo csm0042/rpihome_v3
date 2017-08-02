@@ -69,7 +69,7 @@ def process_db_lsu_ack(log, msg_header, msg_payload):
 
 
 # Process RETURN COMMAND message **********************************************
-def process_db_rc(log, ref_num, msg_header,
+def process_db_rc(log, ref_num, msg_header, msg_payload,
                   service_addresses, message_types):
     """ Process Database Return Command Message
         This function triggers a select query for the pending command table in
@@ -80,18 +80,24 @@ def process_db_rc(log, ref_num, msg_header,
     out_msg_list = []
     
     # Map header and payload to usable tags
+    msg_ref = msg_header[0]
+    msg_dest_addr = msg_header[1]
+    msg_dest_port = msg_header[2]
     msg_source_addr = msg_header[3]
     msg_source_port = msg_header[4]
+    msg_type = msg_payload[0]
+    dev_name = msg_payload[1]
     
     # Build new message to forward to db service
     log.debug('Building RC message to to forward to DB service')
-    out_msg = '%s,%s,%s,%s,%s,%s' % (
+    out_msg = '%s,%s,%s,%s,%s,%s,%s' % (
         ref_num.new(),
         service_addresses['database_addr'],
         service_addresses['database_port'],
         msg_source_addr,
         msg_source_port,
-        message_types['database_rc'])
+        message_types['database_rc'],
+        dev_name)
     # Load message into output list
     log.debug('Loading completed msg: [%s]', out_msg)
     out_msg_list.append(copy.copy(out_msg))
@@ -110,13 +116,12 @@ def process_db_rc_ack(log, ref_num, devices, msg_payload,
     """
     # Initialize result list
     out_msg_list = []
-    
+
     # Map message payload to usable tags
+    msg_type = msg_payload[0]
     cmd_id = msg_payload[1]
     dev_name = msg_payload[2]
     dev_cmd = msg_payload[3]
-    dev_timestamp = msg_payload[4]
-    dev_processed = msg_payload[5]    
 
     # Search device table to find device name
     log.debug('Searching device table for [%s]', dev_name)

@@ -87,18 +87,27 @@ def process_db_rc(log, ref_num, database, msg_dest_addr, msg_dest_port,
         database)
 
     # Send response message for each record returned by query
-    if len(result_list) <= 0:
+    if len(result_list) > 0:
         log.debug('Preparing response messages for pending commands')
         for pending_cmd in result_list:
-            # Determine what command to issue
-            out_msg = '%s,%s,%s,%s,%s,%s,%s' % (
+            # Map to usable tags
+            dev_id = pending_cmd[0]
+            dev_name = pending_cmd[1]
+            dev_cmd = pending_cmd[2]
+            dev_ts = pending_cmd[3]
+            dev_proc = pending_cmd[4]
+            
+            # Create message RC ACK message to automation service
+            out_msg = '%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
                 ref_num.new(),
                 msg_dest_addr,
                 msg_dest_port,
                 msg_source_addr,
                 msg_source_port,
-                message_types['database_rc'],
-                pending_cmd)
+                message_types['database_rc_ack'],
+                dev_id,
+                dev_name,
+                dev_cmd)
 
             # Load message into output list
             log.debug('Loading completed msg: [%s]', out_msg)

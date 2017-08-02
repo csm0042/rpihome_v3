@@ -36,12 +36,15 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
         if msg_in_que.qsize() > 0:
             log.debug('Getting Incoming message from queue')
             next_msg = msg_in_que.get_nowait()
-            log.debug('Splitting message into header / payload')
-            next_msg_seg = next_msg.split(sep=',')
+            log.debug('Message pulled from queue: [%s]', next_msg)
 
             # Split message into header and payload
+            log.debug('Splitting message into header / payload')
+            next_msg_seg = next_msg.split(sep=',')            
             msg_header = next_msg_seg[:5]
+            log.debug('Split off message header: [%s]', msg_header)
             msg_payload = next_msg_seg[5:]
+            log.debug('Split off message payload: [%s]', msg_payload)
 
             # Map header and payload to usable tags
             msg_ref = msg_header[0]
@@ -134,7 +137,8 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                         devices,
                         msg_header,
                         msg_payload,
-                        service_addresses)
+                        service_addresses,
+                        message_types)
                 # Set Device Status ACK messages (SDSA)
                 elif msg_type == message_types['wemo_sds_ack']:
                     log.debug('Message is a Set Device Status ACK (SDSA) message')
