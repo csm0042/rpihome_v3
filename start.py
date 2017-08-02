@@ -33,4 +33,4 @@ else:
 os.system('start "RpiHome Database Service" %s /D "C://Users//chris.maue//OneDrive//Git//rpihome_v3//rpihome_v3//database_service" python start_service.py"' % mode)
 os.system('start "RpiHome WEMO Service" %s /D "C://Users//chris.maue//OneDrive//Git//rpihome_v3//rpihome_v3//wemo_service" python start_service.py"' % mode)
 os.system('start "RpiHome Automation Service" %s /D "C://Users//chris.maue//OneDrive//Git//rpihome_v3//rpihome_v3//automation_service" python start_service.py"' % mode)
-os.system('start "RpiHome Schedule Service" %s /D "C://Users//chris.maue//OneDrive//Git//rpihome_v3//rpihome_v3//cal_service" python start_service.py"' % mode)
+os.system('start "RpiHome Schedule Service" %s /D "C://Users//chris.maue//OneDrive//Git//rpihome_v3//rpihome_v3//schedule_service" python start_service.py"' % mode)

@@ -45,7 +45,7 @@ def service_main_task(log, ref_num, schedule, msg_in_que, msg_out_que,
             msg_source_port = msg_header[4]
 
             # Process messages from database service
-            if msg_payload[0] == message_types['schedule_CCS']:
+            if msg_payload[0] == message_types['schedule_ccs']:
                 log.debug('Message is a Check Command State (CCS) message')
                 out_msg_list = service.process_sched_ccs(
                     log,

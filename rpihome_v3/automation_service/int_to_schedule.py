@@ -38,7 +38,7 @@ def create_sched_ccs(log, ref_num, devices, service_addresses, message_types):
                 service_addresses['schedule_port'],
                 service_addresses['automation_addr'],
                 service_addresses['automation_port'],
-                message_types['schedule_CCS'],
+                message_types['schedule_ccs'],
                 d.name)
             # Load message into output list
             log.debug('Loading completed msg: [%s]', out_msg)
@@ -57,17 +57,16 @@ def process_sched_ccs(log, ref_num, msg_header, msg_payload, service_addresses):
     """
     # Initialize result list
     out_msg_list = []
-    
+
     # Map header and payload to usable tags
     msg_ref = msg_header[0]
     msg_dest_addr = msg_header[1]
     msg_dest_port = msg_header[2]
     msg_source_addr = msg_header[3]
     msg_source_port = msg_header[4]
-    # Map message payload to usable tags
     msg_type = msg_payload[0]
     dev_name = msg_payload[1]
-    
+
     # Build new message to forward to wemo service
     log.debug('Generating message to forward to schedule service')
     out_msg = '%s,%s,%s,%s,%s,%s,%s' % (
@@ -78,11 +77,11 @@ def process_sched_ccs(log, ref_num, msg_header, msg_payload, service_addresses):
         msg_source_port,
         msg_type,
         dev_name)
-    
+
     # Load message into output list
     log.debug('Loading completed msg: [%s]', out_msg)
     out_msg_list.append(copy.copy(out_msg))
-    
+
     # Return response message
     return out_msg_list
 
@@ -104,7 +103,6 @@ def process_sched_ccs_ack(log, ref_num, devices, msg_header, msg_payload,
     msg_dest_port = msg_header[2]
     msg_source_addr = msg_header[3]
     msg_source_port = msg_header[4]
-    # Map message payload to usable tags
     msg_type = msg_payload[0]
     dev_name = msg_payload[1]
     dev_cmd = msg_payload[2]
@@ -134,8 +132,9 @@ def process_sched_ccs_ack(log, ref_num, devices, msg_header, msg_payload,
                     service_addresses['wemo_port'],
                     service_addresses['automation_addr'],
                     service_addresses['automation_port'],
-                    message_types['wemo_SDS'],
+                    message_types['wemo_sds'],
                     dev_name,
+                    devices[dev_pointer].address,
                     dev_cmd)
                 # Load message into output list
                 log.debug('Loading completed msg: [%s]', out_msg)

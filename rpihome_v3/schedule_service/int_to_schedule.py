@@ -4,7 +4,7 @@
 
 # Im_port Required Libraries (Standard, Third Party, Local) ********************
 import copy
-import datetime
+
 
 
 # Authorship Info *************************************************************
@@ -19,13 +19,13 @@ __status__ = "Development"
 
 
 # Process messages type 100 ***************************************************
-def process_sched_ccs(log, ref_num, calendar, msg_header, msg_payload,
+def process_sched_ccs(log, ref_num, schedule, msg_header, msg_payload,
                       message_types):
     """ 
     """
     # Initialize result list
-    out_msgList = []
-    
+    out_msg_list = []
+
     # Map header and payload to usable tags
     msg_ref = msg_header[0]
     msg_dest_addr = msg_header[1]
@@ -38,8 +38,8 @@ def process_sched_ccs(log, ref_num, calendar, msg_header, msg_payload,
     # Check schedule for device
     log.debug('Checking schedule to determine desired state of device [%s]',
               dev_name)
-    desired_cmd = calendar.check_schedule(name=dev_name)
-    
+    desired_cmd = schedule.check_schedule(name=dev_name)
+
     # Create ACK message (type 301) with desired device state per schedule
     if desired_cmd is True:
         log.debug('Device [%s] should be "on" according to schedule', dev_name)
@@ -49,7 +49,7 @@ def process_sched_ccs(log, ref_num, calendar, msg_header, msg_payload,
             msg_source_port,
             msg_dest_addr,
             msg_dest_port,
-            message_types['schedule_CCS_ACK'],
+            message_types['schedule_ccs_ack'],
             dev_name,
             'on')
     else:
@@ -60,13 +60,13 @@ def process_sched_ccs(log, ref_num, calendar, msg_header, msg_payload,
             msg_source_port,
             msg_dest_addr,
             msg_dest_port,
-            message_types['schedule_CCS_ACK'],
+            message_types['schedule_ccs_ack'],
             dev_name,
             'off')
-    
+
     # Append response message (type 301) to outgoing msg queue
     log.debug('Returning message: [%s]', out_msg)
-    out_msgList.append(copy.copy(out_msg))
-    
+    out_msg_list.append(copy.copy(out_msg))
+
     # Return response message
-    return out_msgList
+    return out_msg_list

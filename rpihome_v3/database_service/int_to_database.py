@@ -97,7 +97,7 @@ def process_db_rc(log, ref_num, database, msg_dest_addr, msg_dest_port,
                 msg_dest_port,
                 msg_source_addr,
                 msg_source_port,
-                message_types['database_RC'],
+                message_types['database_rc'],
                 pending_cmd)
 
             # Load message into output list
@@ -147,7 +147,7 @@ def process_db_uc(log, ref_num, database, msg_header, msg_payload, message_types
         msg_source_port,
         msg_dest_addr,
         msg_dest_port,
-        message_types['database_UC_ACK'],
+        message_types['database_uc_ack'],
         cmd_id)
 
     # Load message into output list

@@ -58,7 +58,7 @@ def service_main_task(log, rNumGen, database,
             msg_type = msg_payload[0]
 
             # Log Device status updates to database
-            if msg_type == message_types['database_LSU']:
+            if msg_type == message_types['database_lsu']:
                 log.debug('Message is a device status update')
                 response_msg_list = yield from service.process_db_lsu(
                     log,
@@ -69,7 +69,7 @@ def service_main_task(log, rNumGen, database,
                     message_types)
 
             # Query for unprocessed device commands
-            if msg_type == message_types['database_RC']:
+            if msg_type == message_types['database_rc']:
                 log.debug('Msg is a device pending cmd query')
                 response_msg_list = yield from service.process_db_rc(
                     log,
@@ -82,7 +82,7 @@ def service_main_task(log, rNumGen, database,
                     message_types)
 
             # Mark completed device commands as processed
-            if msg_type == message_types['database_UC']:
+            if msg_type == message_types['database_uc']:
                 log.debug('Msg is a device cmd update')
                 response_msg_list = yield from service.process_db_uc(
                     log,

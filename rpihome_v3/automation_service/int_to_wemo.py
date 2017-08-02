@@ -94,13 +94,13 @@ def process_wemo_gds_ack(log, devices, msg_payload):
     else:
         log.debug('Device [%s] not found in active device table. '
                   'No further action being taken', dev_name)
-    
+
     # Return response message
     return out_msg_list
 
 
 # Process messages type 202 ***************************************************
-def process_wemo_sds(log, ref_num, msg_header, msg_payload, service_addresses):
+def process_wemo_sds(log, ref_num, devices, msg_header, msg_payload, service_addresses):
     """ Set Device Status
         This function takes any SDS messages and forwards them on to the
         wemo service.  The forwarded message is updated to contain the source
@@ -116,31 +116,37 @@ def process_wemo_sds(log, ref_num, msg_header, msg_payload, service_addresses):
     msg_dest_port = msg_header[2]
     msg_source_addr = msg_header[3]
     msg_source_port = msg_header[4]
-
-    # Map message payload to usable tags
     msg_type = msg_payload[0]
     dev_name = msg_payload[1]
     dev_addr = msg_payload[2]
-    dev_status = msg_payload[3]
-    dev_last_seen = msg_payload[4]
+    dev_cmd = msg_payload[3]
 
-    # Build new message to forward to wemo service
-    log.debug('Generating SDS message to forward to wemo service')
-    out_msg = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
-        ref_num.new(),
-        service_addresses['wemo_addr'],
-        service_addresses['wemo_port'],
-        msg_source_addr,
-        msg_source_port,
-        msg_type,
-        dev_name,
-        dev_addr,
-        dev_status,
-        dev_last_seen)
+    # Search device table to find device name
+    log.debug('Searching device table for [%s]', dev_name)
+    dev_pointer = helpers.search_device_list(log, devices, dev_name)
 
-    # Load message into output list
-    log.debug('Loading completed msg: [%s]', out_msg)
-    out_msg_list.append(copy.copy(out_msg))
+    # Update values based on message content
+    if dev_pointer is not None:
+        # Build new message to forward to wemo service
+        log.debug('Generating SDS message to forward to wemo service')
+        out_msg = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
+            ref_num.new(),
+            service_addresses['wemo_addr'],
+            service_addresses['wemo_port'],
+            msg_source_addr,
+            msg_source_port,
+            msg_type,
+            dev_name,
+            dev_addr,
+            dev_cmd,
+            devices[dev_pointer].status,
+            devices[dev_pointer].last_seen)
+        # Load message into output list
+        log.debug('Loading completed msg: [%s]', out_msg)
+        out_msg_list.append(copy.copy(out_msg))
+    else:
+        log.debug('Device [%s] not found in active device table. '
+                  'No further action being taken', dev_name)
 
     # Return response message
     return out_msg_list

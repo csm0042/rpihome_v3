@@ -4,5 +4,6 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 from .configure import *
-from .wemo import *
+from .int_to_wemo import *
 from .service_main import *
+from .wemo import *

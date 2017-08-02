@@ -82,7 +82,7 @@ def handle_msg_out():
             LOG.debug('Extracting msg destination address and port')
             msg_seg_out = msg_to_send.split(',')
             LOG.debug('Opening outgoing connection to %s:%s',
-                msg_seg_out[1], msg_seg_out[2])
+                      msg_seg_out[1], msg_seg_out[2])
             try:
                 reader_out, writer_out = yield from asyncio.open_connection(
                     msg_seg_out[1], int(msg_seg_out[2]), LOOP=LOOP)
@@ -112,8 +112,8 @@ def main():
 
     # Create incoming message server    
     try:
-        LOG.debug('Creating incoming message listening server at [%s:%s]', \
-                  SERVICE_ADDRESSES['wemo_addr']
+        LOG.debug('Creating incoming message listening server at [%s:%s]',
+                  SERVICE_ADDRESSES['wemo_addr'],
                   SERVICE_ADDRESSES['wemo_port'])
         msg_in_server = asyncio.start_server(
             handle_msg_in,
@@ -123,7 +123,7 @@ def main():
                   'execution')
         msg_in_task = LOOP.run_until_complete(msg_in_server)        
     except Exception:
-        LOG.debug('Failed to create socket listening connection at %s:%s', \
+        LOG.debug('Failed to create socket listening connection at %s:%s',
                   SERVICE_ADDRESSES['wemo_addr'],
                   SERVICE_ADDRESSES['wemo_port'])
         sys.exit()
@@ -137,7 +137,6 @@ def main():
             WEMO_GW,
             MSG_IN_QUEUE,
             MSG_OUT_QUEUE,
-            SERVICE_ADDRESSES,
             MESSAGE_TYPES))
 
     # Create outgoing message task

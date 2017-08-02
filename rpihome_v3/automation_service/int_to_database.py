@@ -45,7 +45,7 @@ def process_db_lsu(log, ref_num, msg_header, msg_payload,
         service_addresses['database_port'],
         msg_source_add,
         msg_source_port,
-        message_types['database_LSU'],
+        message_types['database_lsu'],
         dev_name,
         dev_addr,
         dev_status,
@@ -91,7 +91,7 @@ def process_db_rc(log, ref_num, msg_header,
         service_addresses['database_port'],
         msg_source_addr,
         msg_source_port,
-        message_types['database_RC'])
+        message_types['database_rc'])
     # Load message into output list
     log.debug('Loading completed msg: [%s]', out_msg)
     out_msg_list.append(copy.copy(out_msg))
@@ -132,7 +132,7 @@ def process_db_rc_ack(log, ref_num, devices, msg_payload,
                 service_addresses['wemo_port'],
                 service_addresses['automation_addr'],
                 service_addresses['automation_port'],
-                message_types['wemo_SDS'],
+                message_types['wemo_sds'],
                 dev_name,
                 devices[dev_pointer].address,
                 devices[dev_pointer].status,
@@ -152,7 +152,7 @@ def process_db_rc_ack(log, ref_num, devices, msg_payload,
         service_addresses['database_port'],
         service_addresses['automation_addr'],
         service_addresses['automation_port'],
-        message_types['database_UC'],
+        message_types['database_uc'],
         cmd_id,
         str(datetime.datetime.now())[:19])
 
@@ -188,7 +188,7 @@ def process_db_uc(log, ref_num, msg_header, msg_payload,
         service_addresses['database_port'],
         msg_source_addr,
         msg_source_port,
-        message_types['database_UC'],
+        message_types['database_uc'],
         cmd_id,
         cmd_processed)
     # Load message into output list
