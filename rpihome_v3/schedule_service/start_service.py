@@ -31,7 +31,7 @@ LOG = service.configure_log('config.ini')
 SERVICE_ADDRESSES = service.configure_servers('config.ini', LOG)
 MESSAGE_TYPES = service.configure_message_types('config.ini', LOG)
 CREDENTIALS = service.configure_credentials('config.ini', LOG)
-SCHEDULE = service.configure_calendar('config.ini', CREDENTIALS, LOG)
+SCHEDULE = service.configure_schedule('config.ini', CREDENTIALS, LOG)
 
 REF_NUM = helpers.RefNum()
 MSG_IN_QUEUE = asyncio.Queue()
@@ -81,7 +81,7 @@ def handle_msg_out():
             LOG.debug('Extracting msg destination address and port')
             msg_seg_out = msg_to_send.split(',')
             LOG.debug('Opening outgoing connection to %s:%s',
-                msg_seg_out[1], msg_seg_out[2])
+                      msg_seg_out[1], msg_seg_out[2])
             try:
                 reader_out, writer_out = yield from asyncio.open_connection(
                     msg_seg_out[1], int(msg_seg_out[2]), loop=LOOP)
@@ -108,7 +108,7 @@ def handle_msg_out():
 def main():
     """ Main application routine """
     LOG.debug('Starting main')
-    
+
     # Create incoming message server
     try:
         LOG.debug('Creating incoming message listening server at [%s:%s]',
@@ -136,7 +136,6 @@ def main():
             SCHEDULE,
             MSG_IN_QUEUE,
             MSG_OUT_QUEUE,
-            SERVICE_ADDRESSES,
             MESSAGE_TYPES))
 
     # Create outgoing message task

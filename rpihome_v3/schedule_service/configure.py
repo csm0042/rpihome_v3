@@ -9,7 +9,7 @@ import datetime
 import sys
 if __name__ == "__main__":
     sys.path.append("..")
-import cal_service as service
+import schedule_service as service
 import helpers
 
 
@@ -80,7 +80,7 @@ def configure_credentials(filename, log):
 
 
 # Configure service socket server *********************************************
-def configure_calendar(filename, credentials, log):
+def configure_schedule(filename, credentials, log):
     # Define connection to configuration file
     log.debug('Creating configparser connection to [%s]', filename)
     config_file = configparser.ConfigParser()
@@ -101,13 +101,13 @@ def configure_calendar(filename, credentials, log):
         calId = credentialDir = clientSecretFile = None
     # Create connection to calendar
     if calId is not None:
-        calendar = service.GoogleCalSync(
+        schedule = service.GoogleCalSync(
             cal_id=calId,
             credential_dir=credentialDir,
             client_secret=clientSecretFile,
             log=log)
-        log.debug('Created calendar object: [%s]', calendar)
+        log.debug('Created calendar object: [%s]', schedule)
     else:
         log.error('Error creating calendar object')
     # Return configured objects to main program
-    return calendar
+    return schedule
