@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" start_db_service.py:
+""" start_service.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
@@ -81,7 +81,7 @@ def handle_msg_out():
             LOG.debug('Extracting msg destination address and port')
             msg_seg_out = msg_to_send.split(',')
             LOG.debug('Opening outgoing connection to %s:%s',
-                msg_seg_out[1], msg_seg_out[2])
+                      msg_seg_out[1], msg_seg_out[2])
             try:
                 reader_out, writer_out = yield from asyncio.open_connection(
                     msg_seg_out[1], int(msg_seg_out[2]), loop=LOOP)
@@ -108,7 +108,7 @@ def handle_msg_out():
 def main():
     """ Main application routine """
     LOG.debug('Starting main')
-    
+
     # Create incoming message server
     try:
         LOG.debug('Creating incoming message listening server at [%s:%s]',
@@ -120,13 +120,13 @@ def main():
             port=int(SERVICE_ADDRESSES['database_port']))
         LOG.debug('Wrapping servier in future task and scheduling for '
                   'execution')
-        msg_in_task = LOOP.run_until_complete(msg_in_server)        
+        msg_in_task = LOOP.run_until_complete(msg_in_server)
     except Exception:
-        LOG.debug('Failed to create socket listening connection at %s:%s', \
+        LOG.debug('Failed to create socket listening connection at %s:%s',
                   SERVICE_ADDRESSES['database_addr'],
                   SERVICE_ADDRESSES['database_port'])
         sys.exit()
-    
+
     # Create main task for this service
     LOG.debug('Scheduling main task for execution')
     asyncio.ensure_future(
@@ -165,7 +165,7 @@ def main():
                 task.cancel()
                 LOOP.run_until_complete(task)
         LOG.info('Shutdown complete.  Terminating execution loop')
-    
+
     # Terminate the execution loop
     LOOP.close()
 

@@ -24,11 +24,12 @@ __status__ = "Development"
 
 
 # Insert Record into log table in database function ***************************
-def insert_record(database, name, status, last_seen, log):
+def insert_record(log, database, name, status, last_seen):
     """ Inserts a new record into the device log table """
     # Configure logger
     log = log or logging.getLogger(__name__)
     log.debug('insert_record function has been called')
+
     # Attempt database record insert
     try:
         # Check first if valid database connection was made
@@ -41,12 +42,12 @@ def insert_record(database, name, status, last_seen, log):
                      "VALUES (%s, %s, %s)")
             data = (name, status, str(last_seen))
             full_query = query % data
-            log.debug('Ready to execute query: %s', full_query)            
+            log.debug('Ready to execute query: %s', full_query)
             cursor.execute(query, data)
-            log.debug('Query execution successful')            
+            log.debug('Query execution successful')
         else:
             log.warning('No connection to database')
-    except:
+    except Exception:
         log.warning('Attempt to inesrt record into database failed')
     finally:
         database.commit()
@@ -56,13 +57,15 @@ def insert_record(database, name, status, last_seen, log):
 
 
 # Return pending commands from device_cmd table function **********************
-def query_command(database, log):
+def query_command(log, database):
     """ Returns a list of un-processed commands from the device_cmd table """
     # Configure log
     log = log or logging.getLogger(__name__)
     log.debug('query_command function has been called')
+
     # initialize result list
     result_list = []
+
     # Attempt database record insert
     try:
         # Check first if valid database connection was made
@@ -78,7 +81,7 @@ def query_command(database, log):
                             datetime.timedelta(days=-30)))[:19]
             data = (current_time)
             full_query = query % data
-            log.debug('Ready to execute query: %s', full_query)            
+            log.debug('Ready to execute query: %s', full_query)
             cursor.execute(query, data)
             log.debug('Query execution successful')
             row = cursor.fetchone()
@@ -92,28 +95,32 @@ def query_command(database, log):
             log.debug('Select query complete')
         else:
             log.warning('No connection to database')
-    except:
+    except Exception:
         log.warning('Attempt to query database failed')
     finally:
         database.commit()
         log.debug('Changed committed to database')
         cursor.close()
-        log.debug('Closed connection to database cursor') 
+        log.debug('Closed connection to database cursor')
+
+    # Return results
     return result_list
 
 
 # Update processed status of commands in device_cmd table function ************
-def update_command(database, id_cmd, processed_cmd, log):
+def update_command(log, database, id_cmd, processed_cmd):
     """ Updates processed field for an individual record in the device
     cmd table """
     # Configure log
     log = log or logging.getLogger(__name__)
     log.debug('update_command function has been called')
+
     # Attempt database record insert
     try:
         # Check first if valid database connection was made
         if database is not None:
             log.debug('Connection to database is ok')
+
             # Grab cursor and prepare query
             cursor = database.cursor()
             log.debug('Connection to cursor successful')
@@ -122,15 +129,15 @@ def update_command(database, id_cmd, processed_cmd, log):
                      "WHERE id_device_cmd = %s")
             data = (processed_cmd[:19], id_cmd)
             full_query = query % data
-            log.debug('Ready to execute query: %s', full_query) 
+            log.debug('Ready to execute query: %s', full_query)
             cursor.execute(query, data)
             log.debug('Query execution successful')
         else:
             log.warning('No connection to database')
-    except:
+    except Exception:
         log.warning('Attempt to query database failed')
     finally:
         database.commit()
         log.debug('Changed committed to database')
         cursor.close()
-        log.debug('Closed connection to database cursor')          
+        log.debug('Closed connection to database cursor')

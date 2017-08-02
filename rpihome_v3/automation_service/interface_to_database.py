@@ -54,7 +54,7 @@ def process_db_lsu(log, ref_num, msg_header, msg_payload,
     log.debug('Loading completed msg: [%s]', out_msg)
     out_msg_list.append(copy.copy(out_msg))
 
-    # Return response message
+    # Return response messages
     return out_msg_list
 
 

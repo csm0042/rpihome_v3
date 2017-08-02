@@ -60,32 +60,54 @@ def service_main_task(log, rNumGen, database,
             # Log Device status updates to database
             if msg_type == message_types['database_LSU']:
                 log.debug('Message is a device status update')
-                response_msg_list = yield from service.log_status_update(
-                    rNumGen, database, log, msg_header, msg_payload)
-            
+                response_msg_list = yield from service.process_db_lsu(
+                    log,
+                    rNumGen,
+                    database,
+                    msg_header,
+                    msg_payload,
+                    message_types)
+
             # Query for unprocessed device commands
             if msg_type == message_types['database_RC']:
                 log.debug('Msg is a device pending cmd query')
-                response_msg_list = yield from service.read_device_cmd(
-                    rNumGen, database, log, msg_header[1], msg_header[2],
-                    msg_header[3], msg_header[4])
-            
+                response_msg_list = yield from service.process_db_rc(
+                    log,
+                    rNumGen,
+                    database,
+                    msg_source_addr,
+                    msg_source_port,
+                    msg_dest_addr,
+                    msg_dest_port,
+                    message_types)
+
             # Mark completed device commands as processed
             if msg_type == message_types['database_UC']:
                 log.debug('Msg is a device cmd update')
-                response_msg_list = yield from service.update_device_cmd(
-                    rNumGen, database, log, msg_header, msg_payload)
+                response_msg_list = yield from service.process_db_uc(
+                    log,
+                    rNumGen,
+                    database,
+                    msg_header,
+                    msg_payload,
+                    message_types)
         else:
             # Periodically check for pending commands
             if datetime.datetime.now() >= (last_check + datetime.timedelta(seconds=1)):
                 # Device command not yet processed query
                 log.debug('Performing periodic check of pending commands')
-                response_msg_list = yield from service.read_device_cmd(
-                    rNumGen, database, log, address, port,
-                    auto_address, auto_port)
+                response_msg_list = yield from service.process_db_rc(
+                    log,
+                    rNumGen,
+                    database,
+                    service_addresses['automation_addr'],
+                    service_addresses['automation_port'],
+                    service_addresses['database_addr'],
+                    service_addresses['database_port'],
+                    message_types)
                 # Update timestamp
                 last_check = datetime.datetime.now()
-        
+
         # Que up response messages in outgoing msg que
         if len(response_msg_list) > 0:
             log.debug('Queueing response message(s)')
@@ -93,6 +115,6 @@ def service_main_task(log, rNumGen, database,
                 msg_out_queue.put_nowait(response_msg)
                 log.debug('Response message [%s] successfully queued',
                           response_msg)
-        
+
         # Yield to other tasks for a while
         yield from asyncio.sleep(0.25)

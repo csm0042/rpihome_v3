@@ -1,12 +1,11 @@
 #!/usr/bin/python3
-""" interface_to_db.py:
+""" interface_to_database.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
 import copy
-import datetime
-import helpers
+import database_service as service
 
 
 # Authorship Info *************************************************************
@@ -22,106 +21,138 @@ __status__ = "Development"
 
 # Internal Service Work Subtask - log status updates **************************
 @asyncio.coroutine
-def log_status_update(rNum, database, log, msgH, msgP):
+def process_db_lsu(log, ref_num, database, msg_header, msg_payload,
+                   message_types):
     """ Function to insert status updates into device_log table """
     # Initialize result list
-    response_msg_list = []
-    # Map message header to usable tags
-    msgRef = msgH[0]
-    msgDestAdd = msgH[1]
-    msgDestPort = msgH[2]
-    msgSourceAdd = msgH[3]
-    msgSourcePort = msgH[4]
-    # Map message payload to usable tags
-    msgType = msgP[0]
-    devName = msgP[1]
-    devAdd = msgP[2]
-    devStatus = msgP[3]
-    devLastSeen = msgP[4]
+    out_msg_list = []
+
+    # Map message header & payload to usable tags
+    msg_ref = msg_header[0]
+    msg_dest_addr = msg_header[1]
+    msg_dest_port = msg_header[2]
+    msg_source_addr = msg_header[3]
+    msg_source_port = msg_header[4]
+    msg_type = msg_payload[0]
+    dev_name = msg_payload[1]
+    dev_addr = msg_payload[2]
+    dev_status = msg_payload[3]
+    dev_last_seen = msg_payload[4]
+
     # Execute Insert Query
     log.debug('Logging status change to database for [%s].  New '
               'status is [%s] with a last seen time of [%s]',
-              devName, devStatus, devLastSeen)
+              dev_name,
+              dev_status,
+              dev_last_seen)
     service.insert_record(
-        database, devName, devStatus, devLastSeen, log)
+        log,
+        database,
+        dev_name,
+        dev_status,
+        dev_last_seen)
+
     # Send response indicating query was executed
-    log.debug('Building response message header')
-    response_header = rNum.new() + ',' + msgSourceAdd + ',' + \
-                      msgSourcePort + ',' + msgDestAdd + ',' + \
-                      msgDestPort
-    log.debug('Building response message payload')
-    response_payload = '101,' + devName
-    log.debug('Building complete response message')                    
-    response_msg = response_header + ',' + response_payload
-    log.debug('Appending complete response message to result list: [%s]',
-              response_msg)
-    response_msg_list.append(copy.copy(response_msg))
+    log.debug('Building LSU ACK message')
+    out_msg = '%s,%s,%s,%s,%s,%s,%s' % (
+        ref_num.new(),
+        msg_source_addr,
+        msg_source_port,
+        msg_dest_addr,
+        msg_dest_port,
+        message_types['database_LSU_ACK'],
+        dev_name)
+
+    # Load message into output list
+    log.debug('Loading completed msg: [%s]', out_msg)
+    out_msg_list.append(copy.copy(out_msg))
+
     # Return response message
-    return response_msg_list
+    return out_msg_list
 
 
 # Internal Service Work Subtask - wemo turn on ********************************
 @asyncio.coroutine
-def read_device_cmd(rNum, database, log, msgDestAdd, msgDestPort,
-                    msgSourceAdd, msgSourcePort):
+def process_db_rc(log, ref_num, database, msg_dest_addr, msg_dest_port,
+                  msg_source_addr, msg_source_port, message_types):
     """ Function to query database for any un-processed device commands """
     # Initialize result list
-    response_msg_list = []
+    out_msg_list = []
+    result_list = []
+
     # Execute select Query
     log.debug('Querying database for pending device commands')
-    pending_cmd_list = service.query_command(database, log)
+    result_list = service.query_command(
+        log,
+        database)
+
     # Send response message for each record returned by query
-    if len(pending_cmd_list) <= 0:
-        log.debug('No pending commands found')
-    else:
+    if len(result_list) <= 0:
         log.debug('Preparing response messages for pending commands')
-        for pending_cmd in pending_cmd_list:
-            log.debug('Building response message header')
-            response_header = rNum.new() + ',' + msgSourceAdd + ',' + \
-                              msgSourcePort + ',' + msgDestAdd + ',' + \
-                              msgDestPort
-            log.debug('Building response message payload')
-            response_payload = '103,' + pending_cmd
-            log.debug('Building complete response message')
-            response_msg = response_header + ',' + response_payload
-            log.debug('Appending complete response message to result list: [%s]',
-                      response_msg)
-            response_msg_list.append(copy.copy(response_msg))
+        for pending_cmd in result_list:
+            # Determine what command to issue
+            out_msg = '%s,%s,%s,%s,%s,%s,%s' % (
+                ref_num.new(),
+                msg_dest_addr,
+                msg_dest_port,
+                msg_source_addr,
+                msg_source_port,
+                message_types['database_RC'],
+                pending_cmd)
+
+            # Load message into output list
+            log.debug('Loading completed msg: [%s]', out_msg)
+            out_msg_list.append(copy.copy(out_msg))
+    else:
+        log.debug('No pending commands found')
+
     # Return list of response messages from query
-    return response_msg_list
+    return out_msg_list
 
 
 # Internal Service Work Subtask - wemo turn off *******************************
 @asyncio.coroutine
-def update_device_cmd(rNum, database, log, msgH, msgP):
+def process_db_uc(log, ref_num, database, msg_header, msg_payload, message_types):
     """ Function to set state of wemo device to "off" """
     # Initialize result list
-    response_msg_list = []
+    out_msg_list = []
+
     # Map message header to usable tags
-    msgRef = msgH[0]
-    msgDestAdd = msgH[1]
-    msgDestPort = msgH[2]
-    msgSourceAdd = msgH[3]
-    msgSourcePort = msgH[4]
+    msg_ref = msg_header[0]
+    msg_dest_addr = msg_header[1]
+    msg_dest_port = msg_header[2]
+    msg_source_addr = msg_header[3]
+    msg_source_port = msg_header[4]
     # Map message payload to usable tags
-    msgType = msgP[0]
-    cmdId = msgP[1]
-    cmdProcessed = msgP[2]
+    msg_type = msg_payload[0]
+    cmd_id = msg_payload[1]
+    cmd_processed = msg_payload[2]
+
     # Execute update Query
     log.debug('Querying database to mark command with ID [%s] as complete '
-              'with timestamp [%s]', cmdId, cmdProcessed)
-    service.update_command(database, cmdId, cmdProcessed, log)
+              'with timestamp [%s]',
+              cmd_id,
+              cmd_processed)
+    service.update_command(
+        log,
+        database,
+        cmd_id,
+        cmd_processed)
+
     # Send response indicating query was executed
     log.debug('Building response message header')
-    response_header = rNum.new() + ',' + msgSourceAdd + ',' + \
-                      msgSourcePort + ',' + msgDestAdd + ',' + \
-                      msgDestPort
-    log.debug('Building response message payload')
-    response_payload = '105,' + cmdId
-    log.debug('Building complete response message')                    
-    response_msg = response_header + ',' + response_payload
-    log.debug('Appending complete response message to result list: [%s]',
-              response_msg)
-    response_msg_list.append(copy.copy(response_msg))
+    out_msg = '%s,%s,%s,%s,%s,%s,%s' % (
+        ref_num.new(),
+        msg_source_addr,
+        msg_source_port,
+        msg_dest_addr,
+        msg_dest_port,
+        message_types['database_UC_ACK'],
+        cmd_id)
+
+    # Load message into output list
+    log.debug('Loading completed msg: [%s]', out_msg)
+    out_msg_list.append(copy.copy(out_msg))
+
     # Return response message
-    return response_msg_list
+    return out_msg_list
