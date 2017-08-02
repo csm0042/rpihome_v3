@@ -41,13 +41,14 @@ LOOP = asyncio.get_event_loop()
 def handle_msg_in(reader, writer):
     """ Callback used to send ACK messages back to acknowledge messages
     received """
+    # Set up socket pair
     LOG.debug('Yielding to reader.read()')
     data_in = yield from reader.read(200)
     LOG.debug('Decoding read data')
     message = data_in.decode()
     LOG.debug('Extracting address from socket connection')
     addr = writer.get_extra_info('peername')
-    LOG.debug('Received %r from %r' % (message, addr))
+    LOG.debug('Received %r from %r', message, addr)
 
     # Coping incoming message to message buffer
     LOG.debug('Loading message into incoming msg buffer')
@@ -78,7 +79,7 @@ def handle_msg_out():
             LOG.debug('Extracting msg destination address and port')
             msg_seg_out = msg_to_send.split(',')
             LOG.debug('Opening outgoing connection to %s:%s',
-                msg_seg_out[1], msg_seg_out[2])
+                      msg_seg_out[1], msg_seg_out[2])
             try:
                 reader_out, writer_out = yield from asyncio.open_connection(
                     msg_seg_out[1], int(msg_seg_out[2]), loop=LOOP)
