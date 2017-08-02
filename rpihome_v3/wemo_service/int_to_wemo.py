@@ -84,6 +84,7 @@ def set_wemo_state(log, ref_num, wemo_gw, msg_header, msg_payload, message_types
     msg_dest_port = msg_header[2]
     msg_source_addr = msg_header[3]
     msg_source_port = msg_header[4]
+    msg_type = msg_payload[0]
     dev_name = msg_payload[1]
     dev_addr = msg_payload[2]
     dev_cmd = msg_payload[3]

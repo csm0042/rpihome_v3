@@ -115,7 +115,9 @@ def process_db_rc_ack(log, ref_num, devices, msg_payload,
     cmd_id = msg_payload[1]
     dev_name = msg_payload[2]
     dev_cmd = msg_payload[3]
-    
+    dev_timestamp = msg_payload[4]
+    dev_processed = msg_payload[5]    
+
     # Search device table to find device name
     log.debug('Searching device table for [%s]', dev_name)
     dev_pointer = helpers.search_device_list(log, devices, dev_name)
@@ -135,8 +137,8 @@ def process_db_rc_ack(log, ref_num, devices, msg_payload,
                 message_types['wemo_sds'],
                 dev_name,
                 devices[dev_pointer].address,
-                devices[dev_pointer].status,
                 dev_cmd,
+                devices[dev_pointer].status,
                 devices[dev_pointer].last_seen)
             # Load message into output list
             log.debug('Loading completed msg: [%s]', out_msg)

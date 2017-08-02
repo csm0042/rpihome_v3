@@ -43,7 +43,7 @@ def create_sched_ccs(log, ref_num, devices, service_addresses, message_types):
             # Load message into output list
             log.debug('Loading completed msg: [%s]', out_msg)
             out_msg_list.append(copy.copy(out_msg))
-    # Return response message    
+    # Return response message
     return out_msg_list
 
 
@@ -104,8 +104,11 @@ def process_sched_ccs_ack(log, ref_num, devices, msg_header, msg_payload,
     msg_source_addr = msg_header[3]
     msg_source_port = msg_header[4]
     msg_type = msg_payload[0]
-    dev_name = msg_payload[1]
-    dev_cmd = msg_payload[2]
+    dev_id = msg_payload[1]
+    dev_name = msg_payload[2]
+    dev_cmd = msg_payload[3]
+    dev_timestamp = msg_payload[4]
+    dev_processed = msg_payload[5]
 
     # Search device table to find device name
     log.debug('Searching device table for [%s]', dev_name)
@@ -126,7 +129,7 @@ def process_sched_ccs_ack(log, ref_num, devices, msg_header, msg_payload,
                 # Build new message to forward to wemo service
                 log.debug('Generating message to wemo service for wemo '
                           'device [%s]', dev_name)
-                out_msg = '%s,%s,%s,%s,%s,%s,%s,%s' % (
+                out_msg = '%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
                     ref_num.new(),
                     service_addresses['wemo_addr'],
                     service_addresses['wemo_port'],
