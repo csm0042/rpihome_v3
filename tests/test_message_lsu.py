@@ -19,7 +19,7 @@ class TestLSUmessage(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         logging.basicConfig(stream=sys.stdout)
         self.log = logging.getLogger(__name__)
-        self.log.level = logging.DEBUG        
+        self.log.level = logging.DEBUG
         self.datetime = datetime.datetime
         self.datetime_str = str()
         super(TestLSUmessage, self).__init__(*args, **kwargs)
@@ -31,6 +31,7 @@ class TestLSUmessage(unittest.TestCase):
 
 
     def test_init(self):
+        """ test class __init__ and input variables """
         self.datetime = datetime.datetime.now()
         self.datetime_str = (str(self.datetime))[:19]
         self.lsu = helpers.LSUmessage(
@@ -58,6 +59,7 @@ class TestLSUmessage(unittest.TestCase):
 
 
     def test_ref_number_field(self):
+        """ test setting and getting message reference number field """
         self.lsu.ref = 100
         self.assertEqual(self.lsu.ref, '100')
         self.lsu.ref = '202'
@@ -65,6 +67,7 @@ class TestLSUmessage(unittest.TestCase):
 
 
     def test_dest_addr_field(self):
+        """ test setting and getting message destination address field """
         self.lsu.dest_addr = '192.168.1.1'
         self.assertEqual(self.lsu.dest_addr, '192.168.1.1')
         self.lsu.dest_addr = '192.168.2.x'
@@ -72,23 +75,25 @@ class TestLSUmessage(unittest.TestCase):
 
 
     def test_dest_port_field(self):
+        """ test setting and getting message destination port field """
         self.lsu.dest_port = 11000
         self.assertEqual(self.lsu.dest_port, '11000')
         self.lsu.dest_port = '12000'
         self.assertEqual(self.lsu.dest_port, '12000')
         self.lsu.dest_port = 100
         self.assertEqual(self.lsu.dest_port, '12000')
-        self.lsu.dest_port = '101'        
+        self.lsu.dest_port = '101'
         self.assertEqual(self.lsu.dest_port, '12000')
-        self.lsu.dest_port = '100000'        
+        self.lsu.dest_port = '100000'
         self.assertEqual(self.lsu.dest_port, '12000')
-        self.lsu.dest_port = 101000  
+        self.lsu.dest_port = 101000
         self.assertEqual(self.lsu.dest_port, '12000')
         self.lsu.dest_port = 17061
         self.assertEqual(self.lsu.dest_port, '17061')
 
 
     def test_source_addr_field(self):
+        """ test setting and getting message source address field """
         self.lsu.source_addr = '192.168.1.1'
         self.assertEqual(self.lsu.source_addr, '192.168.1.1')
         self.lsu.source_addr = '192.168.2.x'
@@ -96,6 +101,7 @@ class TestLSUmessage(unittest.TestCase):
 
 
     def test_source_port_field(self):
+        """ test setting and getting message source port field """
         self.lsu.source_port = 11000
         self.assertEqual(self.lsu.source_port, '11000')
         self.lsu.source_port = '12000'
@@ -113,6 +119,7 @@ class TestLSUmessage(unittest.TestCase):
 
 
     def test_message_type_field(self):
+        """ test setting and getting message type field """
         self.lsu.msg_type = 101
         self.assertEqual(self.lsu.msg_type, '101')
         self.lsu.msg_type = '102'
@@ -120,6 +127,7 @@ class TestLSUmessage(unittest.TestCase):
 
 
     def test_device_name_field(self):
+        """ test setting and getting device name field """
         self.lsu.dev_name = 101
         self.assertEqual(self.lsu.dev_name, '101')
         self.lsu.dev_name = 'fylt1'
@@ -127,13 +135,15 @@ class TestLSUmessage(unittest.TestCase):
 
 
     def test_dev_addr_field(self):
+        """ test setting and getting device address field """
         self.lsu.dev_addr = '192.168.1.1'
         self.assertEqual(self.lsu.dev_addr, '192.168.1.1')
         self.lsu.dev_addr = '192.168.2.x'
-        self.assertEqual(self.lsu.dev_addr, '192.168.1.1')        
+        self.assertEqual(self.lsu.dev_addr, '192.168.1.1')
 
 
     def test_device_status_field(self):
+        """ test setting and getting device status field """
         self.lsu.dev_status = 0
         self.assertEqual(self.lsu.dev_status, '0')
         self.lsu.dev_status = 1
@@ -153,6 +163,7 @@ class TestLSUmessage(unittest.TestCase):
 
 
     def test_device_last_seen_field(self):
+        """ test setting and getting device last seen field """
         self.datetime = datetime.datetime.now()
         self.datetime_str = (str(self.datetime))[:19]
         self.lsu.dev_last_seen = self.datetime
