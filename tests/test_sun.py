@@ -9,7 +9,7 @@ import sys
 import unittest
 if __name__ == "__main__":
     sys.path.append("..")
-import rpihome_v3
+import rpihome_v3.helpers as helpers
 
 
 # Authorship Info *************************************************************
@@ -26,33 +26,39 @@ __status__ = "Development"
 # Define test class ***********************************************************
 class TestSun(unittest.TestCase):
     """ unittests for logger.py """
+
+    def __init__(self, *args, **kwargs):
+        logging.basicConfig(stream=sys.stdout)
+        self.log = logging.getLogger(__name__)
+        self.log.level = logging.DEBUG
+        super(TestSun, self).__init__(*args, **kwargs)        
+
+
     def setUp(self):
-        self.logger = logging.getLogger(__name__)
-        self.sun = rpihome_v3.Sun(38.566, -90.409, -5, self.logger)
+        self.log = logging.getLogger(__name__)
+        self.sun = helpers.Sun(38.566, -90.409, -5, self.log)
+        super(TestSun, self).setUp()
 
 
     def test_sunrise(self):
         """ tests the functionality of the sunrise/sunset calc function """
-        self.logger.debug('Sunrise: %s', self.sun.sunrise())
+        self.log.debug('Sunrise: %s', self.sun.sunrise())
         self.assertGreater(self.sun.sunrise(), datetime.time(4, 0))
 
 
     def test_solarnoon(self):
         """ tests the functionality of the sunrise/sunset calc function """
-        self.logger.debug('Solarnoon: %s', self.sun.solarnoon())
+        self.log.debug('Solarnoon: %s', self.sun.solarnoon())
         self.assertGreater(self.sun.solarnoon(), datetime.time(4, 0))
         self.assertLess(self.sun.solarnoon(), datetime.time(16, 0))
 
 
     def test_sunset(self):
         """ tests the functionality of the sunrise/sunset calc function """
-        self.logger.debug('Sunset: %s', self.sun.sunset())
+        self.log.debug('Sunset: %s', self.sun.sunset())
         self.assertGreater(self.sun.sunset(), datetime.time(16, 0))
         self.assertLess(self.sun.sunset(), datetime.time(22, 0))
 
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stdout)
-    logger = logging.getLogger(__name__)
-    logger.level = logging.DEBUG
     unittest.main()

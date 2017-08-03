@@ -9,7 +9,7 @@ import sys
 import unittest
 if __name__ == "__main__":
     sys.path.append("..")
-import rpihome_v3
+import rpihome_v3.helpers as helpers
 
 
 # Authorship Info *************************************************************
@@ -26,30 +26,38 @@ __status__ = "Development"
 # Define test class ***********************************************************
 class TestWemo(unittest.TestCase):
     """ unittests for logger.py """
-    def setUp(self):
+
+    def __init__(self, *args, **kwargs):
+        logging.basicConfig(stream=sys.stdout)
+        self.log = logging.getLogger(__name__)
+        self.log.level = logging.DEBUG
         self.loop = asyncio.new_event_loop()
         self.device = []
         self.wemo_list = []
-        self.device.append(rpihome_v3.Device(
+        super(TestWemo, self).__init__(*args, **kwargs)
+
+
+    def setUp(self):
+        self.device.append(helpers.Device(
             'br1lt2', 'wemo_switch', '192.168.86.28', '', '', '', '', '', ''))
-        self.device.append(rpihome_v3.Device(
+        self.device.append(helpers.Device(
             'bylt1', 'wemo_switch', '192.168.86.22', '', '', '', '', '', ''))
-        self.device.append(rpihome_v3.Device(
+        self.device.append(helpers.Device(
             'test_dev', 'wemo_switch', '', '', '', '', '', '', ''))
         self.credentials = 'c://python_files//credentials//credentials.txt'
-        self.logger = logging.getLogger(__name__)
+        super(TestWemo, self).setUp()
 
 
     def test_wemo_discover(self):
         """ tests the functionality of the wemo discovery function """
         async def go():
-            self.wemo_device = await rpihome_v3.wemo_discover(
+            self.wemo_device = await helpers.wemo_discover(
                 self.device[0], self.logger)
             self.assertEqual(self.wemo_device.name, "br1lt2")
-            self.wemo_device = await rpihome_v3.wemo_discover(
+            self.wemo_device = await helpers.wemo_discover(
                 self.device[1], self.logger)
             self.assertEqual(self.wemo_device.name, "bylt1")
-            self.wemo_device = await rpihome_v3.wemo_discover(
+            self.wemo_device = await helpers.wemo_discover(
                 self.device[2], self.logger)
             self.assertEqual(self.wemo_device, None)
         self.loop.run_until_complete(go())
