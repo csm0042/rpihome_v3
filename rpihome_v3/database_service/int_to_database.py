@@ -6,6 +6,7 @@
 import asyncio
 import copy
 import database_service as service
+import helpers
 
 
 # Authorship Info *************************************************************
@@ -21,51 +22,43 @@ __status__ = "Development"
 
 # Internal Service Work Subtask - log status updates **************************
 @asyncio.coroutine
-def process_db_lsu(log, ref_num, database, msg_header, msg_payload,
-                   message_types):
+def process_db_lsu(log, ref_num, database, msg, message_types):
     """ Function to insert status updates into device_log table """
     # Initialize result list
     out_msg_list = []
 
     # Map message header & payload to usable tags
-    msg_ref = msg_header[0]
-    msg_dest_addr = msg_header[1]
-    msg_dest_port = msg_header[2]
-    msg_source_addr = msg_header[3]
-    msg_source_port = msg_header[4]
-    msg_type = msg_payload[0]
-    dev_name = msg_payload[1]
-    dev_addr = msg_payload[2]
-    dev_status = msg_payload[3]
-    dev_last_seen = msg_payload[4]
+    message = helpers.LSUmessage()
+    message.complete = msg
 
     # Execute Insert Query
     log.debug('Logging status change to database for [%s].  New '
               'status is [%s] with a last seen time of [%s]',
-              dev_name,
-              dev_status,
-              dev_last_seen)
+              message.dev_name,
+              message.dev_status,
+              message.dev_last_seen)
     service.insert_record(
         log,
         database,
-        dev_name,
-        dev_status,
-        dev_last_seen)
+        message.dev_name,
+        message.dev_status,
+        message.dev_last_seen)
 
     # Send response indicating query was executed
     log.debug('Building LSU ACK message')
-    out_msg = '%s,%s,%s,%s,%s,%s,%s' % (
-        ref_num.new(),
-        msg_source_addr,
-        msg_source_port,
-        msg_dest_addr,
-        msg_dest_port,
-        message_types['database_LSU_ACK'],
-        dev_name)
+    out_msg = helpers.LSUACKmessage(
+        log=log,
+        ref=ref_num.new(),
+        dest_addr=message.source_addr,
+        dest_port=message.source_port,
+        source_addr=message.dest_addr,
+        source_port=message.dest_port,
+        msg_type=message_types['database_LSU_ACK'],
+        dev_name=message.dev_name)
 
     # Load message into output list
-    log.debug('Loading completed msg: [%s]', out_msg)
-    out_msg_list.append(copy.copy(out_msg))
+    log.debug('Loading completed msg: [%s]', out_msg.complete)
+    out_msg_list.append(out_msg.complete)
 
     # Return response message
     return out_msg_list
@@ -73,12 +66,15 @@ def process_db_lsu(log, ref_num, database, msg_header, msg_payload,
 
 # Internal Service Work Subtask - wemo turn on ********************************
 @asyncio.coroutine
-def process_db_rc(log, ref_num, database, msg_dest_addr, msg_dest_port,
-                  msg_source_addr, msg_source_port, message_types):
+def process_db_rc(log, ref_num, database, msg, message_types):
     """ Function to query database for any un-processed device commands """
     # Initialize result list
     out_msg_list = []
     result_list = []
+
+    # Map message header & payload to usable tags
+    message = helpers.RCmessage()
+    message.complete = msg
 
     # Execute select Query
     log.debug('Querying database for pending device commands')
@@ -89,29 +85,25 @@ def process_db_rc(log, ref_num, database, msg_dest_addr, msg_dest_port,
     # Send response message for each record returned by query
     if len(result_list) > 0:
         log.debug('Preparing response messages for pending commands')
-        for pending_cmd in result_list:
-            # Map to usable tags
-            dev_id = pending_cmd[0]
-            dev_name = pending_cmd[1]
-            dev_cmd = pending_cmd[2]
-            dev_ts = pending_cmd[3]
-            dev_proc = pending_cmd[4]
-            
+        for pending_cmd in result_list:           
             # Create message RC ACK message to automation service
-            out_msg = '%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
-                ref_num.new(),
-                msg_dest_addr,
-                msg_dest_port,
-                msg_source_addr,
-                msg_source_port,
-                message_types['database_rc_ack'],
-                dev_id,
-                dev_name,
-                dev_cmd)
+            out_msg = helpers.RCACKmessage(
+                log=log,
+                ref=ref_num.new(),
+                dest_addr=message.source_addr,
+                dest_port=message.source_port,
+                source_addr=message.dest_addr,
+                source_port=message.dest_port,
+                msg_type=message_types['database_rc_ack'],
+                dev_id=copy.copy(pending_cmd[0]),
+                dev_name=copy.copy(pending_cmd[1]),
+                dev_cmd=copy.copy(pending_cmd[2]),
+                dev_timestamp=copy.copy(pending_cmd[3]),
+                dev_processed=copy.copy(pending_cmd[4]))
 
             # Load message into output list
-            log.debug('Loading completed msg: [%s]', out_msg)
-            out_msg_list.append(copy.copy(out_msg))
+            log.debug('Loading completed msg: [%s]', out_msg.complete)
+            out_msg_list.append(out_msg.complete)
     else:
         log.debug('No pending commands found')
 

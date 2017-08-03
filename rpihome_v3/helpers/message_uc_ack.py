@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" message_uc.py:
+""" message_uc_ack.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
@@ -20,8 +20,8 @@ __status__ = "Development"
 
 
 # Message Class Definition ****************************************************
-class UCmessage(object):
-    """ Update Command message class and methods """
+class UCACKmessage(object):
+    """ Update Command ACK message class and methods """
     def __init__(self, log=None, **kwargs):
         # Configure logger
         self.log = log or logging.getLogger(__name__)
@@ -32,9 +32,8 @@ class UCmessage(object):
         self._source_port = str()
         self._msg_type = str()
         self._dev_id = str()
-        self._dev_processed = str()
         self.temp_list = []
-        
+
         # Process input variables if present
         if kwargs is not None:
             for key, value in kwargs.items():
@@ -66,10 +65,6 @@ class UCmessage(object):
                     self.dev_id = value
                     self.log.debug('Device cmd ID value set during '
                                    '__init__ to: %s', self.dev_id)
-                if key == "dev_processed":
-                    self.dev_processed = value
-                    self.log.debug('Device cmd processed value set during '
-                                   '__init__ to: %s', self.dev_processed)
 
 
     # ref number field ********************************************************
@@ -85,6 +80,7 @@ class UCmessage(object):
         else:
             self._ref = str(value)
         self.log.debug('Ref number value updated to: %s', self._ref)
+
 
     # destination address *****************************************************
     @property
@@ -112,6 +108,7 @@ class UCmessage(object):
                 self.log.warning('Invalid address provided for destination '
                                  'address: %s', value)
 
+
     # destination port ********************************************************
     @property
     def dest_port(self):
@@ -137,6 +134,7 @@ class UCmessage(object):
             else:
                 self.log.warning('Invalid port number provided for '
                                  'destination port: %s', value)
+
 
     # source address field ****************************************************
     @property
@@ -164,6 +162,7 @@ class UCmessage(object):
                 self.log.warning('Invalid address provided for source '
                                  'address: %s', value)
 
+
     # source port field *******************************************************
     @property
     def source_port(self):
@@ -190,6 +189,7 @@ class UCmessage(object):
                 self.log.warning('Invalid port number provided for '
                                  'Source port: %s', value)
 
+
     # message type field ******************************************************
     @property
     def msg_type(self):
@@ -205,6 +205,7 @@ class UCmessage(object):
             self._msg_type = str(value)
         self.log.debug('Message type value updated to: '
                        '%s', self._msg_type)
+
 
     # device ID field *********************************************************
     @property
@@ -222,52 +223,27 @@ class UCmessage(object):
         self.log.debug('Device ID value updated to: '
                        '%s', self._dev_id)
 
-    # device last seen field **************************************************
-    @property
-    def dev_processed(self):
-        self.log.debug('Returning current value of device cmd processed: '
-                       '%s', self._dev_processed)
-        return self._dev_processed
-
-    @dev_processed.setter
-    def dev_processed(self, value):
-        if isinstance(value, datetime.datetime):
-            self._dev_processed = (str(value))[:19]
-        elif isinstance(value, datetime.time):
-            self._dev_processed = (str(
-                datetime.datetime.combine(
-                    datetime.datetime.now().date(), value)))[:19]
-        elif isinstance(value, datetime.date):
-            self._dev_processed = (str(
-                datetime.datetime.combine(
-                    value, datetime.datetime.now().time())))[:19]
-        if isinstance(value, str):
-            if len(value) >= 19:
-                self._dev_processed = value[:19]
-            else:
-                self._dev_processed = value
-        self.log.debug('Device cmd processed value updated to: '
-                       '%s', self._dev_processed)                       
 
     # complete message encode/decode methods **********************************
     @property
     def complete(self):
         self.log.debug('Returning current value of complete message: '
-                       '%s,%s,%s,%s,%s,%s,%s,%s',
+                       '%s,%s,%s,%s,%s,%s,%s',
                        self._ref, self._dest_addr, self._dest_port,
                        self._source_addr, self._source_port,
                        self._msg_type,
-                       self._dev_id, self._dev_processed)
-        return '%s,%s,%s,%s,%s,%s,%s,%s' % (
+                       self._dev_id)
+        return '%s,%s,%s,%s,%s,%s,%s' % (
             self._ref, self._dest_addr, self._dest_port,
             self._source_addr, self._source_port,
-            self._msg_type, self._dev_id, self._dev_processed)
+            self._msg_type, self._dev_id)
+
 
     @complete.setter
     def complete(self, value):
         if isinstance(value, str):
             self.temp_list = value.split(',')
-            if len(self.temp_list) == 8:
+            if len(self.temp_list) == 7:
                 self.log.debug('Message was properly formatted for decoding')
                 self.ref = self.temp_list[0]
                 self.dest_addr = self.temp_list[1]
@@ -276,4 +252,3 @@ class UCmessage(object):
                 self.source_port = self.temp_list[4]
                 self.msg_type = self.temp_list[5]
                 self.dev_id = self.temp_list[6]
-                self.dev_processed = self.temp_list[7]

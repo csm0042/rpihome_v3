@@ -38,21 +38,10 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
             next_msg = msg_in_que.get_nowait()
             log.debug('Message pulled from queue: [%s]', next_msg)
 
-            # Split message into header and payload
-            log.debug('Splitting message into header / payload')
-            next_msg_seg = next_msg.split(sep=',')            
-            msg_header = next_msg_seg[:5]
-            log.debug('Split off message header: [%s]', msg_header)
-            msg_payload = next_msg_seg[5:]
-            log.debug('Split off message payload: [%s]', msg_payload)
-
-            # Map header and payload to usable tags
-            msg_ref = msg_header[0]
-            msg_dest_addr = msg_header[1]
-            msg_dest_port = msg_header[2]
-            msg_source_addr = msg_header[3]
-            msg_source_port = msg_header[4]
-            msg_type = msg_payload[0]
+            # Determine message type
+            if len(next_msg) >= 6:
+                msg_source_addr = next_msg[1]
+                msg_type = next_msg[5]
 
             # Process messages from database service
             if msg_source_addr == service_addresses['database_addr']:
@@ -61,27 +50,21 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                     log.debug('Message is a Log Status Update (LSU) message')
                     out_msg_list = service.process_db_lsu(
                         log,
-                        ref_num,
-                        msg_header,
-                        msg_payload,
-                        service_addresses,
-                        message_types)
+                        next_msg,
+                        service_addresses)
                 # Log Status Update ACK messages (LSUA)
                 elif msg_type == message_types['database_lsu_ack']:
                     log.debug('Message is a Log Status Update ACK (LSUA) message')
                     service.process_db_lsu_ack(
                         log,
-                        msg_header,
-                        msg_payload)
+                        next_msg)
                 # Return Command messages (RC)
                 elif msg_type == message_types['database_rc']:
                     log.debug('Message is a Return Command (RC) message')
                     out_msg_list = service.process_db_rc(
                         log,
-                        ref_num,
-                        msg_header,
-                        service_addresses,
-                        message_types)
+                        next_msg,
+                        service_addresses)
                 # Return Command ACK messages (RCA)
                 elif msg_type == message_types['database_rc_ack']:
                     log.debug('Message is a Return Command ACK (RCA) message')
@@ -89,7 +72,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                         log,
                         ref_num,
                         devices,
-                        msg_payload,
+                        next_msg,
                         service_addresses,
                         message_types)
                 # Update Command messages (UC)
@@ -98,8 +81,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                     out_msg_list = service.process_db_uc(
                         log,
                         ref_num,
-                        msg_header,
-                        msg_payload,
+                        next_msg,
                         service_addresses,
                         message_types)
                 # Update Command ACK messages (UCA)
@@ -107,8 +89,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                     log.debug('Message is a Update Command ACK (UCA) message')
                     service.process_db_uc_ack(
                         log,
-                        msg_header,
-                        msg_payload)
+                        next_msg)
 
             # Process messages from wemo service
             if msg_source_addr == service_addresses['wemo_addr']:
@@ -118,8 +99,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                     out_msg_list = service.process_wemo_gds(
                         log,
                         ref_num,
-                        msg_header,
-                        msg_payload,
+                        next_msg,
                         service_addresses)
                 # Get Device Status ACK messages (GDSA)
                 elif msg_type == message_types['wemo_gds_ack']:
@@ -127,7 +107,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                     out_msg_list = service.process_wemo_gds_ack(
                         log,
                         devices,
-                        msg_payload)
+                        next_msg)
                 # Set Device Status messages (SDS)
                 elif msg_type == message_types['wemo_sds']:
                     log.debug('Message is a Set Device Status (SDS) message')
@@ -135,8 +115,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                         log,
                         ref_num,
                         devices,
-                        msg_header,
-                        msg_payload,
+                        next_msg,
                         service_addresses,
                         message_types)
                 # Set Device Status ACK messages (SDSA)
@@ -145,7 +124,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                     out_msg_list = service.process_wemo_sds_ack(
                         log,
                         devices,
-                        msg_payload)
+                        next_msg)
 
             # Process messages from calendar/schedule service
             if msg_source_addr == service_addresses['schedule_addr']:
@@ -155,8 +134,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                     out_msg_list = service.process_sched_ccs(
                         log,
                         ref_num,
-                        msg_header,
-                        msg_payload,
+                        next_msg,
                         service_addresses)
                 # Check Command Schedule ACK messages (CCSA)
                 if msg_type == message_types['schedule_ccs_ack']:
@@ -165,18 +143,16 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                         log,
                         ref_num,
                         devices,
-                        msg_header,
-                        msg_payload,
+                        next_msg,
                         service_addresses,
-                        message_types)                        
+                        message_types)
 
             # Que up response messages in outgoing msg que
             if len(out_msg_list) > 0:
                 log.debug('Queueing response message(s)')
                 for out_msg in out_msg_list:
                     msg_out_que.put_nowait(out_msg)
-                    log.debug('Message [%s] successfully queued',
-                            out_msg)
+                    log.debug('Message [%s] successfully queued', out_msg)
 
         # Periodically check scheduled on/off commands for devices
         if datetime.datetime.now() >= (last_check + datetime.timedelta(minutes=1)):
@@ -194,6 +170,6 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                 for out_msg in out_msg_list:
                     msg_out_que.put_nowait(out_msg)
                     log.debug('Message [%s] successfully queued', out_msg)
-        
+
         # Yield to other tasks for a while
         yield from asyncio.sleep(0.25)

@@ -301,7 +301,7 @@ class LSUmessage(object):
 
     # complete message encode/decode methods **********************************
     @property
-    def complete_message(self):
+    def complete(self):
         self.log.debug('Returning current value of complete message: '
                        '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s',
                        self._ref, self._dest_addr, self._dest_port,
@@ -314,8 +314,8 @@ class LSUmessage(object):
             self._msg_type, self._dev_name, self._dev_addr,
             self._dev_status, self._dev_last_seen)
 
-    @complete_message.setter
-    def complete_message(self, value):
+    @complete.setter
+    def complete(self, value):
         if isinstance(value, str):
             self.temp_list = value.split(',')
             if len(self.temp_list) == 10:

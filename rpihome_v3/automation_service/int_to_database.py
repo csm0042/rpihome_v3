@@ -20,8 +20,7 @@ __status__ = "Development"
 
 
 # Process LOG STATUS UPDATE messages ******************************************
-def process_db_lsu(log, ref_num, msg_header, msg_payload,
-                   service_addresses, message_types):
+def process_db_lsu(log, msg, service_addresses):
     """ Process Database Log Status Update Message
         This function triggers an insert query in the device status table to
         log updated device status(es) whenever state changes are detected.
@@ -29,48 +28,35 @@ def process_db_lsu(log, ref_num, msg_header, msg_payload,
     # Initialize result list
     out_msg_list = []
 
-    # Map header and payload to usable tags
-    msg_source_add = msg_header[3]
-    msg_source_port = msg_header[4]
-    dev_name = msg_payload[1]
-    dev_addr = msg_payload[2]
-    dev_status = msg_payload[3]
-    dev_last_seen = msg_payload[4]
+    # Map message into LSU message class
+    message = helpers.LSUmessage()
+    message.complete = msg
 
-    # Build new message to forward to db service
-    log.debug('Building LSU message to to forward to DB service')
-    out_msg = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
-        ref_num.new(),
-        service_addresses['database_addr'],
-        service_addresses['database_port'],
-        msg_source_add,
-        msg_source_port,
-        message_types['database_lsu'],
-        dev_name,
-        dev_addr,
-        dev_status,
-        dev_last_seen)
-    # Load message into output list
-    log.debug('Loading completed msg: [%s]', out_msg)
-    out_msg_list.append(copy.copy(out_msg))
+    # Update destination address and port to forward to db service
+    log.debug('Revising LSU message to to forward to DB service')
+    message.dest_addr = service_addresses['database_addr']
+    message.dest_port = service_addresses['database_port']
+
+    # Load revised message into output list
+    log.debug('Loading completed msg: %s', message.complete)
+    out_msg_list.append(message.complete)
 
     # Return response messages
     return out_msg_list
 
 
 # Process LOG STATUS UPDATE ACK messages **************************************
-def process_db_lsu_ack(log, msg_header, msg_payload):
+def process_db_lsu_ack(log, msg):
     """ Process Database Log Status Update ACK Message
         This function processes the positive ACK that is returned when a LSU
         message is successfully processed
-    """ 
+    """
     # Log receipt of ACK for debug purposes
-    log.debug('LSU ACK Received: [%s,%s]', msg_header, msg_payload)
+    log.debug('LSU ACK Received: %s', msg)
 
 
 # Process RETURN COMMAND message **********************************************
-def process_db_rc(log, ref_num, msg_header, msg_payload,
-                  service_addresses, message_types):
+def process_db_rc(log, msg, service_addresses):
     """ Process Database Return Command Message
         This function triggers a select query for the pending command table in
         the database.  Commands that are not processed and less than 5 minutes
@@ -78,37 +64,26 @@ def process_db_rc(log, ref_num, msg_header, msg_payload,
     """
     # Initialize result list
     out_msg_list = []
+
+    # Map message into LSU message class
+    message = helpers.RCmessage()
+    message.complete = msg
+
+    # Update destination address and port to forward to db service
+    log.debug('Revising RC message to to forward to DB service')
+    message.dest_addr = service_addresses['database_addr']
+    message.dest_port = service_addresses['database_port']    
     
-    # Map header and payload to usable tags
-    msg_ref = msg_header[0]
-    msg_dest_addr = msg_header[1]
-    msg_dest_port = msg_header[2]
-    msg_source_addr = msg_header[3]
-    msg_source_port = msg_header[4]
-    msg_type = msg_payload[0]
-    dev_name = msg_payload[1]
-    
-    # Build new message to forward to db service
-    log.debug('Building RC message to to forward to DB service')
-    out_msg = '%s,%s,%s,%s,%s,%s,%s' % (
-        ref_num.new(),
-        service_addresses['database_addr'],
-        service_addresses['database_port'],
-        msg_source_addr,
-        msg_source_port,
-        message_types['database_rc'],
-        dev_name)
     # Load message into output list
-    log.debug('Loading completed msg: [%s]', out_msg)
-    out_msg_list.append(copy.copy(out_msg))
+    log.debug('Loading completed msg: %s', message.complete)
+    out_msg_list.append(message.complete)
 
     # Return response message
     return out_msg_list
 
 
 # Process RETURN COMMAND ACK message ******************************************
-def process_db_rc_ack(log, ref_num, devices, msg_payload,
-                      service_addresses, message_types):
+def process_db_rc_ack(log, ref_num, devices, msg, service_addresses, message_types):
     """ Process Database Return Command ACK Message
         This function takes the results of the select query from the pending
         command table and sends out messages as necessary to other processes
@@ -117,15 +92,13 @@ def process_db_rc_ack(log, ref_num, devices, msg_payload,
     # Initialize result list
     out_msg_list = []
 
-    # Map message payload to usable tags
-    msg_type = msg_payload[0]
-    cmd_id = msg_payload[1]
-    dev_name = msg_payload[2]
-    dev_cmd = msg_payload[3]
+    # Map message into LSU message class
+    message = helpers.RCmessage()
+    message.complete = msg
 
     # Search device table to find device name
-    log.debug('Searching device table for [%s]', dev_name)
-    dev_pointer = helpers.search_device_list(log, devices, dev_name)
+    log.debug('Searching device table for [%s]', message.dev_name)
+    dev_pointer = helpers.search_device_list(log, devices, message.dev_name)
     log.debug('Match found at device table index: %s', dev_pointer)
 
     # Create message to wemo service to issue command to device
@@ -140,33 +113,34 @@ def process_db_rc_ack(log, ref_num, devices, msg_payload,
                 service_addresses['automation_addr'],
                 service_addresses['automation_port'],
                 message_types['wemo_sds'],
-                dev_name,
+                message.dev_name,
                 devices[dev_pointer].address,
-                dev_cmd,
+                message.dev_cmd,
                 devices[dev_pointer].status,
                 devices[dev_pointer].last_seen)
             # Load message into output list
-            log.debug('Loading completed msg: [%s]', out_msg)
-            out_msg_list.append(copy.copy(out_msg))
+            log.debug('Loading completed msg: %s', out_msg.complete)
+            out_msg_list.append(out_msg.complete)
     else:
         log.debug('Device name not found in known device table')
     # Regardless what was done with device command, perform database update
     # to mark it as processed to avoid executing it again
-    log.debug('Generating RC ACK message to mark device cmd as processed')
-    out_msg = '%s,%s,%s,%s,%s,%s,%s,%s' % (
-        ref_num.new(),
-        service_addresses['database_addr'],
-        service_addresses['database_port'],
-        service_addresses['automation_addr'],
-        service_addresses['automation_port'],
-        message_types['database_uc'],
-        cmd_id,
-        str(datetime.datetime.now())[:19])
+    log.debug('Generating UC message to mark device cmd as processed')
+    out_msg = helpers.UCmessage(
+        log=log,
+        ref=ref_num.new(),
+        dest_addr=service_addresses['database_addr'],
+        dest_port=service_addresses['database_port'],
+        source_addr=service_addresses['automation_addr'],
+        source_port=service_addresses['automation_port'],
+        msg_type=message_types['database_uc'],
+        dev_id=message.dev_id,
+        processed=datetime.datetime.now())
 
     # Load message into output list
-    log.debug('Loading completed msg: [%s]', out_msg)
-    out_msg_list.append(copy.copy(out_msg))
-    
+    log.debug('Loading completed msg: %s', out_msg.complete)
+    out_msg_list.append(out_msg.complete)
+
     # Return response message
     return out_msg_list
 

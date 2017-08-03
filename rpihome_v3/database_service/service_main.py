@@ -45,21 +45,10 @@ def service_main_task(log, rNumGen, database,
             next_msg = msg_in_queue.get_nowait()
             log.debug('Message pulled from queue: [%s]', next_msg)
 
-            # Split message into header and payload            
-            log.debug('Splitting message into header / payload')
-            next_msg_seg = next_msg.split(sep=',')
-            msg_header = next_msg_seg[:5]
-            log.debug('Split off message header: [%s]', msg_header)
-            msg_payload = next_msg_seg[5:]
-            log.debug('Split off message payload: [%s]', msg_payload)
-
-            # Map header and payload to usable tags
-            msg_ref = msg_header[0]
-            msg_dest_addr = msg_header[1]
-            msg_dest_port = msg_header[2]
-            msg_source_addr = msg_header[3]
-            msg_source_port = msg_header[4]
-            msg_type = msg_payload[0]
+            # Determine message type
+            if len(next_msg) >= 6:
+                msg_source_addr = next_msg[1]
+                msg_type = next_msg[5]            
 
             # Log Device status updates to database
             if msg_type == message_types['database_lsu']:
@@ -68,8 +57,7 @@ def service_main_task(log, rNumGen, database,
                     log,
                     rNumGen,
                     database,
-                    msg_header,
-                    msg_payload,
+                    next_msg,
                     message_types)
 
             # Query for unprocessed device commands
@@ -79,10 +67,7 @@ def service_main_task(log, rNumGen, database,
                     log,
                     rNumGen,
                     database,
-                    msg_source_addr,
-                    msg_source_port,
-                    msg_dest_addr,
-                    msg_dest_port,
+                    next_msg,
                     message_types)
 
             # Mark completed device commands as processed
