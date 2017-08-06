@@ -39,9 +39,13 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
             log.debug('Message pulled from queue: [%s]', next_msg)
 
             # Determine message type
-            if len(next_msg) >= 6:
-                msg_source_addr = next_msg[1]
-                msg_type = next_msg[5]
+            next_msg_split = next_msg.split(',')
+            if len(next_msg_split) >= 6:
+                log.debug('Extracting source address and message type')
+                msg_source_addr = next_msg_split[1]
+                msg_type = next_msg_split[5]
+                log.debug('Source Address: %s', msg_source_addr)
+                log.debug('Message Type: %s', msg_type)
 
             # Process messages from database service
             if msg_source_addr == service_addresses['database_addr']:

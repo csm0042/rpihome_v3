@@ -11,6 +11,7 @@ import sys
 if __name__ == "__main__":
     sys.path.append("..")
 import database_service as service
+import helpers
 
 
 
@@ -77,8 +78,7 @@ def service_main_task(log, rNumGen, database,
                     log,
                     rNumGen,
                     database,
-                    msg_header,
-                    msg_payload,
+                    next_msg,
                     message_types)
         else:
             # Periodically check for pending commands
@@ -89,10 +89,11 @@ def service_main_task(log, rNumGen, database,
                     log,
                     rNumGen,
                     database,
-                    service_addresses['automation_addr'],
-                    service_addresses['automation_port'],
-                    service_addresses['database_addr'],
-                    service_addresses['database_port'],
+                    helpers.RCmessage(
+                        dest_addr=service_addresses['automation_addr'],
+                        dest_port=service_addresses['automation_port'],
+                        source_addr=service_addresses['database_addr'],
+                        source_port=service_addresses['database_port']),
                     message_types)
                 # Update timestamp
                 last_check = datetime.datetime.now()
