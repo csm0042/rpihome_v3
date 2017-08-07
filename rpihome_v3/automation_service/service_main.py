@@ -138,8 +138,10 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                     out_msg_list = service.process_sched_ccs(
                         log,
                         ref_num,
+                        devices,
                         next_msg,
-                        service_addresses)
+                        service_addresses,
+                        message_types)
                 # Check Command Schedule ACK messages (CCSA)
                 if msg_type == message_types['schedule_ccs_ack']:
                     log.debug('Message is a Check Command Schedule ACK (CCSA) message')
