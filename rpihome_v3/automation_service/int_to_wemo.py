@@ -19,170 +19,155 @@ __status__ = "Development"
 
 
 # Process GET DEVICE STATUS message *******************************************
-def process_wemo_gds(log, ref_num, msg_header, msg_payload, service_addresses):
+def process_wemo_gds(log, devices, msg, service_addresses):
     """ Get Device Status
-        This function takes any GDS messages and forwards them on to the
-        wemo service.  The forwarded message is updated to contain the source
-        info for the original service that initially sent the message so the
-        response gets back to where the reqeust originated.
+        When a mis-directed GDS message is received, this function will:
+        1) Update destination addr and port values in the GDS message to the
+           appropraite values for the wemo service
+        2) Update the device address, status, and last_seen values to the most
+           current values known
+        3) Queue the message to be sent to the wemo service
     """
     # Initialize result list
     out_msg_list = []
 
-    # Map header and payload to usable tags
-    msg_ref = msg_header[0]
-    msg_dest_addr = msg_header[1]
-    msg_dest_port = msg_header[2]
-    msg_source_addr = msg_header[3]
-    msg_source_port = msg_header[4]
-    # Map message payload to usable tags
-    msg_type = msg_payload[0]
-    dev_name = msg_payload[1]
-    dev_addr = msg_payload[2]
-    dev_status = msg_payload[3]
-    dev_last_seen = msg_payload[4]
+    # Map message into CCS message class
+    message = helpers.GDSmessage()
+    message.complete = msg
 
-    # Build new message to forward to wemo service
-    log.debug('Generating message to forward to wemo service')
-    out_msg = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
-        ref_num.new(),
-        service_addresses['wemo_addr'],
-        service_addresses['wemo_port'],
-        msg_source_addr,
-        msg_source_port,
-        msg_type,
-        dev_name,
-        dev_addr,
-        dev_status,
-        dev_last_seen)
+    # Search device table to find device name
+    log.debug('Searching device table for [%s]', message.dev_name)
+    dev_pointer = helpers.search_device_list(log, devices, message.dev_name)
+    log.debug('Match found at device table index: %s', dev_pointer)
 
-    # Load message into output list
-    log.debug('Loading completed msg: [%s]', out_msg)
-    out_msg_list.append(copy.copy(out_msg))
+    # Modify CCS message to forward to wemo service
+    if dev_pointer is not None:
+        message.dest_addr = service_addresses['wemo_addr']
+        message.dest_port = service_addresses['wemo_port']
+        message.dev_addr = devices[dev_pointer].address
+        message.dev_status = devices[dev_pointer].status,
+        message.dev_last_seen = devices[dev_pointer].last_seen
+
+        # Load message into output list
+        log.debug('Loading completed msg: [%s]', message.complete)
+        out_msg_list.append(message.complete)
+
+    else:
+        log.debug('Device not in device list: %s', message.dev_name)
 
     # Return response message
     return out_msg_list
 
 
 # Process messages type 201 ***************************************************
-def process_wemo_gds_ack(log, devices, msg_payload):
+def process_wemo_gds_ack(log, devices, msg):
     """ Get Device Status ACK
-        This function takes a type 201 messages uses it to update the status
-        of a device as currently defined in the device list.
+        When a GDS-ACK message is received, this function will:
+        1) Search for the device in the active device table
+        2) If found, update the status and last-seen values in the device
+           table to the values encoded in the message.
     """
     # Initialize result list
     out_msg_list = []
 
-    # Map message payload to usable tags
-    msg_type = msg_payload[0]
-    dev_name = msg_payload[1]
-    dev_status = msg_payload[2]
-    dev_last_seen = msg_payload[3]
+    # Map message into CCS message class
+    message = helpers.GDSACKmessage()
+    message.complete = msg
 
     # Search device table to find device name
-    log.debug('Searching device table for [%s]', dev_name)
-    dev_pointer = helpers.search_device_list(log, devices, dev_name)
+    log.debug('Searching device table for [%s]', message.dev_name)
+    dev_pointer = helpers.search_device_list(log, devices, message.dev_name)
+    log.debug('Match found at device table index: %s', dev_pointer)    
 
     # Update values based on message content
     if dev_pointer is not None:
         log.debug('Updating device [%s] status to [%s] and last seen to [%s]',
-                  dev_name,
-                  dev_status,
-                  dev_last_seen)
-        devices[dev_pointer].status = copy.copy(dev_status)
-        devices[dev_pointer].last_seen = copy.copy(dev_last_seen)
+                  message.dev_name,
+                  message.dev_status,
+                  message.dev_last_seen)
+        devices[dev_pointer].status = copy.copy(message.dev_status)
+        devices[dev_pointer].last_seen = copy.copy(message.dev_last_seen)
     else:
         log.debug('Device [%s] not found in active device table. '
-                  'No further action being taken', dev_name)
+                  'No further action being taken', message.dev_name)
 
     # Return response message
     return out_msg_list
 
 
 # Process messages type 202 ***************************************************
-def process_wemo_sds(log, ref_num, devices, msg_header, msg_payload,
-                     service_addresses, message_types):
+def process_wemo_sds(log, devices, msg, service_addresses):
     """ Set Device Status
-        This function takes any SDS messages and forwards them on to the
-        wemo service.  The forwarded message is updated to contain the source
-        info for the original service that initially sent the message so the
-        response gets back to where the reqeust originated.
+        When a mis-directed SDS message is received, this function will:
+        1) Update destination addr and port values in the SDS message to the
+           appropraite values for the wemo service
+        2) Update the device address, status, and last_seen values to the most
+           current values known
+        3) Queue the message to be sent to the wemo service
     """
     # Initialize result list
     out_msg_list = []
 
-    # Map header and payload to usable tags
-    msg_ref = msg_header[0]
-    msg_dest_addr = msg_header[1]
-    msg_dest_port = msg_header[2]
-    msg_source_addr = msg_header[3]
-    msg_source_port = msg_header[4]
-    msg_type = msg_payload[0]
-    dev_name = msg_payload[1]
-    dev_addr = msg_payload[2]
-    dev_cmd = msg_payload[3]
+    # Map message into CCS message class
+    message = helpers.SDSmessage()
+    message.complete = msg
 
     # Search device table to find device name
-    log.debug('Searching device table for [%s]', dev_name)
-    dev_pointer = helpers.search_device_list(log, devices, dev_name)
+    log.debug('Searching device table for [%s]', message.dev_name)
+    dev_pointer = helpers.search_device_list(log, devices, message.dev_name)
+    log.debug('Match found at device table index: %s', dev_pointer)
 
     # Update values based on message content
     if dev_pointer is not None:
-        # Build new message to forward to wemo service
-        log.debug('Generating SDS message to forward to wemo service')
-        out_msg = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
-            ref_num.new(),
-            service_addresses['wemo_addr'],
-            service_addresses['wemo_port'],
-            msg_source_addr,
-            msg_source_port,
-            message_types['wemo_sds'],
-            dev_name,
-            dev_addr,
-            dev_cmd,
-            devices[dev_pointer].status,
-            devices[dev_pointer].last_seen)
+        # Update message to forward to wemo service
+        log.debug('Updating SDS message to forward to wemo service')
+        message.dest_addr=service_addresses['wemo_addr']
+        message.dest_port=service_addresses['wemo_port']
+        message.dev_status=devices[dev_pointer].status
+        message.dev_last_seen=devices[dev_pointer].last_seen
+        
         # Load message into output list
-        log.debug('Loading completed msg: [%s]', out_msg)
-        out_msg_list.append(copy.copy(out_msg))
+        log.debug('Loading completed msg: [%s]', out_msg.complete)
+        out_msg_list.append(out_msg.complete)
     else:
         log.debug('Device [%s] not found in active device table. '
-                  'No further action being taken', dev_name)
+                  'No further action being taken', message.dev_name)
 
     # Return response message
     return out_msg_list
 
 
 # Process messages type 203 ***************************************************
-def process_wemo_sds_ack(log, devices, msg_payload):
+def process_wemo_sds_ack(log, devices, msg):
     """ Set Device Status ACK
-        This function takes a SDS ACK message and uses it to update the status
-        of a device as currently defined in the device list.
+        When a SDS-ACK message is received, this function will:
+        1) Search for the device in the active device table
+        2) If found, update the status and last-seen values in the device
+           table to the values encoded in the message.
     """
     # Initialize result list
     out_msg_list = []
 
-    # Map message payload to usable tags
-    msg_type = msg_payload[0]
-    dev_name = msg_payload[1]
-    dev_status = msg_payload[2]
-    dev_last_seen = msg_payload[3]
+    # Map message into CCS message class
+    message = helpers.SDSACKmessage()
+    message.complete = msg
 
     # Search device table to find device name
-    log.debug('Searching device table for [%s]', dev_name)
-    dev_pointer = helpers.search_device_list(log, devices, dev_name)
+    log.debug('Searching device table for [%s]', message.dev_name)
+    dev_pointer = helpers.search_device_list(log, devices, message.dev_name)
+    log.debug('Match found at device table index: %s', dev_pointer)  
 
     # Update values based on message content
     if dev_pointer is not None:
         log.debug('Updating device [%s] status to [%s] and last seen to [%s]',
-                  dev_name,
-                  dev_status,
-                  dev_last_seen)
-        devices[dev_pointer].status = copy.copy(dev_status)
-        devices[dev_pointer].last_seen = copy.copy(dev_last_seen)
+                  message.dev_name,
+                  message.dev_status,
+                  message.dev_last_seen)
+        devices[dev_pointer].status = copy.copy(message.dev_status)
+        devices[dev_pointer].last_seen = copy.copy(message.dev_last_seen)
     else:
         log.debug('Device [%s] not found in active device table. '
-                  'No further action being taken', dev_name)
+                  'No further action being taken', message.dev_name)
 
     # Return response message
     return out_msg_list

@@ -22,16 +22,19 @@ __status__ = "Development"
 # Create CHECK COMMAND SCHEDULE messages **************************************
 def create_sched_ccs(log, ref_num, devices, service_addresses, message_types):
     """ Check Command Schedule Message
-        This function triggers an message for each device in the device table
-        requesting that the scheduling service decide if they should be on or
-        off based upon the device schedule.
+        When called, this function will:
+        1) Generate and queue a CCS message for every device in the device
+           list
+        2) Queue the message to be sent to the schedule service
     """
     # Initialize result list
     out_msg_list = []
 
     # Create CCS messages for each device in the list
-    for d in devices:
-        if d.rule == 'schedule' or d.rule == 'dusk_to_dawn' or d.rule == '':
+    for device in devices:
+        if device.rule == 'schedule' or \
+           device.rule == 'dusk_to_dawn' or \
+           device.rule == '':
             out_msg = helpers.CCSmessage(
                 ref=ref_num.new(),
                 dest_addr=service_addresses['schedule_addr'],
@@ -39,7 +42,7 @@ def create_sched_ccs(log, ref_num, devices, service_addresses, message_types):
                 source_addr=service_addresses['automation_addr'],
                 source_port=service_addresses['automation_port'],
                 msg_type=message_types['schedule_ccs'],
-                msg_name=d.name)
+                msg_name=device.name)
 
             # Load message into output list
             log.debug('Loading completed msg: [%s]', out_msg.complete)
@@ -50,12 +53,14 @@ def create_sched_ccs(log, ref_num, devices, service_addresses, message_types):
 
 
 # Process messages type 301 ***************************************************
-def process_sched_ccs(log, ref_num, devices, msg, service_addresses, message_types):
+def process_sched_ccs(log, devices, msg, service_addresses):
     """ Check Command Schedule
-        This function takes any CCS messages and forwards them on to the
-        schedule service.  The forwarded message is updated to contain the source
-        info for the original service that initially sent the message so the
-        response gets back to where the reqeust originated.
+        When a mis-directed CCS message is received, this function will:
+        1) Update destination addr and port values in the CCS message to the
+           appropraite values for the schedule service
+        2) Update the device address, status, and last_seen values to the most
+           current values known
+        3) Queue the message to be sent to the schedule service
     """
     # Initialize result list
     out_msg_list = []
@@ -71,7 +76,6 @@ def process_sched_ccs(log, ref_num, devices, msg, service_addresses, message_typ
 
     # Modify CCS message to forward to wemo service
     if dev_pointer is not None:
-        message.ref = ref_num.new()
         message.dest_addr = service_addresses['schedule_addr']
         message.dest_port = service_addresses['schedule_port']
         message.dev_addr = devices[dev_pointer].address
@@ -92,9 +96,12 @@ def process_sched_ccs(log, ref_num, devices, msg, service_addresses, message_typ
 # Process messages type 301 ***************************************************
 def process_sched_ccs_ack(log, ref_num, devices, msg, service_addresses, message_types):
     """ Check Command Schedule ACK
-        This function takes any CCS ACK messages received and issues the
-        appropriate device commands via messages to the appropraite services
-        so those commands are executed
+        When a CCS-ACK message is received, this function will:
+        1) Check if the command in the message matches the last command
+           sent to the device
+        2) If a new command is detected, a message is created and queued to send that
+           command the appropriate device gateway
+        3) Queue the message to be sent to the appropriate device gateway
     """
     # Initialize result list
     out_msg_list = []
@@ -140,7 +147,7 @@ def process_sched_ccs_ack(log, ref_num, devices, msg, service_addresses, message
                 out_msg_list.append(out_msg.complete)
 
     else:
-        log.debug('Device not in device list: %s', message.dev_name) 
+        log.debug('Device not in device list: %s', message.dev_name)
 
     # Return response message
     return out_msg_list

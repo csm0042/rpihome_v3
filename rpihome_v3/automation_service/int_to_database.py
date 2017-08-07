@@ -22,8 +22,8 @@ __status__ = "Development"
 # Process LOG STATUS UPDATE messages ******************************************
 def process_db_lsu(log, msg, service_addresses):
     """ Process Database Log Status Update Message
-        This function triggers an insert query in the device status table to
-        log updated device status(es) whenever state changes are detected.
+        When a mis-directed LSU message is received, this function will:
+        1) Re-directs LSU messages to database service
     """
     # Initialize result list
     out_msg_list = []
@@ -48,19 +48,22 @@ def process_db_lsu(log, msg, service_addresses):
 # Process LOG STATUS UPDATE ACK messages **************************************
 def process_db_lsu_ack(log, msg):
     """ Process Database Log Status Update ACK Message
-        This function processes the positive ACK that is returned when a LSU
-        message is successfully processed
+        When a LSU-ACK message is received, this function will:
+        1) Processess the ACK from a LSU message re-direct
     """
+    # Map message into LSU message class
+    message = helpers.LSUACKmessage()
+    message.complete = msg
+
     # Log receipt of ACK for debug purposes
-    log.debug('LSU ACK Received: %s', msg)
+    log.debug('LSU ACK Received: %s', msg.complete)
 
 
 # Process RETURN COMMAND message **********************************************
 def process_db_rc(log, msg, service_addresses):
     """ Process Database Return Command Message
-        This function triggers a select query for the pending command table in
-        the database.  Commands that are not processed and less than 5 minutes
-        old will be returned in the ACK for this message.
+        When a mis-directed RC message is received, this function will:
+        1) Re-direct RC message to database service
     """
     # Initialize result list
     out_msg_list = []
@@ -85,9 +88,10 @@ def process_db_rc(log, msg, service_addresses):
 # Process RETURN COMMAND ACK message ******************************************
 def process_db_rc_ack(log, ref_num, devices, msg, service_addresses, message_types):
     """ Process Database Return Command ACK Message
-        This function takes the results of the select query from the pending
-        command table and sends out messages as necessary to other processes
-        so those commands get executed
+        When a RC-ACK message is received, this function will:
+        1) Generate and queue a UC message to mark the command as processed
+        2) Generate and queue a SDS message to the appropriate device gateway
+           to forward to the field device for action
     """
     # Initialize result list
     out_msg_list = []
@@ -101,30 +105,7 @@ def process_db_rc_ack(log, ref_num, devices, msg, service_addresses, message_typ
     dev_pointer = helpers.search_device_list(log, devices, message.dev_name)
     log.debug('Match found at device table index: %s', dev_pointer)
 
-    # Create message to wemo service to issue command to device
-    if dev_pointer is not None:
-        # Wemo switch commands get sent to the wemo service for handling
-        if devices[dev_pointer].devtype == 'wemo_switch':
-            # Determine what command to issue
-            out_msg = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
-                ref_num.new(),
-                service_addresses['wemo_addr'],
-                service_addresses['wemo_port'],
-                service_addresses['automation_addr'],
-                service_addresses['automation_port'],
-                message_types['wemo_sds'],
-                message.dev_name,
-                devices[dev_pointer].address,
-                message.dev_cmd,
-                devices[dev_pointer].status,
-                devices[dev_pointer].last_seen)
-            # Load message into output list
-            log.debug('Loading completed msg: %s', out_msg.complete)
-            out_msg_list.append(out_msg.complete)
-    else:
-        log.debug('Device name not found in known device table')
-    # Regardless what was done with device command, perform database update
-    # to mark it as processed to avoid executing it again
+    # Send UC message to acknowledge received command and mark as processed
     log.debug('Generating UC message to mark device cmd as processed')
     out_msg = helpers.UCmessage(
         log=log,
@@ -141,49 +122,69 @@ def process_db_rc_ack(log, ref_num, devices, msg, service_addresses, message_typ
     log.debug('Loading completed msg: %s', out_msg.complete)
     out_msg_list.append(out_msg.complete)
 
+    # Create message to wemo service to issue command to device
+    if dev_pointer is not None:
+        # Wemo switch commands get sent to the wemo service for handling
+        if devices[dev_pointer].devtype == 'wemo_switch':
+            # Determine what command to issue
+            out_msg = helpers.SDSmessage(
+                ref=ref_num.new(),
+                dest_addr=service_addresses['wemo_addr'],
+                dest_port=service_addresses['wemo_port'],
+                source_addr=service_addresses['automation_addr'],
+                source_port=service_addresses['automation_port'],
+                msg_type=message_types['wemo_sds'],
+                dev_name=message.dev_name,
+                dev_addr=devices[dev_pointer].address,
+                dev_cmd=message.dev_cmd,
+                dev_status=devices[dev_pointer].status,
+                dev_last_seen=devices[dev_pointer].last_seen)
+            # Load message into output list
+            log.debug('Loading completed msg: %s', out_msg.complete)
+            out_msg_list.append(out_msg.complete)
+    else:
+        log.debug('Device name not found in known device table')
+
     # Return response message
     return out_msg_list
 
 
 # Process UPDATE COMMAND message **********************************************
-def process_db_uc(log, ref_num, msg_header, msg_payload,
-                  service_addresses, message_types):
+def process_db_uc(log, msg, service_addresses):
     """ Process Database Update Command Message
-        This function triggers and update query to add a timestamp to the
-        "processed" column for records in the pending command table.  This
-        prevents commands from being executed more than once.
+        When a mis-directed UC message is received, this function will:
+        1) Redirect that message to the database service
     """
     # Initialize result list
     out_msg_list = []
-    # Map header and payload to usable tags
-    msg_source_addr = msg_header[3]
-    msg_source_port = msg_header[4]
-    # Map message payload to usable tags
-    cmd_id = msg_payload[1]
-    cmd_processed = msg_payload[2]
-    # Build new message to forward to db service
-    log.debug('Generating UC message to mark device cmd as processed')
-    out_msg = '%s,%s,%s,%s,%s,%s,%s,%s' % (
-        ref_num.new(),
-        service_addresses['database_addr'],
-        service_addresses['database_port'],
-        msg_source_addr,
-        msg_source_port,
-        message_types['database_uc'],
-        cmd_id,
-        cmd_processed)
+
+    # Map message into LSU message class
+    message = helpers.UCmessage()
+    message.complete = msg
+
+    # Update destination address and port to forward to db service
+    log.debug('Revising UC message to to forward to DB service')
+    message.dest_addr = service_addresses['database_addr']
+    message.dest_port = service_addresses['database_port']    
+    
     # Load message into output list
-    log.debug('Loading completed msg: [%s]', out_msg)
-    out_msg_list.append(copy.copy(out_msg))
+    log.debug('Loading completed msg: %s', message.complete)
+    out_msg_list.append(message.complete)
+
     # Return response message
     return out_msg_list
 
 
+
 # Process UPDATE COMMAND ACK message ******************************************
-def process_db_uc_ack(log, msg_header, msg_payload):
+def process_db_uc_ack(log, msg):
     """ Process Database Update Command ACK Message
-        This function processes the positive ACK that is retunred when a UC
-        message is successfully processed
+        When a UC-ACK message is received, this function will:
+        1) Processess the ACK from a UC message re-direct
     """
+    # Map message into LSU message class
+    message = helpers.UCACKmessage()
+    message.complete = msg
+
     # Log receipt of ACK for debug purposes
-    log.debug('LSU ACK Received: [%s,%s]', msg_header, msg_payload)
+    log.debug('UC ACK Received: %s', msg.complete)

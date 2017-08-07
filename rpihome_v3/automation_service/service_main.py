@@ -84,10 +84,8 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                     log.debug('Message is a Update Command (UC) message')
                     out_msg_list = service.process_db_uc(
                         log,
-                        ref_num,
                         next_msg,
-                        service_addresses,
-                        message_types)
+                        service_addresses)
                 # Update Command ACK messages (UCA)
                 elif msg_type == message_types['database_uc_ack']:
                     log.debug('Message is a Update Command ACK (UCA) message')
@@ -102,7 +100,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                     log.debug('Message is a Get Device Status (GDS) message')
                     out_msg_list = service.process_wemo_gds(
                         log,
-                        ref_num,
+                        devices,
                         next_msg,
                         service_addresses)
                 # Get Device Status ACK messages (GDSA)
@@ -117,11 +115,9 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                     log.debug('Message is a Set Device Status (SDS) message')
                     out_msg_list = service.process_wemo_sds(
                         log,
-                        ref_num,
                         devices,
                         next_msg,
-                        service_addresses,
-                        message_types)
+                        service_addresses)
                 # Set Device Status ACK messages (SDSA)
                 elif msg_type == message_types['wemo_sds_ack']:
                     log.debug('Message is a Set Device Status ACK (SDSA) message')
@@ -137,11 +133,9 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                     log.debug('Message is a Check Command Schedule (CCS) message')
                     out_msg_list = service.process_sched_ccs(
                         log,
-                        ref_num,
                         devices,
                         next_msg,
-                        service_addresses,
-                        message_types)
+                        service_addresses)
                 # Check Command Schedule ACK messages (CCSA)
                 if msg_type == message_types['schedule_ccs_ack']:
                     log.debug('Message is a Check Command Schedule ACK (CCSA) message')
