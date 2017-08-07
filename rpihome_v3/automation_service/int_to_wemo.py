@@ -32,7 +32,7 @@ def process_wemo_gds(log, devices, msg, service_addresses):
     out_msg_list = []
 
     # Map message into CCS message class
-    message = helpers.GDSmessage()
+    message = helpers.GDSmessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
@@ -71,7 +71,7 @@ def process_wemo_gds_ack(log, devices, msg):
     out_msg_list = []
 
     # Map message into CCS message class
-    message = helpers.GDSACKmessage()
+    message = helpers.GDSACKmessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
@@ -109,7 +109,7 @@ def process_wemo_sds(log, devices, msg, service_addresses):
     out_msg_list = []
 
     # Map message into CCS message class
-    message = helpers.SDSmessage()
+    message = helpers.SDSmessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
@@ -127,8 +127,8 @@ def process_wemo_sds(log, devices, msg, service_addresses):
         message.dev_last_seen=devices[dev_pointer].last_seen
         
         # Load message into output list
-        log.debug('Loading completed msg: [%s]', out_msg.complete)
-        out_msg_list.append(out_msg.complete)
+        log.debug('Loading completed msg: [%s]', message.complete)
+        out_msg_list.append(message.complete)
     else:
         log.debug('Device [%s] not found in active device table. '
                   'No further action being taken', message.dev_name)
@@ -149,7 +149,7 @@ def process_wemo_sds_ack(log, devices, msg):
     out_msg_list = []
 
     # Map message into CCS message class
-    message = helpers.SDSACKmessage()
+    message = helpers.SDSACKmessage(log=log)
     message.complete = msg
 
     # Search device table to find device name

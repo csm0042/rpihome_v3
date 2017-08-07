@@ -28,7 +28,7 @@ def process_db_lsu(log, ref_num, database, msg, message_types):
     out_msg_list = []
 
     # Map message header & payload to usable tags
-    message = helpers.LSUmessage()
+    message = helpers.LSUmessage(log=log)
     message.complete = msg
 
     # Execute Insert Query
@@ -73,7 +73,7 @@ def process_db_rc(log, ref_num, database, msg, message_types):
     result_list = []
 
     # Map message header & payload to usable tags
-    message = helpers.RCmessage()
+    message = helpers.RCmessage(log=log)
     message.complete = msg
 
     # Execute select Query
@@ -113,47 +113,41 @@ def process_db_rc(log, ref_num, database, msg, message_types):
 
 # Internal Service Work Subtask - wemo turn off *******************************
 @asyncio.coroutine
-def process_db_uc(log, ref_num, database, msg_header, msg_payload, message_types):
+def process_db_uc(log, ref_num, database, msg, message_types):
     """ Function to set state of wemo device to "off" """
     # Initialize result list
     out_msg_list = []
 
-    # Map message header to usable tags
-    msg_ref = msg_header[0]
-    msg_dest_addr = msg_header[1]
-    msg_dest_port = msg_header[2]
-    msg_source_addr = msg_header[3]
-    msg_source_port = msg_header[4]
-    # Map message payload to usable tags
-    msg_type = msg_payload[0]
-    cmd_id = msg_payload[1]
-    cmd_processed = msg_payload[2]
+    # Map message header & payload to usable tags
+    message = helpers.UCmessage(log=log)
+    message.complete = msg
 
     # Execute update Query
     log.debug('Querying database to mark command with ID [%s] as complete '
               'with timestamp [%s]',
-              cmd_id,
-              cmd_processed)
+              message.dev_id,
+              message.dev_processed)
     service.update_command(
         log,
         database,
-        cmd_id,
-        cmd_processed)
+        message.dev_id,
+        message.dev_processed)
 
     # Send response indicating query was executed
     log.debug('Building response message header')
-    out_msg = '%s,%s,%s,%s,%s,%s,%s' % (
-        ref_num.new(),
-        msg_source_addr,
-        msg_source_port,
-        msg_dest_addr,
-        msg_dest_port,
-        message_types['database_uc_ack'],
-        cmd_id)
+    out_msg = helpers.UCACKmessage(
+        log=log,
+        ref=ref_num.new(),
+        dest_addr=message.source_addr,
+        dest_port=message.source_port,
+        source_addr=message.dest_addr,
+        source_port=message.dest_port,
+        msg_type=message_types['database_uc_ack'],
+        dev_id=message.dev_id)
 
     # Load message into output list
-    log.debug('Loading completed msg: [%s]', out_msg)
-    out_msg_list.append(copy.copy(out_msg))
+    log.debug('Loading completed msg: [%s]', out_msg.complete)
+    out_msg_list.append(out_msg.complete)
 
     # Return response message
     return out_msg_list

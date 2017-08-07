@@ -36,6 +36,7 @@ def create_sched_ccs(log, ref_num, devices, service_addresses, message_types):
            device.rule == 'dusk_to_dawn' or \
            device.rule == '':
             out_msg = helpers.CCSmessage(
+                log=log,
                 ref=ref_num.new(),
                 dest_addr=service_addresses['schedule_addr'],
                 dest_port=service_addresses['schedule_port'],
@@ -66,7 +67,7 @@ def process_sched_ccs(log, devices, msg, service_addresses):
     out_msg_list = []
 
     # Map message into CCS message class
-    message = helpers.CCSmessage()
+    message = helpers.CCSmessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
@@ -107,7 +108,7 @@ def process_sched_ccs_ack(log, ref_num, devices, msg, service_addresses, message
     out_msg_list = []
 
     # Map message into LSU message class
-    message = helpers.CCSACKmessage()
+    message = helpers.CCSACKmessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
@@ -130,6 +131,7 @@ def process_sched_ccs_ack(log, ref_num, devices, msg, service_addresses, message
                 # Build new message to forward to wemo service
                 log.debug('Generating message to wemo service')
                 out_msg = helpers.SDSmessage(
+                    log=log,
                     ref=ref_num.new(),
                     dest_addr=service_addresses['schedule_addr'],
                     dest_port=service_addresses['schedule_port'],

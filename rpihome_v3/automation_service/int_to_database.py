@@ -29,7 +29,7 @@ def process_db_lsu(log, msg, service_addresses):
     out_msg_list = []
 
     # Map message into LSU message class
-    message = helpers.LSUmessage()
+    message = helpers.LSUmessage(log=log)
     message.complete = msg
 
     # Update destination address and port to forward to db service
@@ -52,7 +52,7 @@ def process_db_lsu_ack(log, msg):
         1) Processess the ACK from a LSU message re-direct
     """
     # Map message into LSU message class
-    message = helpers.LSUACKmessage()
+    message = helpers.LSUACKmessage(log=log)
     message.complete = msg
 
     # Log receipt of ACK for debug purposes
@@ -69,7 +69,7 @@ def process_db_rc(log, msg, service_addresses):
     out_msg_list = []
 
     # Map message into LSU message class
-    message = helpers.RCmessage()
+    message = helpers.RCmessage(log=log)
     message.complete = msg
 
     # Update destination address and port to forward to db service
@@ -97,7 +97,7 @@ def process_db_rc_ack(log, ref_num, devices, msg, service_addresses, message_typ
     out_msg_list = []
 
     # Map message into LSU message class
-    message = helpers.RCmessage()
+    message = helpers.RCmessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
@@ -128,6 +128,7 @@ def process_db_rc_ack(log, ref_num, devices, msg, service_addresses, message_typ
         if devices[dev_pointer].devtype == 'wemo_switch':
             # Determine what command to issue
             out_msg = helpers.SDSmessage(
+                log=log,
                 ref=ref_num.new(),
                 dest_addr=service_addresses['wemo_addr'],
                 dest_port=service_addresses['wemo_port'],
@@ -159,7 +160,7 @@ def process_db_uc(log, msg, service_addresses):
     out_msg_list = []
 
     # Map message into LSU message class
-    message = helpers.UCmessage()
+    message = helpers.UCmessage(log=log)
     message.complete = msg
 
     # Update destination address and port to forward to db service
