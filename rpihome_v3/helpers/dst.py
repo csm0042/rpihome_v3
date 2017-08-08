@@ -20,9 +20,9 @@ __status__ = "Development"
 
 # Daylight Savings Time Class *************************************************
 class USdst(object):
-    def __init__(self, logger=None):
+    def __init__(self, log=None):
         # Configure logger
-        self.log = logger or logging.getLogger(__name__)
+        self.log = log or logging.getLogger(__name__)
         # Init tags        
         self.dt = datetime.datetime.now()
         self.marchStartsOn = datetime.date(2016,3,1)

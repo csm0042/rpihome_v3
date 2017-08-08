@@ -3,6 +3,7 @@
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
+import logging
 
 
 # Authorship Info *************************************************************
@@ -18,11 +19,32 @@ __status__ = "Development"
 
 # Class definition ************************************************************
 class RefNum(object):
-    def __init__(self):
-        self.source = 100
+    def __init__(self, log):
+        # Configure logger
+        self.log = log or logging.getLogger(__name__)
+        # Init tags
+        self._source = 100
 
+    # source control **********************************************************
+    @property
+    def source(self):
+        self.log.debug('Returning current value: %s', self._source)
+        return str(self._source)
+
+    @source.setter
+    def source(self, value):
+        if isinstance(value, int):
+            self._source = value
+            self.log.debug('Source updated to: %s', self._source)
+        elif isinstance(value, str):
+            self._source = int(value)
+            self.log.debug('Source updated to: %s', self._source)
+        else:
+            self.log.debug('Invalid source value: %s', value)
+
+    # new value control *******************************************************
     def new(self):
-        self.source += 1
-        if self.source > 999:
-            self.source = 100
-        return str(self.source)
+        self._source += 1
+        if self._source > 999:
+            self._source = 100
+        return str(self._source)
