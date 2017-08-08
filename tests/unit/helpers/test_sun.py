@@ -7,9 +7,8 @@ import datetime
 import logging
 import sys
 import unittest
-if __name__ == "__main__":
-    sys.path.append("..")
-import rpihome_v3.helpers as helpers
+import env
+from rpihome_v3.helpers import Sun
 
 
 # Authorship Info *************************************************************
@@ -31,33 +30,33 @@ class TestSun(unittest.TestCase):
         logging.basicConfig(stream=sys.stdout)
         self.log = logging.getLogger(__name__)
         self.log.level = logging.DEBUG
-        super(TestSun, self).__init__(*args, **kwargs)        
+        super(TestSun, self).__init__(*args, **kwargs)
 
 
     def setUp(self):
         self.log = logging.getLogger(__name__)
-        self.sun = helpers.Sun(38.566, -90.409, -5, self.log)
+        self.sun = Sun(38.566, -90.409, -5, self.log)
         super(TestSun, self).setUp()
 
 
     def test_sunrise(self):
         """ tests the functionality of the sunrise/sunset calc function """
         self.log.debug('Sunrise: %s', self.sun.sunrise())
-        self.assertGreater(self.sun.sunrise(), datetime.time(4, 0))
+        self.assertGreater(self.sun.sunrise().time(), datetime.time(4, 0))
 
 
     def test_solarnoon(self):
         """ tests the functionality of the sunrise/sunset calc function """
         self.log.debug('Solarnoon: %s', self.sun.solarnoon())
-        self.assertGreater(self.sun.solarnoon(), datetime.time(4, 0))
-        self.assertLess(self.sun.solarnoon(), datetime.time(16, 0))
+        self.assertGreater(self.sun.solarnoon().time(), datetime.time(4, 0))
+        self.assertLess(self.sun.solarnoon().time(), datetime.time(16, 0))
 
 
     def test_sunset(self):
         """ tests the functionality of the sunrise/sunset calc function """
         self.log.debug('Sunset: %s', self.sun.sunset())
-        self.assertGreater(self.sun.sunset(), datetime.time(16, 0))
-        self.assertLess(self.sun.sunset(), datetime.time(22, 0))
+        self.assertGreater(self.sun.sunset().time(), datetime.time(16, 0))
+        self.assertLess(self.sun.sunset().time(), datetime.time(22, 0))
 
 
 if __name__ == "__main__":

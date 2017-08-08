@@ -6,9 +6,8 @@
 import logging
 import sys
 import unittest
-if __name__ == "__main__":
-    sys.path.append("..")
-import rpihome_v3.helpers as helpers
+import env
+from rpihome_v3.helpers import setup_log_handlers
 
 
 # Define test class ***********************************************************
@@ -21,7 +20,7 @@ class TestLogger(unittest.TestCase):
         self.log.level = logging.DEBUG
         self.info_file = "c://python_logs//info.log"
         self.debug_file = "c://python_logs//debug.log"
-        self.logger = helpers.setup_log_handlers(
+        self.logger = setup_log_handlers(
             __file__, self.debug_file, self.info_file)
         super(TestLogger, self).__init__(*args, **kwargs)
 

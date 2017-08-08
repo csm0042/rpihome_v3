@@ -8,9 +8,8 @@ import datetime
 import logging
 import pywemo
 import sys
-if __name__ == "__main__":
-    sys.path.append("..")
-import helpers
+import env
+from rpihome_v3.helpers import check_ipv4
 
 
 # Authorship Info *************************************************************
@@ -45,7 +44,7 @@ class WemoAPI(object):
 
     def discover(self, name, address):
         """ discovers wemo device on network based upon known IP address """
-        if helpers.check_ipv4(address) is True:
+        if check_ipv4(address) is True:
             self.log.debug('Valid IP address provided')
             # Attempt to discover wemo device
             try:
