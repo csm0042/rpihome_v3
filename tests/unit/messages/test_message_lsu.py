@@ -7,9 +7,8 @@ import datetime
 import logging
 import sys
 import unittest
-if __name__ == "__main__":
-    sys.path.append("..")
-import rpihome_v3.helpers as helpers
+import env
+from rpihome_v3.messages import LSUmessage
 
 
 # Define test class ***********************************************************
@@ -26,7 +25,7 @@ class TestLSUmessage(unittest.TestCase):
 
 
     def setUp(self):
-        self.lsu = helpers.LSUmessage(log=self.log)
+        self.lsu = LSUmessage(log=self.log)
         super(TestLSUmessage, self).setUp()
 
 
@@ -34,7 +33,7 @@ class TestLSUmessage(unittest.TestCase):
         """ test class __init__ and input variables """
         self.datetime = datetime.datetime.now()
         self.datetime_str = (str(self.datetime))[:19]
-        self.lsu = helpers.LSUmessage(
+        self.lsu = LSUmessage(
             log=self.log,
             ref='101',
             dest_addr='192.168.86.1',

@@ -1,11 +1,12 @@
 #!/usr/bin/python3
-""" message_rc.py:
+""" message_rc_ack.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import datetime
 import logging
-from .ipv4_help import check_ipv4
+import env
+from rpihome_v3.helpers import check_ipv4
 
 
 # Authorship Info *************************************************************
@@ -20,8 +21,8 @@ __status__ = "Development"
 
 
 # Message Class Definition ****************************************************
-class RCmessage(object):
-    """ Return Command message class and methods """
+class RCACKmessage(object):
+    """ Return Command ACK message class and methods """
     def __init__(self, log=None, **kwargs):
         # Configure logger
         self.log = log or logging.getLogger(__name__)
@@ -31,7 +32,11 @@ class RCmessage(object):
         self._source_addr = str()
         self._source_port = str()
         self._msg_type = str()
+        self._dev_id = str()
         self._dev_name = str()
+        self._dev_cmd = str()
+        self._dev_timestamp = str()
+        self._dev_processed = str()
         self.temp_list = []
         
         # Process input variables if present
@@ -61,10 +66,26 @@ class RCmessage(object):
                     self.msg_type = value
                     self.log.debug('Message type value set during __init__ to: '
                                    '%s', self.msg_type)
+                if key == "dev_id":
+                    self.dev_id = value
+                    self.log.debug('Device cmd ID value set during '
+                                   '__init__ to: %s', self.dev_id)                                   
                 if key == "dev_name":
                     self.dev_name = value
                     self.log.debug('Device name value set during __init__ to: '
                                    '%s', self.dev_name)
+                if key == "dev_cmd":
+                    self.dev_cmd = value
+                    self.log.debug('Device cmd value set during '
+                                   '__init__ to: %s', self.dev_cmd)
+                if key == "dev_timestamp":
+                    self.dev_timestamp = value
+                    self.log.debug('Device cmd timestamp value set during '
+                                   '__init__ to: %s', self.dev_timestamp) 
+                if key == "dev_processed":
+                    self.dev_processed = value
+                    self.log.debug('Device cmd processed value set during '
+                                   '__init__ to: %s', self.dev_processed)                                                                                                      
 
 
     # ref number field ********************************************************
@@ -201,6 +222,22 @@ class RCmessage(object):
         self.log.debug('Message type value updated to: '
                        '%s', self._msg_type)
 
+    # device ID field *********************************************************
+    @property
+    def dev_id(self):
+        self.log.debug('Returning current value of device ID: '
+                       '%s', self._dev_id)
+        return self._dev_name
+
+    @dev_id.setter
+    def dev_id(self, value):
+        if isinstance(value, str):
+            self._dev_id = value
+        else:
+            self._dev_id = str(value)
+        self.log.debug('Device ID value updated to: '
+                       '%s', self._dev_id)
+
     # device name field *******************************************************
     @property
     def dev_name(self):
@@ -217,25 +254,97 @@ class RCmessage(object):
         self.log.debug('Device name value updated to: '
                        '%s', self._dev_name)
 
+    # device cmd field ********************************************************
+    @property
+    def dev_cmd(self):
+        self.log.debug('Returning current value of device cmd: '
+                       '%s', self._dev_cmd)
+        return self._dev_cmd
+
+    @dev_cmd.setter
+    def dev_cmd(self, value):
+        if isinstance(value, str):
+            self._dev_cmd = value
+        else:
+            self._dev_cmd = str(value)
+        self.log.debug('Device cmd value updated to: '
+                       '%s', self._dev_cmd)
+
+    # device timestamp field **************************************************
+    @property
+    def dev_timestamp(self):
+        self.log.debug('Returning current value of device cmd timestamp: '
+                       '%s', self._dev_timestamp)
+        return self._dev_timestamp
+
+    @dev_timestamp.setter
+    def dev_timestamp(self, value):
+        if isinstance(value, datetime.datetime):
+            self._dev_timestamp = (str(value))[:19]
+        elif isinstance(value, datetime.time):
+            self._dev_timestamp = (str(
+                datetime.datetime.combine(
+                    datetime.datetime.now().date(), value)))[:19]
+        elif isinstance(value, datetime.date):
+            self._dev_timestamp = (str(
+                datetime.datetime.combine(
+                    value, datetime.datetime.now().time())))[:19]
+        if isinstance(value, str):
+            if len(value) >= 19:
+                self._dev_timestamp = value[:19]
+            else:
+                self._dev_timestamp = value
+        self.log.debug('Device cmd timestamp value updated to: '
+                       '%s', self._dev_timestamp)
+
+    # device last seen field **************************************************
+    @property
+    def dev_processed(self):
+        self.log.debug('Returning current value of device cmd processed: '
+                       '%s', self._dev_processed)
+        return self._dev_processed
+
+    @dev_processed.setter
+    def dev_processed(self, value):
+        if isinstance(value, datetime.datetime):
+            self._dev_processed = (str(value))[:19]
+        elif isinstance(value, datetime.time):
+            self._dev_processed = (str(
+                datetime.datetime.combine(
+                    datetime.datetime.now().date(), value)))[:19]
+        elif isinstance(value, datetime.date):
+            self._dev_processed = (str(
+                datetime.datetime.combine(
+                    value, datetime.datetime.now().time())))[:19]
+        if isinstance(value, str):
+            if len(value) >= 19:
+                self._dev_processed = value[:19]
+            else:
+                self._dev_processed = value
+        self.log.debug('Device cmd processed value updated to: '
+                       '%s', self._dev_processed)                       
 
     # complete message encode/decode methods **********************************
     @property
     def complete(self):
         self.log.debug('Returning current value of complete message: '
-                       '%s,%s,%s,%s,%s,%s,%s',
+                       '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s',
                        self._ref, self._dest_addr, self._dest_port,
                        self._source_addr, self._source_port,
-                       self._msg_type, self._dev_name)
-        return '%s,%s,%s,%s,%s,%s,%s' % (
+                       self._msg_type,
+                       self._dev_id, self._dev_name, self._dev_cmd,
+                       self._dev_timestamp, self._dev_processed)
+        return '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
             self._ref, self._dest_addr, self._dest_port,
             self._source_addr, self._source_port,
-            self._msg_type, self._dev_name)
+            self._msg_type, self._dev_id, self._dev_name, self._dev_cmd,
+            self._dev_timestamp, self._dev_processed)
 
     @complete.setter
     def complete(self, value):
         if isinstance(value, str):
             self.temp_list = value.split(',')
-            if len(self.temp_list) == 7:
+            if len(self.temp_list) == 11:
                 self.log.debug('Message was properly formatted for decoding')
                 self.ref = self.temp_list[0]
                 self.dest_addr = self.temp_list[1]
@@ -243,4 +352,8 @@ class RCmessage(object):
                 self.source_addr = self.temp_list[3]
                 self.source_port = self.temp_list[4]
                 self.msg_type = self.temp_list[5]
-                self.dev_name = self.temp_list[6]
+                self.dev_id = self.temp_list[6]
+                self.dev_name = self.temp_list[7]
+                self.dev_cmd = self.temp_list[8]
+                self.dev_timestamp = self.temp_list[9]
+                self.dev_processed = self.temp_list[10]
