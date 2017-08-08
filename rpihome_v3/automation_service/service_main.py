@@ -9,7 +9,14 @@ import datetime
 import logging
 import sys
 import time
-import automation_service as service
+import env
+from rpihome_v3.automation_service import process_db_lsu, process_db_lsu_ack
+from rpihome_v3.automation_service import process_db_rc, process_db_rc_ack
+from rpihome_v3.automation_service import process_db_uc, process_db_uc_ack
+from rpihome_v3.automation_service import process_wemo_gds, process_wemo_gds_ack
+from rpihome_v3.automation_service import process_wemo_sds, process_wemo_sds_ack
+from rpihome_v3.automation_service import process_sched_ccs, process_sched_ccs_ack
+from rpihome_v3.automation_service import create_sched_ccs
 
 
 # Authorship Info *************************************************************
@@ -28,6 +35,7 @@ __status__ = "Development"
 def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                       service_addresses, message_types):
     """ task to handle the work the service is intended to do """
+    log.debug('Starting main task')
     # Initialize timestamp for periodic DB checks
     last_check = datetime.datetime.now()
     while True:
@@ -52,27 +60,27 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                 # Log Status Update messages (LSU)
                 if msg_type == message_types['database_lsu']:
                     log.debug('Message is a Log Status Update (LSU) message')
-                    out_msg_list = service.process_db_lsu(
+                    out_msg_list = process_db_lsu(
                         log,
                         next_msg,
                         service_addresses)
                 # Log Status Update ACK messages (LSUA)
                 elif msg_type == message_types['database_lsu_ack']:
                     log.debug('Message is a Log Status Update ACK (LSUA) message')
-                    service.process_db_lsu_ack(
+                    process_db_lsu_ack(
                         log,
                         next_msg)
                 # Return Command messages (RC)
                 elif msg_type == message_types['database_rc']:
                     log.debug('Message is a Return Command (RC) message')
-                    out_msg_list = service.process_db_rc(
+                    out_msg_list = process_db_rc(
                         log,
                         next_msg,
                         service_addresses)
                 # Return Command ACK messages (RCA)
                 elif msg_type == message_types['database_rc_ack']:
                     log.debug('Message is a Return Command ACK (RCA) message')
-                    out_msg_list = service.process_db_rc_ack(
+                    out_msg_list = process_db_rc_ack(
                         log,
                         ref_num,
                         devices,
@@ -82,14 +90,14 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                 # Update Command messages (UC)
                 elif msg_type == message_types['database_uc']:
                     log.debug('Message is a Update Command (UC) message')
-                    out_msg_list = service.process_db_uc(
+                    out_msg_list = process_db_uc(
                         log,
                         next_msg,
                         service_addresses)
                 # Update Command ACK messages (UCA)
                 elif msg_type == message_types['database_uc_ack']:
                     log.debug('Message is a Update Command ACK (UCA) message')
-                    service.process_db_uc_ack(
+                    process_db_uc_ack(
                         log,
                         next_msg)
 
@@ -98,7 +106,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                 # Get Device Status messages (GDS)
                 if msg_type == message_types['wemo_gds']:
                     log.debug('Message is a Get Device Status (GDS) message')
-                    out_msg_list = service.process_wemo_gds(
+                    out_msg_list = process_wemo_gds(
                         log,
                         devices,
                         next_msg,
@@ -106,14 +114,14 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                 # Get Device Status ACK messages (GDSA)
                 elif msg_type == message_types['wemo_gds_ack']:
                     log.debug('Message is a Get Device Status ACK (GDSA) message')
-                    out_msg_list = service.process_wemo_gds_ack(
+                    out_msg_list = process_wemo_gds_ack(
                         log,
                         devices,
                         next_msg)
                 # Set Device Status messages (SDS)
                 elif msg_type == message_types['wemo_sds']:
                     log.debug('Message is a Set Device Status (SDS) message')
-                    out_msg_list = service.process_wemo_sds(
+                    out_msg_list = process_wemo_sds(
                         log,
                         devices,
                         next_msg,
@@ -121,7 +129,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                 # Set Device Status ACK messages (SDSA)
                 elif msg_type == message_types['wemo_sds_ack']:
                     log.debug('Message is a Set Device Status ACK (SDSA) message')
-                    out_msg_list = service.process_wemo_sds_ack(
+                    out_msg_list = process_wemo_sds_ack(
                         log,
                         devices,
                         next_msg)
@@ -131,7 +139,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                 # Check Command Schedule messages (CCS)
                 if msg_type == message_types['schedule_ccs']:
                     log.debug('Message is a Check Command Schedule (CCS) message')
-                    out_msg_list = service.process_sched_ccs(
+                    out_msg_list = process_sched_ccs(
                         log,
                         devices,
                         next_msg,
@@ -139,7 +147,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
                 # Check Command Schedule ACK messages (CCSA)
                 if msg_type == message_types['schedule_ccs_ack']:
                     log.debug('Message is a Check Command Schedule ACK (CCSA) message')
-                    out_msg_list = service.process_sched_ccs_ack(
+                    out_msg_list = process_sched_ccs_ack(
                         log,
                         ref_num,
                         devices,
@@ -156,7 +164,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
 
         # Periodically check scheduled on/off commands for devices
         if datetime.datetime.now() >= (last_check + datetime.timedelta(minutes=1)):
-            out_msg_list = service.create_sched_ccs(
+            out_msg_list = create_sched_ccs(
                 log,
                 ref_num,
                 devices,

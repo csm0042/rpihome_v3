@@ -5,7 +5,9 @@
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import copy
 import datetime
-import helpers
+import env
+from rpihome_v3.helpers import search_device_list
+from rpihome_v3.messages import LSUmessage, LSUACKmessage, RCmessage, SDSmessage, UCmessage, UCACKmessage
 
 
 # Authorship Info *************************************************************
@@ -29,7 +31,7 @@ def process_db_lsu(log, msg, service_addresses):
     out_msg_list = []
 
     # Map message into LSU message class
-    message = helpers.LSUmessage(log=log)
+    message = LSUmessage(log=log)
     message.complete = msg
 
     # Update destination address and port to forward to db service
@@ -52,7 +54,7 @@ def process_db_lsu_ack(log, msg):
         1) Processess the ACK from a LSU message re-direct
     """
     # Map message into LSU message class
-    message = helpers.LSUACKmessage(log=log)
+    message = LSUACKmessage(log=log)
     message.complete = msg
 
     # Log receipt of ACK for debug purposes
@@ -69,7 +71,7 @@ def process_db_rc(log, msg, service_addresses):
     out_msg_list = []
 
     # Map message into LSU message class
-    message = helpers.RCmessage(log=log)
+    message = RCmessage(log=log)
     message.complete = msg
 
     # Update destination address and port to forward to db service
@@ -97,17 +99,17 @@ def process_db_rc_ack(log, ref_num, devices, msg, service_addresses, message_typ
     out_msg_list = []
 
     # Map message into LSU message class
-    message = helpers.RCmessage(log=log)
+    message = RCmessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
     log.debug('Searching device table for [%s]', message.dev_name)
-    dev_pointer = helpers.search_device_list(log, devices, message.dev_name)
+    dev_pointer = search_device_list(log, devices, message.dev_name)
     log.debug('Match found at device table index: %s', dev_pointer)
 
     # Send UC message to acknowledge received command and mark as processed
     log.debug('Generating UC message to mark device cmd as processed')
-    out_msg = helpers.UCmessage(
+    out_msg = UCmessage(
         log=log,
         ref=ref_num.new(),
         dest_addr=service_addresses['database_addr'],
@@ -127,7 +129,7 @@ def process_db_rc_ack(log, ref_num, devices, msg, service_addresses, message_typ
         # Wemo switch commands get sent to the wemo service for handling
         if devices[dev_pointer].devtype == 'wemo_switch':
             # Determine what command to issue
-            out_msg = helpers.SDSmessage(
+            out_msg = SDSmessage(
                 log=log,
                 ref=ref_num.new(),
                 dest_addr=service_addresses['wemo_addr'],
@@ -160,7 +162,7 @@ def process_db_uc(log, msg, service_addresses):
     out_msg_list = []
 
     # Map message into LSU message class
-    message = helpers.UCmessage(log=log)
+    message = UCmessage(log=log)
     message.complete = msg
 
     # Update destination address and port to forward to db service
@@ -184,7 +186,7 @@ def process_db_uc_ack(log, msg):
         1) Processess the ACK from a UC message re-direct
     """
     # Map message into LSU message class
-    message = helpers.UCACKmessage()
+    message = UCACKmessage()
     message.complete = msg
 
     # Log receipt of ACK for debug purposes

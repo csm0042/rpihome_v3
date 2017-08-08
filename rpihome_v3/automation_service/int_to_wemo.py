@@ -4,7 +4,9 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import copy
-import helpers
+import env
+from rpihome_v3.helpers import search_device_list
+from rpihome_v3.messages import GDSmessage, GDSACKmessage, SDSmessage, SDSACKmessage
 
 
 # Authorship Info *************************************************************
@@ -32,12 +34,12 @@ def process_wemo_gds(log, devices, msg, service_addresses):
     out_msg_list = []
 
     # Map message into CCS message class
-    message = helpers.GDSmessage(log=log)
+    message = GDSmessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
     log.debug('Searching device table for [%s]', message.dev_name)
-    dev_pointer = helpers.search_device_list(log, devices, message.dev_name)
+    dev_pointer = search_device_list(log, devices, message.dev_name)
     log.debug('Match found at device table index: %s', dev_pointer)
 
     # Modify CCS message to forward to wemo service
@@ -71,12 +73,12 @@ def process_wemo_gds_ack(log, devices, msg):
     out_msg_list = []
 
     # Map message into CCS message class
-    message = helpers.GDSACKmessage(log=log)
+    message = GDSACKmessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
     log.debug('Searching device table for [%s]', message.dev_name)
-    dev_pointer = helpers.search_device_list(log, devices, message.dev_name)
+    dev_pointer = search_device_list(log, devices, message.dev_name)
     log.debug('Match found at device table index: %s', dev_pointer)    
 
     # Update values based on message content
@@ -109,12 +111,12 @@ def process_wemo_sds(log, devices, msg, service_addresses):
     out_msg_list = []
 
     # Map message into CCS message class
-    message = helpers.SDSmessage(log=log)
+    message = SDSmessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
     log.debug('Searching device table for [%s]', message.dev_name)
-    dev_pointer = helpers.search_device_list(log, devices, message.dev_name)
+    dev_pointer = search_device_list(log, devices, message.dev_name)
     log.debug('Match found at device table index: %s', dev_pointer)
 
     # Update values based on message content
@@ -149,12 +151,12 @@ def process_wemo_sds_ack(log, devices, msg):
     out_msg_list = []
 
     # Map message into CCS message class
-    message = helpers.SDSACKmessage(log=log)
+    message = SDSACKmessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
     log.debug('Searching device table for [%s]', message.dev_name)
-    dev_pointer = helpers.search_device_list(log, devices, message.dev_name)
+    dev_pointer = search_device_list(log, devices, message.dev_name)
     log.debug('Match found at device table index: %s', dev_pointer)  
 
     # Update values based on message content

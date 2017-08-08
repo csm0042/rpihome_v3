@@ -7,10 +7,9 @@
 import configparser
 import datetime
 import sys
-if __name__ == "__main__":
-    sys.path.append("..")
-import automation_service as service
-import helpers
+import env
+from rpihome_v3.helpers import setup_log_handlers
+from rpihome_v3.helpers import Device
 
 
 # Authorship Info *************************************************************
@@ -30,7 +29,7 @@ def configure_log(filename):
     config_file = configparser.ConfigParser()
     config_file.read(filename)
     # Set up application logging
-    log = helpers.setup_log_handlers(
+    log = setup_log_handlers(
         __file__,
         config_file['LOG FILES']['debug_log_file'],
         config_file['LOG FILES']['info_log_file'])
@@ -94,12 +93,12 @@ def configure_devices(filename, log):
                 log.debug('Double digit device ID number')
                 device_id = 'device' + str(i)
             devices.append(
-                helpers.Device(
-                    name=config_file['DEVICES'][device_id + '_name'],
-                    devtype=config_file['DEVICES'][device_id + '_devtype'],
-                    address=config_file['DEVICES'][device_id + '_address'],
-                    last_seen=datetime.datetime.now(),
-                    rule=config_file['DEVICES'][device_id + '_rule']))
+                Device(
+                    dev_name=config_file['DEVICES'][device_id + '_name'],
+                    dev_type=config_file['DEVICES'][device_id + '_devtype'],
+                    dev_addr=config_file['DEVICES'][device_id + '_address'],
+                    dev_last_seen=datetime.datetime.now(),
+                    dev_rule=config_file['DEVICES'][device_id + '_rule']))
             log.debug('Device %s added to automation device list',
                       config_file['DEVICES'][device_id + '_name'])
         except Exception:
@@ -108,7 +107,7 @@ def configure_devices(filename, log):
     for device in devices:
         log.debug(
             '%s, %s, %s, %s, %s, %s, %s',
-            device.name, device.devtype, device.address,
-            device.status, device.last_seen, device.cmd, device.rule)
+            device.dev_name, device.dev_type, device.dev_addr, device.dev_cmd, 
+            device.dev_status, device.dev_last_seen, device.dev_rule)
     # Return configured objects to main program
     return devices

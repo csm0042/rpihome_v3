@@ -6,10 +6,13 @@
 import asyncio
 from contextlib import suppress
 import sys
-if __name__ == "__main__":
-    sys.path.append("..")
-import automation_service as service
-import helpers
+import env
+from rpihome_v3.helpers import RefNum
+from rpihome_v3.automation_service import (
+    configure_log, configure_servers, configure_message_types, configure_location,
+    configure_devices, service_main_task
+)
+
 
 
 # Authorship Info *************************************************************
@@ -24,13 +27,13 @@ __status__ = "Development"
 
 
 # Application wide objects ****************************************************
-LOG = service.configure_log('config.ini')
-SERVICE_ADDRESSES = service.configure_servers('config.ini', LOG)
-MESSAGE_TYPES = service.configure_message_types('config.ini', LOG)
-CUR_LAT, CUR_LONG = service.configure_location('config.ini', LOG)
-DEVICES = service.configure_devices('config.ini', LOG)
+LOG = configure_log('config.ini')
+SERVICE_ADDRESSES = configure_servers('config.ini', LOG)
+MESSAGE_TYPES = configure_message_types('config.ini', LOG)
+CUR_LAT, CUR_LONG = configure_location('config.ini', LOG)
+DEVICES = configure_devices('config.ini', LOG)
 
-REF_NUM = helpers.RefNum()
+REF_NUM = RefNum(log=LOG)
 MSG_IN_QUEUE = asyncio.Queue()
 MSG_OUT_QUEUE = asyncio.Queue()
 LOOP = asyncio.get_event_loop()
@@ -128,7 +131,7 @@ def main():
     # Create main task for this service
     LOG.debug('Scheduling main task for execution')
     asyncio.ensure_future(
-        service.service_main_task(
+        service_main_task(
             LOG,
             REF_NUM,
             DEVICES,

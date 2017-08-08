@@ -21,7 +21,7 @@ __status__ = "Development"
 
 
 # Message Class Definition ****************************************************
-class SDSmessage(object):
+class GDSmessage(object):
     """ Log Status Update message class and methods """
     def __init__(self, log=None, **kwargs):
         # Configure logger
