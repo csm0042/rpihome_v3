@@ -5,8 +5,16 @@
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
 import copy
-import database_service as service
-import helpers
+import env
+from rpihome_v3.messages.message_lsu import LSUmessage
+from rpihome_v3.messages.message_lsu_ack import LSUACKmessage
+from rpihome_v3.messages.message_rc import RCmessage
+from rpihome_v3.messages.message_rc_ack import RCACKmessage
+from rpihome_v3.messages.message_uc import UCmessage
+from rpihome_v3.messages.message_uc_ack import UCACKmessage
+from rpihome_v3.database_service.persistance import insert_record
+from rpihome_v3.database_service.persistance import query_command
+from rpihome_v3.database_service.persistance import update_command
 
 
 # Authorship Info *************************************************************
@@ -28,7 +36,7 @@ def process_db_lsu(log, ref_num, database, msg, message_types):
     out_msg_list = []
 
     # Map message header & payload to usable tags
-    message = helpers.LSUmessage(log=log)
+    message = LSUmessage(log=log)
     message.complete = msg
 
     # Execute Insert Query
@@ -37,7 +45,7 @@ def process_db_lsu(log, ref_num, database, msg, message_types):
               message.dev_name,
               message.dev_status,
               message.dev_last_seen)
-    service.insert_record(
+    insert_record(
         log,
         database,
         message.dev_name,
@@ -46,7 +54,7 @@ def process_db_lsu(log, ref_num, database, msg, message_types):
 
     # Send response indicating query was executed
     log.debug('Building LSU ACK message')
-    out_msg = helpers.LSUACKmessage(
+    out_msg = LSUACKmessage(
         log=log,
         ref=ref_num.new(),
         dest_addr=message.source_addr,
@@ -73,12 +81,12 @@ def process_db_rc(log, ref_num, database, msg, message_types):
     result_list = []
 
     # Map message header & payload to usable tags
-    message = helpers.RCmessage(log=log)
+    message = RCmessage(log=log)
     message.complete = msg
 
     # Execute select Query
     log.debug('Querying database for pending device commands')
-    result_list = service.query_command(
+    result_list = query_command(
         log,
         database)
 
@@ -87,7 +95,7 @@ def process_db_rc(log, ref_num, database, msg, message_types):
         log.debug('Preparing response messages for pending commands')
         for pending_cmd in result_list:           
             # Create message RC ACK message to automation service
-            out_msg = helpers.RCACKmessage(
+            out_msg = RCACKmessage(
                 log=log,
                 ref=ref_num.new(),
                 dest_addr=message.source_addr,
@@ -119,7 +127,7 @@ def process_db_uc(log, ref_num, database, msg, message_types):
     out_msg_list = []
 
     # Map message header & payload to usable tags
-    message = helpers.UCmessage(log=log)
+    message = UCmessage(log=log)
     message.complete = msg
 
     # Execute update Query
@@ -127,7 +135,7 @@ def process_db_uc(log, ref_num, database, msg, message_types):
               'with timestamp [%s]',
               message.dev_id,
               message.dev_processed)
-    service.update_command(
+    update_command(
         log,
         database,
         message.dev_id,
@@ -135,7 +143,7 @@ def process_db_uc(log, ref_num, database, msg, message_types):
 
     # Send response indicating query was executed
     log.debug('Building response message header')
-    out_msg = helpers.UCACKmessage(
+    out_msg = UCACKmessage(
         log=log,
         ref=ref_num.new(),
         dest_addr=message.source_addr,

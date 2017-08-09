@@ -43,6 +43,7 @@ def service_main_task(log, ref_num, devices, msg_in_que, msg_out_que,
     while True:
         # Initialize result list
         out_msg_list = []
+        
         if msg_in_que.qsize() > 0:
             log.debug('Getting Incoming message from queue')
             next_msg = msg_in_que.get_nowait()

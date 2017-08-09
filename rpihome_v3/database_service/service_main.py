@@ -8,10 +8,11 @@ import copy
 import datetime
 import logging
 import sys
-if __name__ == "__main__":
-    sys.path.append("..")
-import database_service as service
-import helpers
+import env
+from rpihome_v3.database_service.int_to_database import process_db_lsu
+from rpihome_v3.database_service.int_to_database import process_db_rc
+from rpihome_v3.database_service.int_to_database import process_db_uc
+from rpihome_v3.messages.message_rc import RCmessage
 
 
 
@@ -54,7 +55,7 @@ def service_main_task(log, rNumGen, database,
             # Log Device status updates to database
             if msg_type == message_types['database_lsu']:
                 log.debug('Message is a device status update')
-                response_msg_list = yield from service.process_db_lsu(
+                response_msg_list = yield from process_db_lsu(
                     log,
                     rNumGen,
                     database,
@@ -64,7 +65,7 @@ def service_main_task(log, rNumGen, database,
             # Query for unprocessed device commands
             if msg_type == message_types['database_rc']:
                 log.debug('Msg is a device pending cmd query')
-                response_msg_list = yield from service.process_db_rc(
+                response_msg_list = yield from process_db_rc(
                     log,
                     rNumGen,
                     database,
@@ -74,7 +75,7 @@ def service_main_task(log, rNumGen, database,
             # Mark completed device commands as processed
             if msg_type == message_types['database_uc']:
                 log.debug('Msg is a device cmd update')
-                response_msg_list = yield from service.process_db_uc(
+                response_msg_list = yield from process_db_uc(
                     log,
                     rNumGen,
                     database,
@@ -85,11 +86,11 @@ def service_main_task(log, rNumGen, database,
             if datetime.datetime.now() >= (last_check + datetime.timedelta(seconds=1)):
                 # Device command not yet processed query
                 log.debug('Performing periodic check of pending commands')
-                response_msg_list = yield from service.process_db_rc(
+                response_msg_list = yield from process_db_rc(
                     log,
                     rNumGen,
                     database,
-                    helpers.RCmessage(
+                    RCmessage(
                         dest_addr=service_addresses['automation_addr'],
                         dest_port=service_addresses['automation_port'],
                         source_addr=service_addresses['database_addr'],

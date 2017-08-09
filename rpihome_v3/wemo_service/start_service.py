@@ -5,13 +5,14 @@
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
 from contextlib import suppress
-import copy
-import logging
 import sys
-if __name__ == "__main__":
-    sys.path.append("..")
-import helpers
-import wemo_service as service
+import env
+from rpihome_v3.helpers.ref_num import RefNum
+from rpihome_v3.wemo_service.configure import configure_log
+from rpihome_v3.wemo_service.configure import configure_servers
+from rpihome_v3.wemo_service.configure import configure_message_types
+from rpihome_v3.wemo_service.wemo import WemoAPI
+from rpihome_v3.wemo_service.service_main import service_main_task
 
 
 # Authorship Info *************************************************************
@@ -26,13 +27,13 @@ __status__ = "Development"
 
 
 # Application wide objects ****************************************************
-LOG = service.configure_log('config.ini')
-SERVICE_ADDRESSES = service.configure_servers('config.ini', LOG)
-MESSAGE_TYPES = service.configure_message_types('config.ini', LOG)
+LOG = configure_log('config.ini')
+SERVICE_ADDRESSES = configure_servers('config.ini', LOG)
+MESSAGE_TYPES = configure_message_types('config.ini', LOG)
 
-WEMO_GW = service.WemoAPI(LOG)
+WEMO_GW = WemoAPI(LOG)
 
-REF_NUM = helpers.RefNum()
+REF_NUM = RefNum(log=LOG)
 MSG_IN_QUEUE = asyncio.Queue()
 MSG_OUT_QUEUE = asyncio.Queue()
 LOOP = asyncio.get_event_loop()
@@ -110,7 +111,7 @@ def main():
     """ Main application routine """
     LOG.debug('Starting main')
 
-    # Create incoming message server    
+    # Create incoming message server
     try:
         LOG.debug('Creating incoming message listening server at [%s:%s]',
                   SERVICE_ADDRESSES['wemo_addr'],
@@ -121,7 +122,7 @@ def main():
             port=int(SERVICE_ADDRESSES['wemo_port']))
         LOG.debug('Wrapping servier in future task and scheduling for '
                   'execution')
-        msg_in_task = LOOP.run_until_complete(msg_in_server)        
+        msg_in_task = LOOP.run_until_complete(msg_in_server)  
     except Exception:
         LOG.debug('Failed to create socket listening connection at %s:%s',
                   SERVICE_ADDRESSES['wemo_addr'],
@@ -131,7 +132,7 @@ def main():
     # Create main task for this service
     LOG.debug('Scheduling main task for execution')
     asyncio.ensure_future(
-        service.service_main_task(
+        service_main_task(
             LOG,
             REF_NUM,
             WEMO_GW,
@@ -165,7 +166,7 @@ def main():
                 task.cancel()
                 LOOP.run_until_complete(task)
         LOG.info('Shutdown complete.  Terminating execution LOOP')
-    
+
     # Terminate the execution LOOP
     LOOP.close()
 

@@ -14,9 +14,8 @@ from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
-if __name__ == "__main__":
-    sys.path.append("..")
-import helpers
+import env
+from rpihome_v3.schedule_service.schedule import Sched
 
 
 # Authorship Info *************************************************************
@@ -84,7 +83,7 @@ class GoogleCalSync(object):
         stored, or if the stored credentials are invalid, the OAuth2
         flow is completed to obtain the new credentials.
         Returns: Credentials, the obtained credential.  """
-        # Get credentials from store       
+        # Get credentials from store
         self.credentials = self.store.get()
         self.log.debug("Getting credentials from store")
         if not self.credentials or self.credentials.invalid:
@@ -129,7 +128,7 @@ class GoogleCalSync(object):
         self.schedule = []
         # Cycle through raw event list and convert to a usable format
         for event in self.events:
-            self.schedule.append(helpers.Sched(
+            self.schedule.append(Sched(
                 log=self.log,
                 name=self.extract_name(event),
                 start=self.extract_start(event),

@@ -1,6 +1,5 @@
 #!/usr/bin/python3
-""" start_service.py:
-"""
+""" start_service.py: """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
@@ -9,10 +8,14 @@ import copy
 import logging
 import sys
 import time
-if __name__ == "__main__":
-    sys.path.append("..")
-import database_service as service
-import helpers
+import env
+from rpihome_v3.helpers.ref_num import RefNum
+from rpihome_v3.database_service.configure import configure_log
+from rpihome_v3.database_service.configure import configure_credentials
+from rpihome_v3.database_service.configure import configure_database
+from rpihome_v3.database_service.configure import configure_servers
+from rpihome_v3.database_service.configure import configure_message_types
+from rpihome_v3.database_service.service_main import service_main_task
 
 
 # Authorship Info *************************************************************
@@ -27,13 +30,13 @@ __status__ = "Development"
 
 
 # Application wide objects ****************************************************
-LOG = service.configure_log('config.ini')
-CREDENTIALS = service.configure_credentials('config.ini', LOG)
-DATABASE = service.configure_database('config.ini', CREDENTIALS, LOG)
-SERVICE_ADDRESSES = service.configure_servers('config.ini', LOG)
-MESSAGE_TYPES = service.configure_message_types('config.ini', LOG)
+LOG = configure_log('config.ini')
+CREDENTIALS = configure_credentials('config.ini', LOG)
+DATABASE = configure_database('config.ini', CREDENTIALS, LOG)
+SERVICE_ADDRESSES = configure_servers('config.ini', LOG)
+MESSAGE_TYPES = configure_message_types('config.ini', LOG)
 
-REF_NUM = helpers.RefNum()
+REF_NUM = RefNum(log=LOG)
 MSG_IN_QUEUE = asyncio.Queue()
 MSG_OUT_QUEUE = asyncio.Queue()
 LOOP = asyncio.get_event_loop()
@@ -130,7 +133,7 @@ def main():
     # Create main task for this service
     LOG.debug('Scheduling main task for execution')
     asyncio.ensure_future(
-        service.service_main_task(
+        service_main_task(
             LOG,
             REF_NUM,
             DATABASE,

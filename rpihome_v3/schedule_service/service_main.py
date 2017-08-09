@@ -4,7 +4,8 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
-import schedule_service as service
+import env
+from rpihome_v3.schedule_service.int_to_schedule import process_sched_ccs
 
 
 # Authorship Info *************************************************************
@@ -32,30 +33,23 @@ def service_main_task(log, ref_num, schedule, msg_in_que, msg_out_que,
             next_msg = msg_in_que.get_nowait()
             log.debug('Message pulled from queue: [%s]', next_msg)
 
-            # Split message into header and payload
-            log.debug('Splitting message into header / payload')
-            next_msg_seg = next_msg.split(sep=',')
-            msg_header = next_msg_seg[:5]
-            log.debug('Split off message header: [%s]', msg_header)
-            msg_payload = next_msg_seg[5:]
-            log.debug('Split off message payload: [%s]', msg_payload)
-
-            # Map header and payload to usable tags
-            msg_ref = msg_header[0]
-            msg_dest_addr = msg_header[1]
-            msg_dest_port = msg_header[2]
-            msg_source_addr = msg_header[3]
-            msg_source_port = msg_header[4]
+            # Determine message type
+            next_msg_split = next_msg.split(',')
+            if len(next_msg_split) >= 6:
+                log.debug('Extracting source address and message type')
+                msg_source_addr = next_msg_split[1]
+                msg_type = next_msg_split[5]
+                log.debug('Source Address: %s', msg_source_addr)
+                log.debug('Message Type: %s', msg_type)
 
             # Process messages from database service
-            if msg_payload[0] == message_types['schedule_ccs']:
+            if msg_type == message_types['schedule_ccs']:
                 log.debug('Message is a Check Command State (CCS) message')
-                out_msg_list = service.process_sched_ccs(
+                out_msg_list = process_sched_ccs(
                     log,
                     ref_num,
                     schedule,
-                    msg_header,
-                    msg_payload,
+                    next_msg,
                     message_types)
 
         # Que up response messages in outgoing msg que

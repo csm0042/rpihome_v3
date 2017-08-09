@@ -8,9 +8,8 @@ import configparser
 import mysql.connector
 import mysql.connector.errorcode as errorcodes
 import sys
-if __name__ == "__main__":
-    sys.path.append("..")
-import helpers
+import env
+from rpihome_v3.helpers.log_support import setup_log_handlers
 
 
 # Authorship Info *************************************************************
@@ -30,7 +29,7 @@ def configure_log(filename):
     config_file = configparser.ConfigParser()
     config_file.read(filename)
     # Set up application logging
-    log = helpers.setup_log_handlers(
+    log = setup_log_handlers(
         __file__,
         config_file['LOG FILES']['debug_log_file'],
         config_file['LOG FILES']['info_log_file'])

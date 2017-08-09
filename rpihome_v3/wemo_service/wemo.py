@@ -9,7 +9,7 @@ import logging
 import pywemo
 import sys
 import env
-from rpihome_v3.helpers import check_ipv4
+from rpihome_v3.helpers.ipv4_help import check_ipv4
 
 
 # Authorship Info *************************************************************

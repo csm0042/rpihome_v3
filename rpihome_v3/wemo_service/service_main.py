@@ -4,11 +4,6 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
-import copy
-import logging
-import sys
-import time
-import wemo_service as service
 
 
 # Authorship Info *************************************************************
@@ -35,34 +30,33 @@ def service_main_task(log, ref_num, wemo_gw, msg_in_que, msg_out_que, message_ty
             next_msg = msg_in_que.get_nowait()
             log.debug('Message pulled from queue: [%s]', next_msg)
             
-            # Split message into header and payload
-            log.debug('Splitting message into header / payload')            
-            next_msg_seg = next_msg.split(sep=',')
-            msg_header = next_msg_seg[:5]
-            log.debug('Split off message header: [%s]', msg_header)
-            msg_payload = next_msg_seg[5:]
-            log.debug('Split off message payload: [%s]', msg_payload)
+            # Determine message type
+            next_msg_split = next_msg.split(',')
+            if len(next_msg_split) >= 6:
+                log.debug('Extracting source address and message type')
+                msg_source_addr = next_msg_split[1]
+                msg_type = next_msg_split[5]
+                log.debug('Source Address: %s', msg_source_addr)
+                log.debug('Message Type: %s', msg_type)
 
             # Wemo Device Status Queries
-            if msg_payload[0] == message_types['wemo_gds']:
+            if msg_type == message_types['wemo_gds']:
                 log.debug('Message is a device status update request')
-                response_msg_list = yield from service.get_wemo_status(
+                response_msg_list = yield from wemo_gw.get_wemo_status(
                     log,
                     ref_num,
                     wemo_gw,
-                    msg_header,
-                    msg_payload,
+                    next_msg,
                     message_types)
 
             # Wemo Device set state commands
-            if msg_payload[0] == message_types['wemo_sds']:
+            if msg_type == message_types['wemo_sds']:
                 log.debug('Message is a device set state command')
-                response_msg_list = yield from service.set_wemo_state(
+                response_msg_list = yield from wemo_gw.set_wemo_state(
                     log,
                     ref_num,
                     wemo_gw,
-                    msg_header,
-                    msg_payload,
+                    next_msg,
                     message_types)
 
         # Que up response messages in outgoing msg que

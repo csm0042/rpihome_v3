@@ -7,10 +7,10 @@
 import configparser
 import datetime
 import sys
-if __name__ == "__main__":
-    sys.path.append("..")
-import schedule_service as service
-import helpers
+import env
+from rpihome_v3.helpers.log_support import setup_log_handlers
+from rpihome_v3.schedule_service.schedule import Sched
+from rpihome_v3.schedule_service.goog_cal import GoogleCalSync
 
 
 # Authorship Info *************************************************************
@@ -30,7 +30,7 @@ def configure_log(filename):
     config_file = configparser.ConfigParser()
     config_file.read(filename)
     # Set up application logging
-    log = helpers.setup_log_handlers(
+    log = setup_log_handlers(
         __file__,
         config_file['LOG FILES']['debug_log_file'],
         config_file['LOG FILES']['info_log_file'])
@@ -101,7 +101,7 @@ def configure_schedule(filename, credentials, log):
         calId = credentialDir = clientSecretFile = None
     # Create connection to calendar
     if calId is not None:
-        schedule = service.GoogleCalSync(
+        schedule = GoogleCalSync(
             cal_id=calId,
             credential_dir=credentialDir,
             client_secret=clientSecretFile,
