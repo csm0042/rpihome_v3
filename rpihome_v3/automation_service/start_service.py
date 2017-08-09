@@ -7,11 +7,13 @@ import asyncio
 from contextlib import suppress
 import sys
 import env
-from rpihome_v3.helpers import RefNum
-from rpihome_v3.automation_service import (
-    configure_log, configure_servers, configure_message_types, configure_location,
-    configure_devices, service_main_task
-)
+from rpihome_v3.helpers.ref_num import RefNum
+from rpihome_v3.automation_service.configure import configure_log
+from rpihome_v3.automation_service.configure import configure_servers
+from rpihome_v3.automation_service.configure import configure_message_types
+from rpihome_v3.automation_service.configure import configure_location
+from rpihome_v3.automation_service.configure import configure_devices
+from rpihome_v3.automation_service.service_main import service_main_task
 
 
 

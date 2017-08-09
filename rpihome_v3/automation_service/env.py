@@ -1,6 +1,5 @@
 #!/usr/bin/python3
-""" env.py:
-"""
+""" env.py: """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import sys

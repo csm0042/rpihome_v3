@@ -5,8 +5,11 @@
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import copy
 import env
-from rpihome_v3.helpers import search_device_list
-from rpihome_v3.messages import GDSmessage, GDSACKmessage, SDSmessage, SDSACKmessage
+from rpihome_v3.helpers.device import search_device_list
+from rpihome_v3.messages.message_gds import GDSmessage
+from rpihome_v3.messages.message_gds_ack import GDSACKmessage
+from rpihome_v3.messages.message_sds import SDSmessage
+from rpihome_v3.messages.message_sds_ack import SDSACKmessage
 
 
 # Authorship Info *************************************************************

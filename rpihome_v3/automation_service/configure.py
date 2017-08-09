@@ -8,8 +8,8 @@ import configparser
 import datetime
 import sys
 import env
-from rpihome_v3.helpers import setup_log_handlers
-from rpihome_v3.helpers import Device
+from rpihome_v3.helpers.log_support import setup_log_handlers
+from rpihome_v3.helpers.device import Device
 
 
 # Authorship Info *************************************************************
