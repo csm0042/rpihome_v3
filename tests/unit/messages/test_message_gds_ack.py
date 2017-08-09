@@ -145,10 +145,10 @@ class TestGDSACKmessage(unittest.TestCase):
 
     def test_dev_status(self):
         """ test setting and getting device status field """
-        self.message.dev_cmd = 'off'
-        self.assertEqual(self.message.dev_cmd, 'off')
-        self.message.dev_cmd = '1'
-        self.assertEqual(self.message.dev_cmd, '1')
+        self.message.dev_status = 'off'
+        self.assertEqual(self.message.dev_status, 'off')
+        self.message.dev_status = '1'
+        self.assertEqual(self.message.dev_status, '1')
 
 
     def test_dev_last_seen(self):

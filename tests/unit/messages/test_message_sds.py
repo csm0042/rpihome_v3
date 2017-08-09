@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" test_message_gds.py:
+""" test_message_sds.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
@@ -9,11 +9,11 @@ import logging
 import sys
 import unittest
 import env
-from rpihome_v3.messages.message_gds import GDSmessage
+from rpihome_v3.messages.message_sds import SDSmessage
 
 
 # Define test class ***********************************************************
-class TestGDSmessage(unittest.TestCase):
+class TestSDSmessage(unittest.TestCase):
     """ unittests for Get Device Status Message Class """
 
     def __init__(self, *args, **kwargs):
@@ -24,12 +24,12 @@ class TestGDSmessage(unittest.TestCase):
         self.datetime_str = str()
         self.temp_str = str()
         self.temp_str2 = str()
-        super(TestGDSmessage, self).__init__(*args, **kwargs)
+        super(TestSDSmessage, self).__init__(*args, **kwargs)
 
 
     def setUp(self):
-        self.message = GDSmessage(log=self.log)
-        super(TestGDSmessage, self).setUp()
+        self.message = SDSmessage(log=self.log)
+        super(TestSDSmessage, self).setUp()
 
 
     def test_init(self):
@@ -39,7 +39,7 @@ class TestGDSmessage(unittest.TestCase):
             datetime.time(8, 45)
         )
         self.datetime_str = '2017-08-05 08:45:00'
-        self.message = GDSmessage(
+        self.message = SDSmessage(
             log=self.log,
             ref='101',
             dest_addr='192.168.86.1',
@@ -47,9 +47,10 @@ class TestGDSmessage(unittest.TestCase):
             source_addr='192.168.5.4',
             source_port='12000',
             msg_type='601',
-            dev_name='fylt1',
+            dev_name='fylt1',          
             dev_addr='192.168.86.12',
-            dev_status='on',
+            dev_cmd='on',
+            dev_status='off',            
             dev_last_seen=self.datetime
         )
         self.assertEqual(self.message.ref, '101')
@@ -60,7 +61,8 @@ class TestGDSmessage(unittest.TestCase):
         self.assertEqual(self.message.msg_type, '601')
         self.assertEqual(self.message.dev_name, 'fylt1')
         self.assertEqual(self.message.dev_addr, '192.168.86.12')
-        self.assertEqual(self.message.dev_status, 'on')
+        self.assertEqual(self.message.dev_cmd, 'on')
+        self.assertEqual(self.message.dev_status, 'off')        
         self.assertEqual(self.message.dev_last_seen, self.datetime_str)
 
 
@@ -156,6 +158,14 @@ class TestGDSmessage(unittest.TestCase):
         self.assertEqual(self.message.dev_addr, '192.168.1.1')
 
 
+    def test_dev_cmd(self):
+        """ test setting and getting device command field """
+        self.message.dev_cmd = 'off'
+        self.assertEqual(self.message.dev_cmd, 'off')
+        self.message.dev_cmd = '1'
+        self.assertEqual(self.message.dev_cmd, '1')
+
+
     def test_dev_status(self):
         """ test setting and getting device status field """
         self.message.dev_status = 'off'
@@ -175,10 +185,12 @@ class TestGDSmessage(unittest.TestCase):
 
 
     def test_complete(self):
-        self.temp_str = '142,127.0.0.1,12000,192.168.5.45,13000,301,' \
-                        'device01,192.168.86.12,on,2017-10-04 07:01:03.000034'
-        self.temp_str2 = '142,127.0.0.1,12000,192.168.5.45,13000,301,' \
-                         'device01,192.168.86.12,on,2017-10-04 07:01:03'
+        self.temp_str = '142,127.0.0.1,12000,192.168.5.45,13000,' \
+                        '301,device01,192.168.86.12,on,off,' \
+                        '2017-10-04 07:01:03.000034'
+        self.temp_str2 = '142,127.0.0.1,12000,192.168.5.45,13000,' \
+                         '301,device01,192.168.86.12,on,off,' \
+                         '2017-10-04 07:01:03'
         self.message.complete = copy.copy(self.temp_str)
         self.assertEqual(self.message.ref, '142')
         self.assertEqual(self.message.dest_addr, '127.0.0.1')
@@ -188,42 +200,9 @@ class TestGDSmessage(unittest.TestCase):
         self.assertEqual(self.message.msg_type, '301')
         self.assertEqual(self.message.dev_name, 'device01')
         self.assertEqual(self.message.dev_addr, '192.168.86.12')
-        self.assertEqual(self.message.dev_status, 'on')
-        self.assertEqual(self.message.dev_last_seen, '2017-10-04 07:01:03')
-        self.assertEqual(self.message.complete, self.temp_str2)
-
-        self.temp_str = '142,192.168.1,12000,192.168.5.45,130000,301,' \
-                        'device01,192.168.86.300,on,2017-10-04 07:01:04'
-        self.temp_str2 = '142,127.0.0.1,12000,192.168.5.45,13000,301,' \
-                         'device01,192.168.86.12,on,2017-10-04 07:01:04'
-        self.message.complete = copy.copy(self.temp_str)
-        self.assertEqual(self.message.ref, '142')
-        self.assertEqual(self.message.dest_addr, '127.0.0.1')
-        self.assertEqual(self.message.dest_port, '12000')
-        self.assertEqual(self.message.source_addr, '192.168.5.45')
-        self.assertEqual(self.message.source_port, '13000')
-        self.assertEqual(self.message.msg_type, '301')
-        self.assertEqual(self.message.dev_name, 'device01')
-        self.assertEqual(self.message.dev_addr, '192.168.86.12')
-        self.assertEqual(self.message.dev_status, 'on')
-        self.assertEqual(self.message.dev_last_seen, '2017-10-04 07:01:04')
-        self.assertEqual(self.message.complete, self.temp_str2)
-
-        self.temp_str = '142,192.168.1.1,12001,192.168.5.46,13001,301,' \
-                        'device01,192.168.86.13,off,2017-10-04 07:01:04'
-        self.temp_str2 = '142,192.168.1.1,12001,192.168.5.46,13001,301,' \
-                         'device01,192.168.86.13,off,2017-10-04 07:01:04'
-        self.message.complete = copy.copy(self.temp_str)
-        self.assertEqual(self.message.ref, '142')
-        self.assertEqual(self.message.dest_addr, '192.168.1.1')
-        self.assertEqual(self.message.dest_port, '12001')
-        self.assertEqual(self.message.source_addr, '192.168.5.46')
-        self.assertEqual(self.message.source_port, '13001')
-        self.assertEqual(self.message.msg_type, '301')
-        self.assertEqual(self.message.dev_name, 'device01')
-        self.assertEqual(self.message.dev_addr, '192.168.86.13')
+        self.assertEqual(self.message.dev_cmd, 'on')        
         self.assertEqual(self.message.dev_status, 'off')
-        self.assertEqual(self.message.dev_last_seen, '2017-10-04 07:01:04')
+        self.assertEqual(self.message.dev_last_seen, '2017-10-04 07:01:03')
         self.assertEqual(self.message.complete, self.temp_str2)
 
 
