@@ -9,11 +9,11 @@ import logging
 import sys
 import unittest
 import env
-from rpihome_v3.messages.message_ccs_ack import CCSACKmessage
+from rpihome_v3.messages.message_ccs import CCSmessage
 
 
 # Define test class ***********************************************************
-class TestCCSACKmessage(unittest.TestCase):
+class TestCCSmessage(unittest.TestCase):
     """ unittests for Log Status Update Message Class """
 
     def __init__(self, *args, **kwargs):
@@ -24,19 +24,19 @@ class TestCCSACKmessage(unittest.TestCase):
         self.datetime_str = str()
         self.temp_str = str()
         self.temp_str2 = str()
-        super(TestCCSACKmessage, self).__init__(*args, **kwargs)
+        super(TestCCSmessage, self).__init__(*args, **kwargs)
 
 
     def setUp(self):
-        self.message = CCSACKmessage(log=self.log)
-        super(TestCCSACKmessage, self).setUp()
+        self.message = CCSmessage(log=self.log)
+        super(TestCCSmessage, self).setUp()
 
 
     def test_init(self):
         """ test class __init__ and input variables """
         self.datetime = datetime.datetime.now()
         self.datetime_str = (str(self.datetime))[:19]
-        self.message = CCSACKmessage(
+        self.message = CCSmessage(
             log=self.log,
             ref='101',
             dest_addr='192.168.86.1',
@@ -44,8 +44,7 @@ class TestCCSACKmessage(unittest.TestCase):
             source_addr='192.168.5.4',
             source_port='12000',
             msg_type='601',
-            dev_name='fylt1',
-            dev_cmd='on'
+            dev_name='fylt1'
         )
         self.assertEqual(self.message.ref, '101')
         self.assertEqual(self.message.dest_addr, '192.168.86.1')
@@ -54,7 +53,6 @@ class TestCCSACKmessage(unittest.TestCase):
         self.assertEqual(self.message.source_port, '12000')
         self.assertEqual(self.message.msg_type, '601')
         self.assertEqual(self.message.dev_name, 'fylt1')
-        self.assertEqual(self.message.dev_cmd, 'on')
 
 
     def test_ref_number(self):
@@ -141,16 +139,8 @@ class TestCCSACKmessage(unittest.TestCase):
         self.assertEqual(self.message.dev_name, 'fylt1')
 
 
-    def test_dev_cmd(self):
-        """ test setting and getting device command field """
-        self.message.dev_cmd = 'off'
-        self.assertEqual(self.message.dev_cmd, 'off')
-        self.message.dev_cmd = '1'
-        self.assertEqual(self.message.dev_cmd, '1')
-
-
     def test_complete(self):
-        self.temp_str = '142,127.0.0.1,12000,192.168.5.45,13000,301,device01,on'
+        self.temp_str = '142,127.0.0.1,12000,192.168.5.45,13000,301,device01'
         self.message.complete = copy.copy(self.temp_str)
         self.assertEqual(self.message.ref, '142')
         self.assertEqual(self.message.dest_addr, '127.0.0.1')
@@ -159,10 +149,9 @@ class TestCCSACKmessage(unittest.TestCase):
         self.assertEqual(self.message.source_port, '13000')
         self.assertEqual(self.message.msg_type, '301')
         self.assertEqual(self.message.dev_name, 'device01')
-        self.assertEqual(self.message.dev_cmd, 'on')
         self.assertEqual(self.message.complete, self.temp_str)
 
-        self.temp_str2 = '142,192.168.1,12000,192.168.5.45,130000,301,device01,on'
+        self.temp_str2 = '142,192.168.1,12000,192.168.5.45,130000,301,device01'
         self.message.complete = copy.copy(self.temp_str2)
         self.assertEqual(self.message.ref, '142')
         self.assertEqual(self.message.dest_addr, '127.0.0.1')
@@ -171,10 +160,9 @@ class TestCCSACKmessage(unittest.TestCase):
         self.assertEqual(self.message.source_port, '13000')
         self.assertEqual(self.message.msg_type, '301')
         self.assertEqual(self.message.dev_name, 'device01')
-        self.assertEqual(self.message.dev_cmd, 'on')
         self.assertEqual(self.message.complete, self.temp_str)
 
-        self.temp_str2 = '142,192.168.1.1,12001,192.168.5.46,13001,301,device01,off'
+        self.temp_str2 = '142,192.168.1.1,12001,192.168.5.46,13001,301,device01'
         self.message.complete = copy.copy(self.temp_str2)
         self.assertEqual(self.message.ref, '142')
         self.assertEqual(self.message.dest_addr, '192.168.1.1')
@@ -183,7 +171,6 @@ class TestCCSACKmessage(unittest.TestCase):
         self.assertEqual(self.message.source_port, '13001')
         self.assertEqual(self.message.msg_type, '301')
         self.assertEqual(self.message.dev_name, 'device01')
-        self.assertEqual(self.message.dev_cmd, 'off')
         self.assertEqual(self.message.complete, self.temp_str2)
 
 
