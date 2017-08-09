@@ -8,7 +8,7 @@ import logging
 import sys
 import unittest
 import env
-from rpihome_v3.messages import LSUmessage
+from rpihome_v3.messages.message_lsu import LSUmessage
 
 
 # Define test class ***********************************************************
