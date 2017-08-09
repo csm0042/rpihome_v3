@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" test_message_ccs_ack.py:
+""" test_message_ccs.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************

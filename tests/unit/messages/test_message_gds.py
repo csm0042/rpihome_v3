@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" test_message_ccs_ack.py:
+""" test_message_gds.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
@@ -9,12 +9,12 @@ import logging
 import sys
 import unittest
 import env
-from rpihome_v3.messages.message_rc_ack import RCACKmessage
+from rpihome_v3.messages.message_gds import GDSmessage
 
 
 # Define test class ***********************************************************
-class TestRCACKmessage(unittest.TestCase):
-    """ unittests for Log Status Update Message Class """
+class TestGDSmessage(unittest.TestCase):
+    """ unittests for Get Device Status Message Class """
 
     def __init__(self, *args, **kwargs):
         logging.basicConfig(stream=sys.stdout)
@@ -22,22 +22,24 @@ class TestRCACKmessage(unittest.TestCase):
         self.log.level = logging.DEBUG
         self.datetime = datetime.datetime
         self.datetime_str = str()
-        super(TestRCACKmessage, self).__init__(*args, **kwargs)
+        self.temp_str = str()
+        self.temp_str2 = str()
+        super(TestGDSmessage, self).__init__(*args, **kwargs)
 
 
     def setUp(self):
-        self.message = RCACKmessage(log=self.log)
-        super(TestRCACKmessage, self).setUp()
+        self.message = GDSmessage(log=self.log)
+        super(TestGDSmessage, self).setUp()
 
 
     def test_init(self):
         """ test class __init__ and input variables """
         self.datetime = datetime.datetime.combine(
             datetime.date(2017, 8, 5),
-            datetime.time(9, 10)
+            datetime.time(8, 45)
         )
-        self.datetime_str = '2017-08-05 09:10:00'
-        self.message = RCACKmessage(
+        self.datetime_str = '2017-08-05 08:45:00'
+        self.message = GDSmessage(
             log=self.log,
             ref='101',
             dest_addr='192.168.86.1',
@@ -45,24 +47,21 @@ class TestRCACKmessage(unittest.TestCase):
             source_addr='192.168.5.4',
             source_port='12000',
             msg_type='601',
-            dev_id='4',
             dev_name='fylt1',
-            dev_cmd='on',
-            dev_timestamp=self.datetime,
-            dev_processed=self.datetime_str
+            dev_addr='192.168.86.12',
+            dev_status='on',
+            dev_last_seen=self.datetime
         )
-
         self.assertEqual(self.message.ref, '101')
         self.assertEqual(self.message.dest_addr, '192.168.86.1')
         self.assertEqual(self.message.dest_port, '17061')
         self.assertEqual(self.message.source_addr, '192.168.5.4')
         self.assertEqual(self.message.source_port, '12000')
         self.assertEqual(self.message.msg_type, '601')
-        self.assertEqual(self.message.dev_id, '4')        
         self.assertEqual(self.message.dev_name, 'fylt1')
-        self.assertEqual(self.message.dev_cmd, 'on')
-        self.assertEqual(self.message.dev_timestamp, self.datetime_str)
-        self.assertEqual(self.message.dev_processed, self.datetime_str)
+        self.assertEqual(self.message.dev_addr, '192.168.86.12')
+        self.assertEqual(self.message.dev_status, 'on')
+        self.assertEqual(self.message.dev_last_seen, self.datetime_str)
 
 
     def test_ref_number(self):
@@ -97,8 +96,10 @@ class TestRCACKmessage(unittest.TestCase):
         self.assertEqual(self.message.dest_port, '12000')
         self.message.dest_port = 17061
         self.assertEqual(self.message.dest_port, '17061')
+        self.message.dest_port = '?'
+        self.assertEqual(self.message.dest_port, '17061')
         self.message.dest_port = 'a'
-        self.assertEqual(self.message.dest_port, '17061')        
+        self.assertEqual(self.message.dest_port, '17061')
 
 
     def test_source_addr(self):
@@ -126,7 +127,9 @@ class TestRCACKmessage(unittest.TestCase):
         self.message.source_port = 17061
         self.assertEqual(self.message.source_port, '17061')
         self.message.source_port = '?'
-        self.assertEqual(self.message.source_port, '17061')        
+        self.assertEqual(self.message.source_port, '17061')
+        self.message.source_port = 'a'
+        self.assertEqual(self.message.source_port, '17061')           
 
 
     def test_message_type(self):
@@ -137,14 +140,6 @@ class TestRCACKmessage(unittest.TestCase):
         self.assertEqual(self.message.msg_type, '102')
 
 
-    def test_device_id(self):
-        """ test setting and getting message type field """
-        self.message.dev_id = 101
-        self.assertEqual(self.message.dev_id, '101')
-        self.message.dev_id = '102'
-        self.assertEqual(self.message.dev_id, '102')        
-
-
     def test_device_name(self):
         """ test setting and getting device name field """
         self.message.dev_name = 101
@@ -153,47 +148,37 @@ class TestRCACKmessage(unittest.TestCase):
         self.assertEqual(self.message.dev_name, 'fylt1')
 
 
-    def test_dev_cmd(self):
-        """ test setting and getting device command field """
+    def test_dev_addr(self):
+        """ test setting and getting message device address field """
+        self.message.dev_addr = '192.168.1.1'
+        self.assertEqual(self.message.dev_addr, '192.168.1.1')
+        self.message.dev_addr = '192.168.2.x'
+        self.assertEqual(self.message.dev_addr, '192.168.1.1')
+
+
+    def test_dev_status(self):
+        """ test setting and getting device status field """
         self.message.dev_cmd = 'off'
         self.assertEqual(self.message.dev_cmd, 'off')
         self.message.dev_cmd = '1'
         self.assertEqual(self.message.dev_cmd, '1')
 
 
-    def test_dev_timestamp(self):
-        """ test setting and getting device command timestamp field """
+    def test_dev_last_seen(self):
+        """ test setting and getting device status field """
         self.datetime = datetime.datetime.combine(
-            datetime.date(2017, 9, 5),
-            datetime.time(9, 10)
-        )
-        self.datetime_str = '2017-09-05 09:10:00'
-        self.message.dev_timestamp = self.datetime
-        self.assertEqual(self.message.dev_timestamp, self.datetime_str)
-        self.datetime_str = '2017-08-04 09:10:03'
-        self.message.dev_timestamp = '2017-08-04 09:10:03'
-        self.assertEqual(self.message.dev_timestamp, self.datetime_str)
-
-
-    def test_dev_processed(self):
-        """ test setting and getting device command processed field """
-        self.datetime = datetime.datetime.combine(
-            datetime.date(2017, 9, 5),
-            datetime.time(9, 10)
-        )
-        self.datetime_str = '2017-09-05 09:10:00'
-        self.message.dev_processed = self.datetime
-        self.assertEqual(self.message.dev_processed, self.datetime_str)
-        self.datetime_str = '2017-08-04 09:10:03'
-        self.message.dev_processed = '2017-08-04 09:10:03'
-        self.assertEqual(self.message.dev_processed, self.datetime_str)             
+            datetime.date(2017, 10, 3),
+            datetime.time(7, 30))
+        self.datetime_str = '2017-10-03 07:30:00'
+        self.message.dev_last_seen = self.datetime
+        self.assertEqual(self.message.dev_last_seen, self.datetime_str)      
 
 
     def test_complete(self):
-        self.temp_str = '142,127.0.0.1,12000,192.168.5.45,13000,' \
-                        '301,5,device01,on,2017-10-04 07:01:03.000034,'
-        self.temp_str2 = '142,127.0.0.1,12000,192.168.5.45,13000,' \
-                        '301,5,device01,on,2017-10-04 07:01:03,'
+        self.temp_str = '142,127.0.0.1,12000,192.168.5.45,13000,301,' \
+                        'device01,192.168.86.12,on,2017-10-04 07:01:03.000034'
+        self.temp_str2 = '142,127.0.0.1,12000,192.168.5.45,13000,301,' \
+                         'device01,192.168.86.12,on,2017-10-04 07:01:03'
         self.message.complete = copy.copy(self.temp_str)
         self.assertEqual(self.message.ref, '142')
         self.assertEqual(self.message.dest_addr, '127.0.0.1')
@@ -201,32 +186,45 @@ class TestRCACKmessage(unittest.TestCase):
         self.assertEqual(self.message.source_addr, '192.168.5.45')
         self.assertEqual(self.message.source_port, '13000')
         self.assertEqual(self.message.msg_type, '301')
-        self.assertEqual(self.message.dev_id, '5')        
         self.assertEqual(self.message.dev_name, 'device01')
-        self.assertEqual(self.message.dev_cmd, 'on')
-        self.assertEqual(self.message.dev_timestamp, '2017-10-04 07:01:03')
-        self.assertEqual(self.message.dev_processed, '')
+        self.assertEqual(self.message.dev_addr, '192.168.86.12')
+        self.assertEqual(self.message.dev_status, 'on')
+        self.assertEqual(self.message.dev_last_seen, '2017-10-04 07:01:03')
         self.assertEqual(self.message.complete, self.temp_str2)
 
-        self.temp_str = '142,127.0.x.1,12002,192.168.5.45,13000,' \
-                        '301,5,device01,on,2017-10-04 07:01:04.000034,' \
-                        '2017-10-05 08:00:00'
-        self.temp_str2 = '142,127.0.0.1,12002,192.168.5.45,13000,' \
-                        '301,5,device01,on,2017-10-04 07:01:04,' \
-                        '2017-10-05 08:00:00'
+        self.temp_str = '142,192.168.1,12000,192.168.5.45,130000,301,' \
+                        'device01,192.168.86.300,on,2017-10-04 07:01:04'
+        self.temp_str2 = '142,127.0.0.1,12000,192.168.5.45,13000,301,' \
+                         'device01,192.168.86.12,on,2017-10-04 07:01:04'
         self.message.complete = copy.copy(self.temp_str)
         self.assertEqual(self.message.ref, '142')
         self.assertEqual(self.message.dest_addr, '127.0.0.1')
-        self.assertEqual(self.message.dest_port, '12002')
+        self.assertEqual(self.message.dest_port, '12000')
         self.assertEqual(self.message.source_addr, '192.168.5.45')
         self.assertEqual(self.message.source_port, '13000')
         self.assertEqual(self.message.msg_type, '301')
-        self.assertEqual(self.message.dev_id, '5')        
         self.assertEqual(self.message.dev_name, 'device01')
-        self.assertEqual(self.message.dev_cmd, 'on')
-        self.assertEqual(self.message.dev_timestamp, '2017-10-04 07:01:04')
-        self.assertEqual(self.message.dev_processed, '2017-10-05 08:00:00')
-        self.assertEqual(self.message.complete, self.temp_str2)       
+        self.assertEqual(self.message.dev_addr, '192.168.86.12')
+        self.assertEqual(self.message.dev_status, 'on')
+        self.assertEqual(self.message.dev_last_seen, '2017-10-04 07:01:04')
+        self.assertEqual(self.message.complete, self.temp_str2)
+
+        self.temp_str = '142,192.168.1.1,12001,192.168.5.46,13001,301,' \
+                        'device01,192.168.86.13,off,2017-10-04 07:01:04'
+        self.temp_str2 = '142,192.168.1.1,12001,192.168.5.46,13001,301,' \
+                         'device01,192.168.86.13,off,2017-10-04 07:01:04'
+        self.message.complete = copy.copy(self.temp_str)
+        self.assertEqual(self.message.ref, '142')
+        self.assertEqual(self.message.dest_addr, '192.168.1.1')
+        self.assertEqual(self.message.dest_port, '12001')
+        self.assertEqual(self.message.source_addr, '192.168.5.46')
+        self.assertEqual(self.message.source_port, '13001')
+        self.assertEqual(self.message.msg_type, '301')
+        self.assertEqual(self.message.dev_name, 'device01')
+        self.assertEqual(self.message.dev_addr, '192.168.86.13')
+        self.assertEqual(self.message.dev_status, 'off')
+        self.assertEqual(self.message.dev_last_seen, '2017-10-04 07:01:04')
+        self.assertEqual(self.message.complete, self.temp_str2)
 
 
 if __name__ == "__main__":
