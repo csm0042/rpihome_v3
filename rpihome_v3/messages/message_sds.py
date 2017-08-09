@@ -136,21 +136,28 @@ class SDSmessage(object):
     @dest_port.setter
     def dest_port(self, value):
         if isinstance(value, str):
-            if 10000 <= int(value) <= 60000:
-                self._dest_port = value
-                self.log.debug('Destination port value updated to: '
-                               '%s', self._dest_port)
-            else:
+            try:
+                if 10000 <= int(value) <= 60000:
+                    self._dest_port = value
+                    self.log.debug('Destination port value updated to: '
+                                '%s', self._dest_port)
+                else:
+                    self.log.warning('Invalid port number provided for '
+                                    'destination port: %s', value)
+            except Exception:
                 self.log.warning('Invalid port number provided for '
                                  'destination port: %s', value)
-        else:
-            if 10000 <= int(value) <= 60000:
+        elif isinstance(value, int):
+            if 10000 <= value <= 60000:
                 self._dest_port = str(value)
                 self.log.debug('Destination port value updated to: '
                                '%s', self._dest_port)
             else:
                 self.log.warning('Invalid port number provided for '
                                  'destination port: %s', value)
+        else:
+            self.log.warning('Invalid port number rovided for '
+                             'destination port: %s', value)
 
     # source address field ****************************************************
     @property
@@ -188,21 +195,28 @@ class SDSmessage(object):
     @source_port.setter
     def source_port(self, value):
         if isinstance(value, str):
-            if 10000 <= int(value) <= 60000:
-                self._source_port = value
-                self.log.debug('Source port value updated to: '
-                               '%s', self._source_port)
-            else:
+            try:
+                if 10000 <= int(value) <= 60000:
+                    self._source_port = value
+                    self.log.debug('Source port value updated to: '
+                                '%s', self._source_port)
+                else:
+                    self.log.warning('Invalid port number provided for '
+                                    'Source port: %s', value)
+            except Exception:
                 self.log.warning('Invalid port number provided for '
                                  'Source port: %s', value)
-        else:
-            if 10000 <= int(value) <= 60000:
+        elif isinstance(value, int):
+            if 10000 <= value <= 60000:
                 self._source_port = str(value)
                 self.log.debug('Source port value updated to: '
                                '%s', self._source_port)
             else:
                 self.log.warning('Invalid port number provided for '
                                  'Source port: %s', value)
+        else:
+            self.log.warning('Invalid port number rovided for '
+                             'Source port: %s', value)
 
     # message type field ******************************************************
     @property

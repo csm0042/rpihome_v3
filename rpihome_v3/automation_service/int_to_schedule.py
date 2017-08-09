@@ -36,9 +36,9 @@ def create_sched_ccs(log, ref_num, devices, service_addresses, message_types):
 
     # Create CCS messages for each device in the list
     for device in devices:
-        if device.rule == 'schedule' or \
-           device.rule == 'dusk_to_dawn' or \
-           device.rule == '':
+        if device.dev_rule == 'schedule' or \
+           device.dev_rule == 'dusk_to_dawn' or \
+           device.dev_rule == '':
             out_msg = CCSmessage(
                 log=log,
                 ref=ref_num.new(),
@@ -47,7 +47,7 @@ def create_sched_ccs(log, ref_num, devices, service_addresses, message_types):
                 source_addr=service_addresses['automation_addr'],
                 source_port=service_addresses['automation_port'],
                 msg_type=message_types['schedule_ccs'],
-                msg_name=device.name)
+                msg_name=device.dev_name)
 
             # Load message into output list
             log.debug('Loading completed msg: [%s]', out_msg.complete)

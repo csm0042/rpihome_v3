@@ -50,7 +50,7 @@ def service_main_task(log, rNumGen, database,
             # Determine message type
             if len(next_msg) >= 6:
                 msg_source_addr = next_msg[1]
-                msg_type = next_msg[5]            
+                msg_type = next_msg[5]
 
             # Log Device status updates to database
             if msg_type == message_types['database_lsu']:
