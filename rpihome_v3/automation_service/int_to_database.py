@@ -9,6 +9,7 @@ from rpihome_v3.helpers.device import search_device_list
 from rpihome_v3.messages.message_lsu import LSUmessage
 from rpihome_v3.messages.message_lsu_ack import LSUACKmessage
 from rpihome_v3.messages.message_rc import RCmessage
+from rpihome_v3.messages.message_rc_ack import RCACKmessage
 from rpihome_v3.messages.message_sds import SDSmessage
 from rpihome_v3.messages.message_uc import UCmessage
 from rpihome_v3.messages.message_uc_ack import UCACKmessage
@@ -103,7 +104,7 @@ def process_db_rc_ack(log, ref_num, devices, msg, service_addresses, message_typ
     out_msg_list = []
 
     # Map message into LSU message class
-    message = RCmessage(log=log)
+    message = RCACKmessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
@@ -122,7 +123,7 @@ def process_db_rc_ack(log, ref_num, devices, msg, service_addresses, message_typ
         source_port=service_addresses['automation_port'],
         msg_type=message_types['database_uc'],
         dev_id=message.dev_id,
-        processed=datetime.datetime.now())
+        dev_processed=datetime.datetime.now())
 
     # Load message into output list
     log.debug('Loading completed msg: %s', out_msg.complete)
@@ -131,7 +132,7 @@ def process_db_rc_ack(log, ref_num, devices, msg, service_addresses, message_typ
     # Create message to wemo service to issue command to device
     if dev_pointer is not None:
         # Wemo switch commands get sent to the wemo service for handling
-        if devices[dev_pointer].devtype == 'wemo_switch':
+        if devices[dev_pointer].dev_type == 'wemo_switch':
             # Determine what command to issue
             out_msg = SDSmessage(
                 log=log,
@@ -142,10 +143,10 @@ def process_db_rc_ack(log, ref_num, devices, msg, service_addresses, message_typ
                 source_port=service_addresses['automation_port'],
                 msg_type=message_types['wemo_sds'],
                 dev_name=message.dev_name,
-                dev_addr=devices[dev_pointer].address,
+                dev_addr=devices[dev_pointer].dev_addr,
                 dev_cmd=message.dev_cmd,
-                dev_status=devices[dev_pointer].status,
-                dev_last_seen=devices[dev_pointer].last_seen)
+                dev_status=devices[dev_pointer].dev_status,
+                dev_last_seen=devices[dev_pointer].dev_last_seen)
             # Load message into output list
             log.debug('Loading completed msg: %s', out_msg.complete)
             out_msg_list.append(out_msg.complete)
@@ -194,4 +195,4 @@ def process_db_uc_ack(log, msg):
     message.complete = msg
 
     # Log receipt of ACK for debug purposes
-    log.debug('UC ACK Received: %s', msg.complete)
+    log.debug('UC ACK Received: %s', message.complete)

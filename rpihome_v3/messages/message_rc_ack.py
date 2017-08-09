@@ -241,7 +241,7 @@ class RCACKmessage(object):
     def dev_id(self):
         self.log.debug('Returning current value of device ID: '
                        '%s', self._dev_id)
-        return self._dev_name
+        return self._dev_id
 
     @dev_id.setter
     def dev_id(self, value):
@@ -356,9 +356,10 @@ class RCACKmessage(object):
 
     @complete.setter
     def complete(self, value):
+        self.log.debug('Loading raw rc-ack message into data structure: %s', value)
         if isinstance(value, str):
             self.temp_list = value.split(',')
-            if len(self.temp_list) == 11:
+            if len(self.temp_list) >= 11:
                 self.log.debug('Message was properly formatted for decoding')
                 self.ref = self.temp_list[0]
                 self.dest_addr = self.temp_list[1]

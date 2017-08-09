@@ -5,6 +5,7 @@
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
 import copy
+import datetime
 import env
 from rpihome_v3.messages.message_lsu import LSUmessage
 from rpihome_v3.messages.message_lsu_ack import LSUACKmessage
@@ -93,25 +94,30 @@ def process_db_rc(log, ref_num, database, msg, message_types):
     # Send response message for each record returned by query
     if len(result_list) > 0:
         log.debug('Preparing response messages for pending commands')
-        for pending_cmd in result_list:           
+        for pending_cmd in result_list:
+            # Split pending command into separate parts
+            pending_cmd_seg = pending_cmd.split(',')
             # Create message RC ACK message to automation service
-            out_msg = RCACKmessage(
-                log=log,
-                ref=ref_num.new(),
-                dest_addr=message.source_addr,
-                dest_port=message.source_port,
-                source_addr=message.dest_addr,
-                source_port=message.dest_port,
-                msg_type=message_types['database_rc_ack'],
-                dev_id=copy.copy(pending_cmd[0]),
-                dev_name=copy.copy(pending_cmd[1]),
-                dev_cmd=copy.copy(pending_cmd[2]),
-                dev_timestamp=copy.copy(pending_cmd[3]),
-                dev_processed=copy.copy(pending_cmd[4]))
+            if len(pending_cmd_seg) >= 5:
+                out_msg = RCACKmessage(
+                    log=log,
+                    ref=ref_num.new(),
+                    dest_addr=message.source_addr,
+                    dest_port=message.source_port,
+                    source_addr=message.dest_addr,
+                    source_port=message.dest_port,
+                    msg_type=message_types['database_rc_ack'],
+                    dev_id=copy.copy(pending_cmd_seg[0]),
+                    dev_name=copy.copy(pending_cmd_seg[1]),
+                    dev_cmd=copy.copy(pending_cmd_seg[2]),
+                    dev_timestamp=copy.copy(pending_cmd_seg[3]),
+                    dev_processed=copy.copy(pending_cmd_seg[4]))
 
-            # Load message into output list
-            log.debug('Loading completed msg: [%s]', out_msg.complete)
-            out_msg_list.append(out_msg.complete)
+                # Load message into output list
+                log.debug('Loading completed msg: [%s]', out_msg.complete)
+                out_msg_list.append(out_msg.complete)
+            else:
+                log.warning('Invalid command received from DB: %s', pending_cmd)
     else:
         log.debug('No pending commands found')
 
@@ -129,6 +135,9 @@ def process_db_uc(log, ref_num, database, msg, message_types):
     # Map message header & payload to usable tags
     message = UCmessage(log=log)
     message.complete = msg
+
+    # Update timestamp
+    message.dev_processed = datetime.datetime.now()
 
     # Execute update Query
     log.debug('Querying database to mark command with ID [%s] as complete '

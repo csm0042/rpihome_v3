@@ -29,7 +29,7 @@ __status__ = "Development"
 
 # Internal Service Work Task **************************************************
 @asyncio.coroutine
-def service_main_task(log, rNumGen, database,
+def service_main_task(log, ref_num, database,
                       msg_in_queue, msg_out_queue,
                       service_addresses, message_types):
     """ task to handle the work the service is intended to do """
@@ -48,16 +48,20 @@ def service_main_task(log, rNumGen, database,
             log.debug('Message pulled from queue: [%s]', next_msg)
 
             # Determine message type
-            if len(next_msg) >= 6:
-                msg_source_addr = next_msg[1]
-                msg_type = next_msg[5]
+            next_msg_split = next_msg.split(',')
+            if len(next_msg_split) >= 6:
+                log.debug('Extracting source address and message type')
+                msg_source_addr = next_msg_split[1]
+                msg_type = next_msg_split[5]
+                log.debug('Source Address: %s', msg_source_addr)
+                log.debug('Message Type: %s', msg_type)            
 
             # Log Device status updates to database
             if msg_type == message_types['database_lsu']:
                 log.debug('Message is a device status update')
                 response_msg_list = yield from process_db_lsu(
                     log,
-                    rNumGen,
+                    ref_num,
                     database,
                     next_msg,
                     message_types)
@@ -67,7 +71,7 @@ def service_main_task(log, rNumGen, database,
                 log.debug('Msg is a device pending cmd query')
                 response_msg_list = yield from process_db_rc(
                     log,
-                    rNumGen,
+                    ref_num,
                     database,
                     next_msg,
                     message_types)
@@ -77,7 +81,7 @@ def service_main_task(log, rNumGen, database,
                 log.debug('Msg is a device cmd update')
                 response_msg_list = yield from process_db_uc(
                     log,
-                    rNumGen,
+                    ref_num,
                     database,
                     next_msg,
                     message_types)
@@ -88,13 +92,15 @@ def service_main_task(log, rNumGen, database,
                 log.debug('Performing periodic check of pending commands')
                 response_msg_list = yield from process_db_rc(
                     log,
-                    rNumGen,
+                    ref_num,
                     database,
                     RCmessage(
-                        dest_addr=service_addresses['automation_addr'],
-                        dest_port=service_addresses['automation_port'],
-                        source_addr=service_addresses['database_addr'],
-                        source_port=service_addresses['database_port']),
+                        dest_addr=service_addresses['database_addr'],
+                        dest_port=service_addresses['database_port'],
+                        source_addr=service_addresses['automation_addr'],
+                        source_port=service_addresses['automation_port'],
+                        msg_type=message_types['database_rc']
+                    ).complete,
                     message_types)
                 # Update timestamp
                 last_check = datetime.datetime.now()

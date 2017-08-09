@@ -302,7 +302,7 @@ class SDSACKmessage(object):
     def complete(self, value):
         if isinstance(value, str):
             self.temp_list = value.split(',')
-            if len(self.temp_list) == 9:
+            if len(self.temp_list) >= 9:
                 self.log.debug('Message was properly formatted for decoding')
                 self.ref = self.temp_list[0]
                 self.dest_addr = self.temp_list[1]
