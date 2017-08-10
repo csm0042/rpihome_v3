@@ -8,12 +8,13 @@ import os
 
 # append module root directory to sys.path ************************************
 sys.path.append(
+    # Gets us to rpihome_v3
     os.path.dirname(
+        # Gets us to rpihome_v3\tests
         os.path.dirname(
+            # Gets us to rpihome_v3\tests\unit
             os.path.dirname(
-                os.path.dirname(
-                    os.path.abspath(__file__)
-                )
+                os.path.abspath(__file__)
             )
         )
     )

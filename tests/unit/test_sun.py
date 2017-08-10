@@ -8,7 +8,7 @@ import logging
 import sys
 import unittest
 import env
-from rpihome_v3.helpers import Sun
+from rpihome_v3.helpers.sun import Sun
 
 
 # Authorship Info *************************************************************

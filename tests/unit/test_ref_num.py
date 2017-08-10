@@ -9,7 +9,7 @@ import logging
 import sys
 import unittest
 import env
-from rpihome_v3.helpers import RefNum
+from rpihome_v3.helpers.ref_num import RefNum
 
 
 # Define test class ***********************************************************

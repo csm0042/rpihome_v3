@@ -9,8 +9,8 @@ import logging
 import sys
 import unittest
 import env
-from rpihome_v3.helpers import search_device_list
-from rpihome_v3.helpers import Device
+from rpihome_v3.helpers.device import search_device_list
+from rpihome_v3.helpers.device import Device
 
 
 # Define test class ***********************************************************

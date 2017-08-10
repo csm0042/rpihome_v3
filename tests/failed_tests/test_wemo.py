@@ -10,8 +10,8 @@ import unittest
 if __name__ == "__main__":
     sys.path.append("..")
 import env
-from rpihome_v3.helpers import Device
-from rpihome_v3.wemo_service import WemoAPI 
+from rpihome_v3.helpers.device import Device
+from rpihome_v3.wemo_service.wemo import WemoAPI 
 
 
 # Authorship Info *************************************************************

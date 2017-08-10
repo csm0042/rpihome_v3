@@ -7,7 +7,7 @@ import logging
 import sys
 import unittest
 import env
-from rpihome_v3.helpers import setup_log_handlers
+from rpihome_v3.helpers.log_support import setup_log_handlers
 
 
 # Define test class ***********************************************************

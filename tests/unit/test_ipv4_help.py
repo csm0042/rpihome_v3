@@ -9,7 +9,7 @@ import logging
 import sys
 import unittest
 import env
-from rpihome_v3.helpers import USdst
+from rpihome_v3.helpers.ipv4_help import check_ipv4
 
 
 # Define test class ***********************************************************
@@ -20,8 +20,6 @@ class TestDst(unittest.TestCase):
         logging.basicConfig(stream=sys.stdout)
         self.log = logging.getLogger(__name__)
         self.log.level = logging.DEBUG
-        self.dst_checker = USdst(log=self.log)
-        self.dt = None
         super(TestDst, self).__init__(*args, **kwargs)
 
 
@@ -29,16 +27,15 @@ class TestDst(unittest.TestCase):
         super(TestDst, self).setUp()
 
 
-    def test_init(self):
+    def test_check_ipv4(self):
         """ test class __init__ and input variables """
-        pass
+        self.assertEqual(check_ipv4('192.168.4.4'), True)
+        self.assertEqual(check_ipv4('192.168.x.4'), False)
+        self.assertEqual(check_ipv4('1.1.4.4'), True)
+        self.assertEqual(check_ipv4('127.0.0.1'), True)
 
 
-    def test_dt(self):
-        """ test setting and getting datetime value """
-        self.dt = datetime.datetime.now()
-        self.dst_checker.dt = copy.copy(self.dt)
-        self.assertEqual(self.dst_checker.dt, self.dt)
+
 
 
 if __name__ == "__main__":
