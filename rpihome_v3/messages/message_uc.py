@@ -7,6 +7,8 @@ import datetime
 import logging
 import env
 from rpihome_v3.helpers.ipv4_help import check_ipv4
+from rpihome_v3.messages.field_checkers import in_int_range
+from rpihome_v3.messages.field_checkers import is_valid_datetime
 
 
 # Authorship Info *************************************************************
@@ -81,11 +83,12 @@ class UCmessage(object):
 
     @ref.setter
     def ref(self, value):
-        if isinstance(value, str):
-            self._ref = value
-        else:
+        if in_int_range(self.log, value, 100, 999) is True:
             self._ref = str(value)
-        self.log.debug('Ref number value updated to: %s', self._ref)
+            self.log.debug('Ref number updated to: %s', self._ref)
+        else:
+            self.log.debug('Ref number update failed with input value: '
+                           '%s', value)
 
     # destination address *****************************************************
     @property
@@ -96,22 +99,14 @@ class UCmessage(object):
 
     @dest_addr.setter
     def dest_addr(self, value):
-        if isinstance(value, str):
-            if check_ipv4(value) is True:
-                self._dest_addr = value
-                self.log.debug('Destination address value updated to: '
-                               '%s', self._dest_addr)
-            else:
-                self.log.warning('Invalid address provided for destination '
-                                 'address: %s', value)
+        if check_ipv4(value) is True:
+            self._dest_addr = str(value)
+            self.log.debug('Destination address updated to: '
+                            '%s', self._dest_addr)
         else:
-            if check_ipv4(str(value)) is True:
-                self._dest_addr = str(value)
-                self.log.debug('Destination address value updated to: '
-                               '%s', self._dest_addr)
-            else:
-                self.log.warning('Invalid address provided for destination '
-                                 'address: %s', value)
+            self.log.warning('Destination address update failed with input value: '
+                             '%s', value)
+        
 
     # destination port ********************************************************
     @property
@@ -122,29 +117,12 @@ class UCmessage(object):
 
     @dest_port.setter
     def dest_port(self, value):
-        if isinstance(value, str):
-            try:
-                if 10000 <= int(value) <= 60000:
-                    self._dest_port = value
-                    self.log.debug('Destination port value updated to: '
-                                '%s', self._dest_port)
-                else:
-                    self.log.warning('Invalid port number provided for '
-                                    'destination port: %s', value)
-            except Exception:
-                self.log.warning('Invalid port number provided for '
-                                 'destination port: %s', value)
-        elif isinstance(value, int):
-            if 10000 <= value <= 60000:
-                self._dest_port = str(value)
-                self.log.debug('Destination port value updated to: '
-                               '%s', self._dest_port)
-            else:
-                self.log.warning('Invalid port number provided for '
-                                 'destination port: %s', value)
+        if in_int_range(self.log, value, 10000, 60000) is True:
+            self._dest_port = str(value)
+            self.log.debug('Destination port updated to: %s', self._dest_port)
         else:
-            self.log.warning('Invalid port number rovided for '
-                             'destination port: %s', value)
+            self.log.debug('Destination port update failed with input value: '
+                           '%s', value)
 
     # source address field ****************************************************
     @property
@@ -155,22 +133,13 @@ class UCmessage(object):
 
     @source_addr.setter
     def source_addr(self, value):
-        if isinstance(value, str):
-            if check_ipv4(value) is True:
-                self._source_addr = value
-                self.log.debug('source address value updated to: '
-                               '%s', self._source_addr)
-            else:
-                self.log.warning('Invalid address provided for source '
-                                 'address: %s', value)
+        if check_ipv4(value) is True:
+            self._source_addr = value
+            self.log.debug('source address updated to: '
+                           '%s', self._source_addr)
         else:
-            if check_ipv4(str(value)) is True:
-                self._source_addr = str(value)
-                self.log.debug('source address value updated to: '
-                               '%s', self._source_addr)
-            else:
-                self.log.warning('Invalid address provided for source '
-                                 'address: %s', value)
+            self.log.warning('Source address update failed with input value: '
+                             '%s', value)
 
     # source port field *******************************************************
     @property
@@ -181,29 +150,12 @@ class UCmessage(object):
 
     @source_port.setter
     def source_port(self, value):
-        if isinstance(value, str):
-            try:
-                if 10000 <= int(value) <= 60000:
-                    self._source_port = value
-                    self.log.debug('Source port value updated to: '
-                                '%s', self._source_port)
-                else:
-                    self.log.warning('Invalid port number provided for '
-                                    'Source port: %s', value)
-            except Exception:
-                self.log.warning('Invalid port number provided for '
-                                 'Source port: %s', value)
-        elif isinstance(value, int):
-            if 10000 <= value <= 60000:
-                self._source_port = str(value)
-                self.log.debug('Source port value updated to: '
-                               '%s', self._source_port)
-            else:
-                self.log.warning('Invalid port number provided for '
-                                 'Source port: %s', value)
+        if in_int_range(self.log, value, 10000, 60000) is True:
+            self._source_port = str(value)
+            self.log.debug('Source port updated to: %s', self._source_port)
         else:
-            self.log.warning('Invalid port number rovided for '
-                             'Source port: %s', value)
+            self.log.debug('Source port update failed with input value: '
+                           '%s', value)
 
     # message type field ******************************************************
     @property
@@ -214,12 +166,12 @@ class UCmessage(object):
 
     @msg_type.setter
     def msg_type(self, value):
-        if isinstance(value, str):
-            self._msg_type = value
-        else:
+        if in_int_range(self.log, value, 100, 999) is True:
             self._msg_type = str(value)
-        self.log.debug('Message type value updated to: '
-                       '%s', self._msg_type)
+            self.log.debug('Message type updated to: %s', self._msg_type)
+        else:
+            self.log.debug('Message type update failed with input value: '
+                           '%s', value)
 
     # device ID field *********************************************************
     @property
@@ -230,12 +182,12 @@ class UCmessage(object):
 
     @dev_id.setter
     def dev_id(self, value):
-        if isinstance(value, str):
-            self._dev_id = value
-        else:
+        if in_int_range(self.log, value, 1, 99999999) is True:
             self._dev_id = str(value)
-        self.log.debug('Device ID value updated to: '
-                       '%s', self._dev_id)
+            self.log.debug('Device ID updated to: %s', self._dev_id)
+        else:
+            self.log.debug('Device ID update failed with input value: '
+                           '%s', value)
 
     # device last seen field **************************************************
     @property
@@ -246,23 +198,11 @@ class UCmessage(object):
 
     @dev_processed.setter
     def dev_processed(self, value):
-        if isinstance(value, datetime.datetime):
-            self._dev_processed = (str(value))[:19]
-        elif isinstance(value, datetime.time):
-            self._dev_processed = (str(
-                datetime.datetime.combine(
-                    datetime.datetime.now().date(), value)))[:19]
-        elif isinstance(value, datetime.date):
-            self._dev_processed = (str(
-                datetime.datetime.combine(
-                    value, datetime.datetime.now().time())))[:19]
-        if isinstance(value, str):
-            if len(value) >= 19:
-                self._dev_processed = value[:19]
-            else:
-                self._dev_processed = value
-        self.log.debug('Device cmd processed value updated to: '
-                       '%s', self._dev_processed)                       
+        self._dev_processed = is_valid_datetime(
+            self.log,
+            value,
+            self._dev_processed)
+        self.log.debug('Device processed updated to: %s', self._dev_processed)
 
     # complete message encode/decode methods **********************************
     @property

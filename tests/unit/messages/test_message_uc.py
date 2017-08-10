@@ -66,6 +66,15 @@ class TestUCmessage(unittest.TestCase):
         self.assertEqual(self.message.ref, '100')
         self.message.ref = '202'
         self.assertEqual(self.message.ref, '202')
+        self.message.ref = 99
+        self.assertEqual(self.message.ref, '202')
+        self.message.ref = 303
+        self.assertEqual(self.message.ref, '303')
+        self.message.ref = 1001
+        self.assertEqual(self.message.ref, '303')
+        self.message.ref = 'a'
+        self.assertEqual(self.message.ref, '303')          
+
 
 
     def test_dest_addr(self):
@@ -151,12 +160,35 @@ class TestUCmessage(unittest.TestCase):
             datetime.time(7, 30))
         self.datetime_str = '2017-10-03 07:30:00'
         self.message.dev_processed = self.datetime
-        self.assertEqual(self.message.dev_processed, self.datetime_str)      
+        self.assertEqual(self.message.dev_processed, self.datetime_str)
+        self.message.dev_processed = datetime.datetime.combine(
+            datetime.date(2017, 10, 11),
+            datetime.time(12, 34)
+        )
+        self.assertEqual(self.message.dev_processed, '2017-10-11 12:34:00')
+        self.message.dev_processed = '2017-13-01 12:34:00'
+        self.assertEqual(self.message.dev_processed, '2017-10-11 12:34:00')
+        self.message.dev_processed = '2017-12-31 13:34:00'
+        self.assertEqual(self.message.dev_processed, '2017-12-31 13:34:00')
+        self.message.dev_processed = '2017-12-32 13:34:00'
+        self.assertEqual(self.message.dev_processed, '2017-12-31 13:34:00')
+        self.message.dev_processed = '2017-12-31 24:34:00'
+        self.assertEqual(self.message.dev_processed, '2017-12-31 13:34:00')
+        self.message.dev_processed = '2017-12-31 23:59:00'
+        self.assertEqual(self.message.dev_processed, '2017-12-31 23:59:00')
+        self.message.dev_processed = '2017-12-31 23:60:00'
+        self.assertEqual(self.message.dev_processed, '2017-12-31 23:59:00')
+        self.message.dev_processed = '2017-12-31 23:60:61'
+        self.assertEqual(self.message.dev_processed, '2017-12-31 23:59:00')
+        self.message.dev_processed = '23:45:04'
+        self.assertEqual(self.message.dev_processed, '2017-08-10 23:45:04')
+        self.message.dev_processed = '2017-08-05'
+        self.assertEqual(self.message.dev_processed[0:10], '2017-08-05')                                                            
 
 
     def test_complete(self):
         self.temp_str = '142,127.0.0.1,12000,192.168.5.45,13000,' \
-                        '301,12,2017-10-04 07:01:033.000034'
+                        '301,12,2017-10-04 07:01:03.000034'
         self.temp_str2 = '142,127.0.0.1,12000,192.168.5.45,13000,' \
                          '301,12,2017-10-04 07:01:03'
         self.message.complete = copy.copy(self.temp_str)

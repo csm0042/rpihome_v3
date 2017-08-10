@@ -25,6 +25,13 @@ def check_ipv4(address):
                  r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.' \
                  r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.' \
                  r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b'
+    # check if address is a string
+    if isinstance(address, str) is not True:
+        try:
+            address = str(address)
+        except Exception:
+            return False
+    # check if address is formatted correctly for an ipv4 address
     if re.fullmatch(ipv4_regex, address) is not None:
         return True
     else:
