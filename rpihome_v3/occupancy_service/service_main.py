@@ -6,7 +6,6 @@
 import asyncio
 import datetime
 import env
-from rpihome_v3.occupancy_service.occupancy import Occupancy
 
 
 # Authorship Info *************************************************************
@@ -65,7 +64,8 @@ def service_main_task(log, ref_num, occupancy_monitor, msg_in_que, msg_out_que,
 
 
         # Periodically check state of devices
-        if datetime.datetime.now() >= (last_check + datetime.timedelta(minutes=1)):
+        if datetime.datetime.now() >= (last_check + datetime.timedelta(seconds=1)):
+            log.debug('Performing occupancy check')
             out_msg_list = occupancy_monitor.check_all()
             last_check = datetime.datetime.now()
 

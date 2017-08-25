@@ -52,3 +52,4 @@ class OccupancyMonitor(object):
 
     def check_all(self):
         pass
+        return []

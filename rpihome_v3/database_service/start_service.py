@@ -10,6 +10,7 @@ import sys
 import time
 import env
 from rpihome_v3.helpers.ref_num import RefNum
+from rpihome_v3.helpers.message_handlers import MessageHandler
 from rpihome_v3.database_service.configure import configure_log
 from rpihome_v3.database_service.configure import configure_credentials
 from rpihome_v3.database_service.configure import configure_database
@@ -41,70 +42,7 @@ MSG_IN_QUEUE = asyncio.Queue()
 MSG_OUT_QUEUE = asyncio.Queue()
 LOOP = asyncio.get_event_loop()
 
-
-# Incoming message handler ****************************************************
-@asyncio.coroutine
-def handle_msg_in(reader, writer):
-    """ Callback used to send ACK messages back to acknowledge messages
-    received """
-    LOG.debug('Yielding to reader.read()')
-    data_in = yield from reader.read(200)
-    LOG.debug('Decoding read data')
-    message = data_in.decode()
-    LOG.debug('Extracting address from socket connection')
-    addr = writer.get_extra_info('peername')
-    LOG.debug('Received %r from %r' % (message, addr))
-
-    # Coping incoming message to message buffer
-    LOG.debug('Loading message into incoming msg buffer')
-    MSG_IN_QUEUE.put_nowait(message)
-    LOG.debug('Resulting buffer length: %s', str(MSG_IN_QUEUE.qsize()))
-
-    # Acknowledge receipt of message
-    LOG.debug("ACK'ing message: %r", message)
-    LOG.debug('Splitting message into constituent parts')
-    msg_seg = message.split(',')
-    LOG.debug('Extracted msg sequence number: [%s]', msg_seg[0])
-    ack_to_send = msg_seg[0].encode()
-    LOG.debug('Sending response msg: [%s]', ack_to_send)
-    writer.write(ack_to_send)
-    yield from writer.drain()
-    LOG.debug('Closing the socket after sending ACK')
-    writer.close()
-
-
-# Outgoing message handler ****************************************************
-@asyncio.coroutine
-def handle_msg_out():
-    """ task to handle outgoing messages """
-    while True:
-        if MSG_OUT_QUEUE.qsize() > 0:
-            LOG.debug('Pulling next outgoing message from queue')
-            msg_to_send = MSG_OUT_QUEUE.get_nowait()
-            LOG.debug('Extracting msg destination address and port')
-            msg_seg_out = msg_to_send.split(',')
-            LOG.debug('Opening outgoing connection to %s:%s',
-                      msg_seg_out[1], msg_seg_out[2])
-            try:
-                reader_out, writer_out = yield from asyncio.open_connection(
-                    msg_seg_out[1], int(msg_seg_out[2]), loop=LOOP)
-                LOG.debug('Sending message: [%s]', msg_to_send)
-                writer_out.write(msg_to_send.encode())
-
-                LOG.debug('Waiting for ack')
-                data_ack = yield from reader_out.read(200)
-                ack = data_ack.decode()
-                LOG.debug('Received: %r', ack)
-                if ack.split(',')[0] == msg_seg_out[0]:
-                    LOG.debug('Successful ACK received')
-                else:
-                    LOG.debug('Ack received does not match sent message')
-                LOG.debug('Closing socket')
-                writer_out.close()
-            except Exception:
-                LOG.warning('Could not open socket connection to target')
-        # Yield to other tasks for a while
-        yield from asyncio.sleep(0.25)
+COMM_HANDLER = MessageHandler(LOG)
 
 
 # Main ************************************************************************
@@ -118,7 +56,7 @@ def main():
                   SERVICE_ADDRESSES['database_addr'],
                   SERVICE_ADDRESSES['database_port'])
         msg_in_server = asyncio.start_server(
-            handle_msg_in,
+            COMM_HANDLER.handle_msg_in,
             host=SERVICE_ADDRESSES['database_addr'],
             port=int(SERVICE_ADDRESSES['database_port']))
         LOG.debug('Wrapping servier in future task and scheduling for '
@@ -144,7 +82,7 @@ def main():
 
     # Create outgoing message task
     LOG.debug('Scheduling outgoing message task for execution')
-    asyncio.ensure_future(handle_msg_out())
+    asyncio.ensure_future(COMM_HANDLER.handle_msg_out())
 
     # Serve requests until Ctrl+C is pressed
     LOG.info('Database Persistance Service')

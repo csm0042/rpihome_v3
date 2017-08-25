@@ -42,6 +42,7 @@ LOOP = asyncio.get_event_loop()
 
 COMM_HANDLER = MessageHandler(LOG)
 
+
 # Main ************************************************************************
 def main():
     """ Main application routine """
