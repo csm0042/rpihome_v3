@@ -1,4 +1,15 @@
-body {margin:0;}
+body {
+    margin:0;
+    background-color:rgb(49,49,49);
+}
+
+img {
+    width:100%;
+}
+
+.floor-layout {
+    
+}
 
 .icon-bar {
     width: 100%;
