@@ -103,16 +103,7 @@ Icon bar at the top of each screen
     border-radius: 15px;
     height: auto;
     width: auto;
-    text-align: center;
-}
-
-.floor-img img {
-    position: relative;
-    left: 20px;
-    display: block;
-    width: auto;
-    height: auto;
-    float: left;
+    padding: 20px;
 }
 
 .control-pad {
@@ -120,4 +111,9 @@ Icon bar at the top of each screen
     border-radius: 15px;
     min-height: 100px;
     text-align: center;
+    margin-bottom: 10px;
+}
+
+.control-pad button {
+    margin-top: 30px;
 }
