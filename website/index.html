@@ -6,6 +6,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="fonts/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" type="text/css" href="css/main.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        
+        <!-- SCRIPT FOR POST TO SERVER -->
+        <script>
+            function get_device_status(name) {
+                $.post("php/get_status.php",
+                {
+                    device: name,
+                },
+                function(device,status) {
+                    alert("Device: " + device + "\nStatus: " + status);
+                });
+            }
+        </script>
+
+
     </head>
     
     <body>
@@ -57,7 +73,7 @@
             </div>
             <div class="col-3">
                 <div class="control-pad">
-                    <button type="button">Front Patio<br>Light</button>
+                    <button type="button" onclick="get_device_status('fylt1')">Front Patio<br>Light</button>
                 </div>
                 <div class="control-pad">
                     <button type="button">Entry Way<br>Light</button>

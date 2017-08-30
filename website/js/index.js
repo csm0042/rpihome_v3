@@ -1,3 +1,7 @@
-function myFunction(x) {
-    x.classList.toggle("change");
+function myAjax() {
+    $.ajax({
+        type: "POST",
+        url: 'php/get_status.php',
+        data: {name:'call_this', }
+    }
 }
