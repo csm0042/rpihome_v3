@@ -7,20 +7,7 @@
         <link rel="stylesheet" href="fonts/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" type="text/css" href="css/main.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-        
-        <!-- SCRIPT FOR POST TO SERVER -->
-        <script>
-            function get_device_status(name) {
-                $.post("php/get_status.php",
-                {
-                    device: name,
-                },
-                function(device,status) {
-                    alert("Device: " + device + "\nStatus: " + status);
-                });
-            }
-        </script>
-
+        <script src="js/index.js"></script>
 
     </head>
     
@@ -72,32 +59,16 @@
                 </div>                
             </div>
             <div class="col-3">
-                <div class="control-pad">
-                    <button type="button" onclick="get_device_status('fylt1')">Front Patio<br>Light</button>
-                </div>
-                <div class="control-pad">
-                    <button type="button">Entry Way<br>Light</button>
-                </div>
-                <div class="control-pad">
-                    <button type="button">Living Room<br>Table Lamps</button>
-                </div>
-                <div class="control-pad">
-                    <button type="button">Dining Room<br>Light</button>
-                </div>                                                  
+                <button type="button" class="control-pad" id="fylt1-toggle" onclick="toggleDeviceState('fylt1-toggle')">Front Patio<br>Light</button><br>
+                <button type="button" class="control-pad" id="ewlt1-toggle" onclick="toggleDeviceState('ewlt1-toggle')">Entry Way<br>Light</button><br>
+                <button type="button" class="control-pad" id="lrlt1-toggle" onclick="toggleDeviceState('lrlt1-toggle')">Living Room<br>Table Lamps</button><br>
+                <button type="button" class="control-pad" id="drlt1-toggle" onclick="toggleDeviceState('drlt1-toggle')">Dining Room<br>Light</button>                                             
             </div>
             <div class="col-3">
-                <div class="control-pad">
-                    <button type="button">Front Patio<br>Outlet</button>
-                </div>
-                <div class="control-pad">
-                    <button type="button">Coat Corner<br>Lamp</button>
-                </div>
-                <div class="control-pad">
-                    <button type="button">Living Room<br>Tall Lamps</button>
-                </div>
-                <div class="control-pad">
-                    <button type="button">Back Patio<br>Light</button>
-                </div>                
+                <button type="button" class="control-pad" id="fylt2-toggle" onclick="toggleDeviceState('fylt2-toggle')">Front Patio<br>Outlet</button><br>
+                <button type="button" class="control-pad" id="cclt1-toggle" onclick="toggleDeviceState('cclt1-toggle')">Coat Corner<br>Lamp</button><br>
+                <button type="button" class="control-pad" id="lrlt2-toggle" onclick="toggleDeviceState('lrlt2-toggle')">Living Room<br>Tall Lamps</button><br>
+                <button type="button" class="control-pad" id="bylt1-toggle" onclick="toggleDeviceState('bylt1-toggle')">Back Patio<br>Light</button>             
             </div>                                          
         </div>
 
@@ -112,26 +83,14 @@
                 </div>                
             </div>
             <div class="col-3">
-                <div class="control-pad">
-                    <button type="button">Chris' Bedroom<br>Overhead Light</button>
-                </div>
-                <div class="control-pad">
-                    <button type="button">Aiden's Bedroom<br>Overhead Light</button>
-                </div>
-                <div class="control-pad">
-                    <button type="button">Sarah's Bedroom<br>Overhead Light</button>
-                </div>                                                 
+                <button type="button" class="control-pad" id="br1lt1-toggle" onclick="toggleDeviceState('br1lt1-toggle')">Chris' Bedroom<br>Overhead Light</button>
+                <button type="button" class="control-pad" id="br2lt1-toggle" onclick="toggleDeviceState('br2lt1-toggle')">Aiden's Bedroom<br>Overhead Light</button>
+                <button type="button" class="control-pad" id="br3lt1-toggle" onclick="toggleDeviceState('br3lt1-toggle')">Sarah's Bedroom<br>Overhead Light</button>                                               
             </div>
             <div class="col-3">
-                <div class="control-pad">
-                    <button type="button">Chris' Bedroom<br>Bedside Lamps</button>
-                </div>
-                <div class="control-pad">
-                    <button type="button">Aiden's Bedroom<br>Bedside Lamp</button>
-                </div>
-                <div class="control-pad">
-                    <button type="button">Sarah's Bedroom<br>Lava Lamp</button>
-                </div>
+                <button type="button" class="control-pad" id="br1lt2-toggle" onclick="toggleDeviceState('br1lt2-toggle')">Chris' Bedroom<br>Bedside Lamps</button>
+                <button type="button" class="control-pad" id="br2lt2-toggle" onclick="toggleDeviceState('br2lt2-toggle')">Aiden's Bedroom<br>Bedside Lamp</button>
+                <button type="button" class="control-pad" id="br3lt2-toggle" onclick="toggleDeviceState('br3lt2-toggle')">Sarah's Bedroom<br>Lava Lamp</button>
             </div>                                          
         </div>        
    
