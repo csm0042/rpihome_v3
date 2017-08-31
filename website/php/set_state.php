@@ -1,7 +1,6 @@
 <html>
     <body>
         <?php
-        function set_state(
         $servername = "localhost";
         $dbname = "rpihome";        
         $username = "python";
