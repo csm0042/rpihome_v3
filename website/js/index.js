@@ -28,13 +28,13 @@ function setState(id, state) {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            window.alert('this part worked')
+            //window.alert('this part worked')
             document.getElementById(id).style.innerHTML = this.responseText;
         }
     };
     var path = "php/set_state.php?devName=" + id_sep[0] + "&devCmd=" + state;
     xhttp.open("POST", path, true);
     xhttp.send();
-    window.alert("ran command: " + path);
+    //window.alert("ran command: " + path);
 }
 
