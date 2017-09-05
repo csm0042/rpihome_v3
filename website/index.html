@@ -16,11 +16,11 @@
         <!--  MENU BAR  -->         
 
         <div class="icon-bar">
-            <a href="#" onmouseover="playSound('sound/computerbeep_5.mp3')"><i class="fa fa-bars"></i></a> 
-            <a class="active" href="index.html" onmouseover="playSound('sound/computerbeep_5.mp3')"><i class="fa fa-home"></i></a>
-            <a href="users.html" onmouseover="playSound('sound/computerbeep_5.mp3')"><i class="fa fa-user"></i></a>
-            <a href="calendar.html" onmouseover="playSound('sound/computerbeep_5.mp3')"><i class="fa fa-calendar"></i></a> 
-            <a href="environment.html" onmouseover="playSound('sound/computerbeep_5.mp3')"><i class="fa fa-thermometer"></i></a> 
+            <a href="#"><i class="fa fa-bars"></i></a> 
+            <a class="active"><i class="fa fa-home"></i></a>
+            <a href="users.html"><i class="fa fa-user"></i></a>
+            <a href="calendar.html"><i class="fa fa-calendar"></i></a> 
+            <a href="environment.html"><i class="fa fa-thermometer"></i></a> 
         </div>
 
         <!-- QUICK STATUS BAR -->   
@@ -53,41 +53,47 @@
         <!-- DEVICE CONTROLS -->     
         
         <div class="row">
-            <div class="col-3">
+            <div class="col-2">
                 <div class="floor-frame">
                     <img class="floor-img" src="img/first-floor.png" alt="First Floor" usemap="#first-floor-map">
                 </div>                
             </div>
-            <div class="col-1">
-                <button type="button" class="control-pad" id="fylt1-toggle" onclick="toggleDeviceState('fylt1-toggle', 'sound/helm_engage_clean.mp3')">Front<br>Patio<br>Light</button><br>
-                <button type="button" class="control-pad" id="ewlt1-toggle" onclick="toggleDeviceState('ewlt1-toggle', 'sound/helm_engage_clean.mp3')">Entry<br>Way<br>Light</button><br>
-                <button type="button" class="control-pad" id="drlt1-toggle" onclick="toggleDeviceState('drlt1-toggle', 'sound/helm_engage_clean.mp3')">Dining<br>Room<br>Light</button><br>                                           
+            <div class="col-2">
+                <button type="button" class="control-pad" id="fylt1-toggle" onclick="toggleDeviceState('fylt1-toggle', 'sound/computerbeep_5.mp3')">Front<br>Patio<br>Light</button><br>
+                <button type="button" class="control-pad" id="cclt1-toggle" onclick="toggleDeviceState('cclt1-toggle', 'sound/computerbeep_5.mp3')">Coat<br>Corner<br>Light</button><br>
+                <button type="button" class="control-pad" id="lrlt1-toggle" onclick="toggleDeviceState('lrlt1-toggle', 'sound/computerbeep_5.mp3')">Living<br>Room<br>Light</button><br>
+                <button type="button" class="control-pad" id="drlt1-toggle" onclick="toggleDeviceState('drlt1-toggle', 'sound/computerbeep_5.mp3')">Dining<br>Room<br>Light</button><br>                                           
             </div>
-            <div class="col-1">
-                <button type="button" class="control-pad" id="fylt2-toggle" onclick="toggleDeviceState('fylt2-toggle', 'sound/helm_engage_clean.mp3')">Front<br>Patio<br>Outlet</button><br>
-                <button type="button" class="control-pad" id="lrlt1-toggle" onclick="toggleDeviceState('lrlt1-toggle', 'sound/helm_engage_clean.mp3')">Living<br>Room<br>Light</button><br>
-                <button type="button" class="control-pad" id="bylt1-toggle" onclick="toggleDeviceState('bylt1-toggle', 'sound/helm_engage_clean.mp3')">Back<br>Yard<br>Light</button><br>                                            
-            </div>            
-            <div class="col-1">
-                <button type="button" class="control-pad" id="cclt1-toggle" onclick="toggleDeviceState('cclt1-toggle', 'sound/helm_engage_clean.mp3')">Coat<br>Corner<br>Light</button><br>
-                <button type="button" class="control-pad" id="lrlt2-toggle" onclick="toggleDeviceState('lrlt2-toggle', 'sound/helm_engage_clean.mp3')">Living<br>Room<br>Lamps</button><br>            
-            </div>    
-            <div class="col-3">
+            <div class="col-2">
+                <button type="button" class="control-pad" id="fylt2-toggle" onclick="toggleDeviceState('fylt2-toggle', 'sound/computerbeep_5.mp3')">Front<br>Patio<br>Outlet</button><br>
+                <button type="button" class="control-pad" id="ewlt1-toggle" onclick="toggleDeviceState('ewlt1-toggle', 'sound/computerbeep_5.mp3')">Entry<br>Way<br>Light</button><br>
+                <button type="button" class="control-pad" id="lrlt2-toggle" onclick="toggleDeviceState('lrlt2-toggle', 'sound/computerbeep_5.mp3')">Living<br>Room<br>Lamps</button><br>
+                <button type="button" class="control-pad" id="bylt1-toggle" onclick="toggleDeviceState('bylt1-toggle', 'sound/computerbeep_5.mp3')">Back<br>Yard<br>Light</button><br>                                            
+            </div>              
+            <div class="col-2">
                 <div class="floor-frame">
                     <img class="floor-img" src="img/second-floor.png" alt="Second Floor" usemap="#second-floor-map">
                 </div>
             </div>
-            <div class="col-1">
-                <button type="button" class="control-pad" id="br1lt1-toggle" onclick="toggleDeviceState('br1lt1-toggle', 'sound/helm_engage_clean.mp3')">Chris<br>Overhead<br>Light</button><br>
-                <button type="button" class="control-pad" id="br2lt1-toggle" onclick="toggleDeviceState('br2lt1-toggle', 'sound/helm_engage_clean.mp3')">Aiden<br>Overhead<br>Light</button><br>
-                <button type="button" class="control-pad" id="br3lt1-toggle" onclick="toggleDeviceState('br3lt1-toggle', 'sound/helm_engage_clean.mp3')">Sarah<br>Overhead<br>Table Lamps</button><br>                                           
+            <div class="col-2">
+                <button type="button" class="control-pad" id="br1lt1-toggle" onclick="toggleDeviceState('br1lt1-toggle', 'sound/computerbeep_5.mp3')">Chris<br>Overhead<br>Light</button><br>
+                <button type="button" class="control-pad" id="br2lt1-toggle" onclick="toggleDeviceState('br2lt1-toggle', 'sound/computerbeep_5.mp3')">Aiden<br>Overhead<br>Light</button><br>
+                <button type="button" class="control-pad" id="br3lt1-toggle" onclick="toggleDeviceState('br3lt1-toggle', 'sound/computerbeep_5.mp3')">Sarah<br>Overhead<br>Table Lamps</button><br>                                           
             </div>
-            <div class="col-1">
-                <button type="button" class="control-pad" id="br1lt2-toggle" onclick="toggleDeviceState('br1lt2-toggle', 'sound/helm_engage_clean.mp3')">Chris<br>Bedside<br>Light</button><br>
-                <button type="button" class="control-pad" id="br2lt2-toggle" onclick="toggleDeviceState('br2lt2-toggle', 'sound/helm_engage_clean.mp3')">Aiden<br>Floor<br>Lamp</button><br>
-                <button type="button" class="control-pad" id="br3lt2-toggle" onclick="toggleDeviceState('br3lt2-toggle', 'sound/helm_engage_clean.mp3')">Sarah<br>Lava<br>Lamps</button><br>                                            
+            <div class="col-2">
+                <button type="button" class="control-pad" id="br1lt2-toggle" onclick="toggleDeviceState('br1lt2-toggle', 'sound/computerbeep_5.mp3')">Chris<br>Bedside<br>Light</button><br>
+                <button type="button" class="control-pad" id="br2lt2-toggle" onclick="toggleDeviceState('br2lt2-toggle', 'sound/computerbeep_5.mp3')">Aiden<br>Floor<br>Lamp</button><br>
+                <button type="button" class="control-pad" id="br3lt2-toggle" onclick="toggleDeviceState('br3lt2-toggle', 'sound/computerbeep_5.mp3')">Sarah<br>Lava<br>Lamps</button><br>                                            
             </div>                                                            
         </div>
+
+        <map name="first-floor-map">
+            <area shape="rect" title="lrlt1" coords="40,275,90,458" href"lrlt1">
+            <area shape="rect" title="lrlt2" coords="95,400,237,460" href"lrlt2">
+            <area shape="rect" title="ewlt1" coords="250,400,300,460" href"ewlt1">
+            <area shape="rect" title="cclt1" coords="290,338,340,400" href"cclt1">
+            <area shape="rect" title="drlt1" coords="50,40,195,260" href"drlt1">
+        </map>  
 
         <map name="second-floor-map">
             <area shape="rect" title="br1lt1" coords="40,275,90,458" href"br1lt1">
