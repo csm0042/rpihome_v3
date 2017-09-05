@@ -24,16 +24,27 @@ function toggleDeviceState(id, sound) {
 
 // Ajax call to a PHP script on server which sets device state commands in a database
 function setState(id, state) {
-    var id_sep = id.split("-")
+    var id_sep = id.split("-");
+    var xhttp = new XMLHttpRequest();
+    var url = "php/set_state.php?";
+    xhttp.open("POST", url, true); 
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp.send("devname=" + id_sep[0] + "&devcmd=" + state);
+}
+
+
+// Ajax call to a PHP script on server to get current device state from database
+function getState(id) {
+    var id_sep = id.split("-");
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             document.getElementById(id).style.innerHTML = this.responseText;
+            playSound(sound);
         }
     };
-    var url = "php/set_state.php?";
-    var data = "devname=" + id_sep[0] + "&devcmd=" + state;
-    xhttp.open("POST", url + data, true);
-    xhttp.send();
+    var url = "php/get_state.php?";   
+    xhttp.open("POST", url, true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp.send("devname=" + id_sep[0]);    
 }
-

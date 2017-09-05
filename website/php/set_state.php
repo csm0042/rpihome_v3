@@ -5,7 +5,6 @@
         $dbname = "rpihome";        
         $username = "python";
         $password = "python";
-        $dbname = "rpihome";
 
         // Create connection
         $conn = new mysqli($servername, $username, $password, $dbname);
@@ -15,8 +14,8 @@
             die("Connection failed: " . $conn->connect_error);
         }
 
-        $devname = $_REQUEST['devname'];
-        $devcmd = $_REQUEST['devcmd'];
+        $devname = $_POST['devname'];
+        $devcmd = $_POST['devcmd'];
         
          // Execute query
          $sql = "INSERT INTO device_cmd (device, cmd) VALUES ('$devname', '$devcmd')";

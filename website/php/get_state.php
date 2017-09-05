@@ -2,10 +2,9 @@
     <body>
         <?php
         $servername = "localhost";
-        $dbname = "rpihome";        
+        $dbname = "rpihome";
         $username = "python";
         $password = "python";
-        $dbname = "rpihome";
 
         // Create connection
         $conn = new mysqli($servername, $username, $password, $dbname);
@@ -15,8 +14,11 @@
             die("Connection failed: " . $conn->connect_error);
         }
 
+        $devname = $_POST['devname'];
+        echo $devname;
+
         // Execute query
-        $sql = "SELECT device, status FROM device_log WHERE device = '$_POST[devName]' AND (device, timestamp) IN (SELECT device, Max(timestamp) FROM device_log GROUP BY device) LIMIT 1";
+        $sql = "SELECT device, status FROM device_log WHERE device = '$devname' AND (device, timestamp) IN (SELECT device, Max(timestamp) FROM device_log GROUP BY device) LIMIT 1";
         $result = $conn->query($sql);
 
         // Check and return results
