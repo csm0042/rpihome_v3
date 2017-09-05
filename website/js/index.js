@@ -31,8 +31,9 @@ function setState(id, state) {
             document.getElementById(id).style.innerHTML = this.responseText;
         }
     };
-    var path = "php/set_state.php?devName=" + id_sep[0] + "&devCmd=" + state;
-    xhttp.open("POST", path, true);
+    var url = "php/set_state.php?";
+    var data = "devname=" + id_sep[0] + "&devcmd=" + state;
+    xhttp.open("POST", url + data, true);
     xhttp.send();
 }
 

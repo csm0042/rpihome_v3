@@ -8,8 +8,10 @@ import copy
 import env
 from rpihome_v3.messages.message_gds import GDSmessage
 from rpihome_v3.messages.message_gds_ack import GDSACKmessage
-from rpihome_v3.messages.message_gds import SDSmessage
-from rpihome_v3.messages.message_gds_ack import SDSACKmessage
+from rpihome_v3.messages.message_sds import SDSmessage
+from rpihome_v3.messages.message_sds_ack import SDSACKmessage
+from rpihome_v3.messages.message_wwu import WWUmessage
+from rpihome_v3.messages.message_wwu_ack import WWUACKmessage
 
 
 
@@ -22,6 +24,36 @@ __version__ = "1.0.0"
 __maintainer__ = "Christopher Maue"
 __email__ = "csmaue@gmail.com"
 __status__ = "Development"
+
+
+# ACK wake-up message *********************************************************
+@asyncio.coroutine
+def check_wemo_service(log, ref_num, msg, message_types):
+    """ function to ack wake-up requests to wemo service """
+    # Initialize result list
+    out_msg_list = []
+
+    # Map message into wemo wake-up message class
+    message = WWUmessage(log=log)
+    message.complete = msg
+
+    # Send response indicating query was executed
+    log.debug('Building response message header')
+    out_msg = WWUACKmessage(
+        log=log,
+        ref=ref_num.new(),
+        dest_addr=message.source_addr,
+        dest_port=message.source_port,
+        source_addr=message.dest_addr,
+        source_port=message.dest_port,
+        msg_type=message_types['wemo_wu_ack'])
+
+    # Load message into output list
+    log.debug('Loading completed msg: [%s]', out_msg.complete)
+    out_msg_list.append(out_msg.complete)
+
+    # Return response message
+    return out_msg_list
 
 
 # Internal Service Work Subtask - wemo get status *****************************

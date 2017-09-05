@@ -4,6 +4,10 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
+import env
+from rpihome_v3.wemo_service.int_to_wemo import check_wemo_service
+from rpihome_v3.wemo_service.int_to_wemo import get_wemo_status
+from rpihome_v3.wemo_service.int_to_wemo import set_wemo_state
 
 
 # Authorship Info *************************************************************
@@ -23,7 +27,7 @@ def service_main_task(log, ref_num, wemo_gw, msg_in_que, msg_out_que, message_ty
     """ task to handle the work the service is intended to do """
     while True:
         # Initialize result list
-        response_msg_list = []
+        out_msg_list = []
 
         if msg_in_que.qsize() > 0:
             log.debug('Getting Incoming message from queue')
@@ -39,10 +43,19 @@ def service_main_task(log, ref_num, wemo_gw, msg_in_que, msg_out_que, message_ty
                 log.debug('Source Address: %s', msg_source_addr)
                 log.debug('Message Type: %s', msg_type)
 
+            # Wemo Service Check
+            if msg_type == message_types['wemo_wu']:
+                log.debug('Message is a wakeup request')
+                out_msg_list = yield from check_wemo_service(
+                    log,
+                    ref_num,
+                    next_msg,
+                    message_types)
+
             # Wemo Device Status Queries
             if msg_type == message_types['wemo_gds']:
                 log.debug('Message is a device status update request')
-                response_msg_list = yield from wemo_gw.get_wemo_status(
+                out_msg_list = yield from get_wemo_status(
                     log,
                     ref_num,
                     wemo_gw,
@@ -52,7 +65,7 @@ def service_main_task(log, ref_num, wemo_gw, msg_in_que, msg_out_que, message_ty
             # Wemo Device set state commands
             if msg_type == message_types['wemo_sds']:
                 log.debug('Message is a device set state command')
-                response_msg_list = yield from wemo_gw.set_wemo_state(
+                out_msg_list = yield from set_wemo_state(
                     log,
                     ref_num,
                     wemo_gw,
@@ -60,9 +73,9 @@ def service_main_task(log, ref_num, wemo_gw, msg_in_que, msg_out_que, message_ty
                     message_types)
 
         # Que up response messages in outgoing msg que
-        if len(response_msg_list) > 0:
+        if len(out_msg_list) > 0:
             log.debug('Queueing response message(s)')
-            for response_msg in response_msg_list:
+            for response_msg in out_msg_list:
                 msg_out_que.put_nowait(response_msg)
                 log.debug('Response message [%s] successfully queued',
                           response_msg)
