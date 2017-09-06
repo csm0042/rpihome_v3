@@ -77,17 +77,26 @@ Icon bar at the top of each screen
 
 /*  Quick Status row  */
 
-.weather {
-    background: #355AA7;    
-    border-radius: 15px;
-    min-height: 100px;
+.datetime-display {
+    color: rgb(255,255,0);
+    height: 60px;
+    padding-left: 40px;
+    padding-right: 40px;
+    max-height: 60px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 2.8em;
+    letter-spacing:-0.02em;
     text-align: center;
 }
 
+
 .occupancy {
-    background: #355AA7;    
+    color: rgb(255,255,0);
+    background: #355AA7;
+    font-size: 16px; 
     border-radius: 15px;
-    min-height: 100px;
+    height: 100px;
     text-align: center;
 }
 
