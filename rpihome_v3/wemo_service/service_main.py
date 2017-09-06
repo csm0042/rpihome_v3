@@ -7,10 +7,11 @@ import asyncio
 import datetime
 import logging
 import env
+from rpihome_v3.messages.heartbeat import HeartbeatMessage
 from rpihome_v3.wemo_service.msg_processing import reply_to_hb
 from rpihome_v3.wemo_service.msg_processing import get_wemo_state
 from rpihome_v3.wemo_service.msg_processing import set_wemo_state
-from rpihome_v3.messages.heartbeat import HeartbeatMessage
+
 
 
 # Authorship Info *************************************************************
@@ -103,7 +104,7 @@ class MainTask(object):
                         self.message_types)
 
                 # Wemo Device Status Queries
-                if self.msg_type == self.message_types['wemo_gds']:
+                if self.msg_type == self.message_types['get_device_state']:
                     self.log.debug('Message is a device status update request')
                     self.out_msg_list = yield from get_wemo_state(
                         self.log,
@@ -113,7 +114,7 @@ class MainTask(object):
                         self.message_types)
 
                 # Wemo Device set state commands
-                if self.msg_type == self.message_types['wemo_sds']:
+                if self.msg_type == self.message_types['set_device_state']:
                     self.log.debug('Message is a device set state command')
                     self.out_msg_list = yield from set_wemo_state(
                         self.log,
@@ -142,10 +143,10 @@ class MainTask(object):
             # OUTGOING MESSAGE HANDLING
             if len(self.out_msg_list) > 0:
                 self.log.debug('Queueing response message(s)')
-                for response_msg in self.out_msg_list:
-                    self.msg_out_queue.put_nowait(response_msg)
+                for out_msg in self.out_msg_list:
+                    self.msg_out_queue.put_nowait(out_msg)
                     self.log.debug('Response message [%s] successfully queued',
-                                   response_msg)
+                                   out_msg)
 
             # Yield to other tasks for a while
             yield from asyncio.sleep(0.25)
