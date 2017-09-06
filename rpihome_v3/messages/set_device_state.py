@@ -1,17 +1,14 @@
 #!/usr/bin/python3
-""" message_oc_ack.py:
+""" message_sds.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import datetime
 import logging
-import os
-import sys
 import env
 from rpihome_v3.helpers.ipv4_help import check_ipv4
 from rpihome_v3.messages.field_checkers import in_int_range
 from rpihome_v3.messages.field_checkers import is_valid_datetime
-
 
 
 # Authorship Info *************************************************************
@@ -26,7 +23,7 @@ __status__ = "Development"
 
 
 # Message Class Definition ****************************************************
-class OCACKmessage(object):
+class SetDeviceStateMessage(object):
     """ Log Status Update message class and methods """
     def __init__(self, log=None, **kwargs):
         # Configure logger
@@ -38,6 +35,10 @@ class OCACKmessage(object):
         self._source_port = str()
         self._msg_type = str()
         self._dev_name = str()
+        self._dev_addr = str()
+        self._dev_cmd = str()
+        self._dev_status = str()
+        self._dev_last_seen = str()
         self.temp_list = []
         # Process input variables if present
         if kwargs is not None:
@@ -70,6 +71,22 @@ class OCACKmessage(object):
                     self.dev_name = value
                     self.log.debug('Device name value set during __init__ to: '
                                    '%s', self.dev_name)
+                if key == "dev_addr":
+                    self.dev_addr = value
+                    self.log.debug('Device Address value set during __init__ '
+                                   'to: %s', self.dev_addr)
+                if key == "dev_cmd":
+                    self.dev_cmd = value
+                    self.log.debug('Device Command value set during __init__ '
+                                   'to: %s', self.dev_cmd)
+                if key == "dev_status":
+                    self.dev_status = value
+                    self.log.debug('Device Status value set during __init__ '
+                                   'to: %s', self.dev_status)                                   
+                if key == "dev_last_seen":
+                    self.dev_last_seen = value
+                    self.log.debug('Device last seen value set during __init__ '
+                                   'to: %s', self.dev_last_seen)
 
     # ref number field ********************************************************
     @property
@@ -184,24 +201,90 @@ class OCACKmessage(object):
         self.log.debug('Device name value updated to: '
                        '%s', self._dev_name)
 
+    # device address field ****************************************************
+    @property
+    def dev_addr(self):
+        self.log.debug('Returning current value of device address: '
+                       '%s', self._dev_addr)
+        return self._dev_addr
+
+    @dev_addr.setter
+    def dev_addr(self, value):
+        if check_ipv4(value) is True:
+            self._dev_addr = value
+            self.log.debug('Device address updated to: '
+                           '%s', self._dev_addr)
+        else:
+            self.log.warning('Device address update failed with input value: '
+                             '%s', value)
+
+    # device command field ****************************************************
+    @property
+    def dev_cmd(self):
+        self.log.debug('Returning current value of device cmd: '
+                       '%s', self._dev_cmd)
+        return self._dev_cmd
+
+    @dev_cmd.setter
+    def dev_cmd(self, value):
+        if isinstance(value, str):
+            self._dev_cmd = value.lower()
+        else:
+            self._dev_cmd = (str(value)).lower()
+        self.log.debug('Device command value updated to: '
+                       '%s', self._dev_cmd)
+
+    # device status field *****************************************************
+    @property
+    def dev_status(self):
+        self.log.debug('Returning current value of device status: '
+                       '%s', self._dev_status)
+        return self._dev_status
+
+    @dev_status.setter
+    def dev_status(self, value):
+        if isinstance(value, str):
+            self._dev_status = value.lower()
+        else:
+            self._dev_status = (str(value)).lower()
+        self.log.debug('Device status value updated to: '
+                       '%s', self._dev_status)
+
+    # device last seen field **************************************************
+    @property
+    def dev_last_seen(self):
+        self.log.debug('Returning current value of device last seen: '
+                       '%s', self._dev_last_seen)
+        return self._dev_last_seen
+
+    @dev_last_seen.setter
+    def dev_last_seen(self, value):
+        self._dev_last_seen = is_valid_datetime(
+            self.log,
+            value,
+            self._dev_last_seen)
+        self.log.debug('Device last seen updated to: %s', self._dev_last_seen)
+
     # complete message encode/decode methods **********************************
     @property
     def complete(self):
         self.log.debug('Returning current value of complete message: '
-                       '%s,%s,%s,%s,%s,%s,%s',
+                       '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s',
                        self._ref, self._dest_addr, self._dest_port,
                        self._source_addr, self._source_port,
-                       self._msg_type, self._dev_name)
-        return '%s,%s,%s,%s,%s,%s,%s' % (
+                       self._msg_type, self._dev_name, self._dev_addr,
+                       self._dev_cmd, self._dev_status, self._dev_last_seen)
+        return '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
             self._ref, self._dest_addr, self._dest_port,
             self._source_addr, self._source_port,
-            self._msg_type, self._dev_name)
+            self._msg_type, self._dev_name, self._dev_addr,
+            self._dev_cmd, self._dev_status, self._dev_last_seen)
 
     @complete.setter
     def complete(self, value):
         if isinstance(value, str):
             self.temp_list = value.split(',')
-            if len(self.temp_list) >= 7:
+            if len(self.temp_list) >= 11:
                 self.log.debug('Message was properly formatted for decoding')
                 self.ref = self.temp_list[0]
                 self.dest_addr = self.temp_list[1]
@@ -210,3 +293,7 @@ class OCACKmessage(object):
                 self.source_port = self.temp_list[4]
                 self.msg_type = self.temp_list[5]
                 self.dev_name = self.temp_list[6]
+                self.dev_addr = self.temp_list[7]
+                self.dev_cmd = self.temp_list[8]
+                self.dev_status = self.temp_list[9]
+                self.dev_last_seen = self.temp_list[10]

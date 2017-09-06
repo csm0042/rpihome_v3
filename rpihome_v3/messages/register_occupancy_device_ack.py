@@ -1,12 +1,17 @@
 #!/usr/bin/python3
-""" message_uc_ack.py:
+""" message_rod_ack.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
+import datetime
 import logging
+import os
+import sys
 import env
 from rpihome_v3.helpers.ipv4_help import check_ipv4
 from rpihome_v3.messages.field_checkers import in_int_range
+from rpihome_v3.messages.field_checkers import is_valid_datetime
+
 
 
 # Authorship Info *************************************************************
@@ -21,8 +26,8 @@ __status__ = "Development"
 
 
 # Message Class Definition ****************************************************
-class UCACKmessage(object):
-    """ Update Command ACK message class and methods """
+class RegisterOccupancyDeviceMessageACK(object):
+    """ Log Status Update message class and methods """
     def __init__(self, log=None, **kwargs):
         # Configure logger
         self.log = log or logging.getLogger(__name__)
@@ -32,8 +37,7 @@ class UCACKmessage(object):
         self._source_addr = str()
         self._source_port = str()
         self._msg_type = str()
-        self._dev_id = str()
-        self.temp_list = []
+        self._dev_name = str()
 
         # Process input variables if present
         if kwargs is not None:
@@ -62,11 +66,10 @@ class UCACKmessage(object):
                     self.msg_type = value
                     self.log.debug('Message type value set during __init__ to: '
                                    '%s', self.msg_type)
-                if key == "dev_id":
-                    self.dev_id = value
-                    self.log.debug('Device cmd ID value set during '
-                                   '__init__ to: %s', self.dev_id)
-
+                if key == "dev_name":
+                    self.dev_name = value
+                    self.log.debug('Device name value set during __init__ to: '
+                                   '%s', self.dev_name)
 
     # ref number field ********************************************************
     @property
@@ -82,7 +85,6 @@ class UCACKmessage(object):
         else:
             self.log.debug('Ref number update failed with input value: '
                            '%s', value)
-
 
     # destination address *****************************************************
     @property
@@ -101,7 +103,6 @@ class UCACKmessage(object):
             self.log.warning('Destination address update failed with input value: '
                              '%s', value)
 
-
     # destination port ********************************************************
     @property
     def dest_port(self):
@@ -117,7 +118,6 @@ class UCACKmessage(object):
         else:
             self.log.debug('Destination port update failed with input value: '
                            '%s', value)
-
 
     # source address field ****************************************************
     @property
@@ -136,7 +136,6 @@ class UCACKmessage(object):
             self.log.warning('Source address update failed with input value: '
                              '%s', value)
 
-
     # source port field *******************************************************
     @property
     def source_port(self):
@@ -152,7 +151,6 @@ class UCACKmessage(object):
         else:
             self.log.debug('Source port update failed with input value: '
                            '%s', value)
-
 
     # message type field ******************************************************
     @property
@@ -170,22 +168,21 @@ class UCACKmessage(object):
             self.log.debug('Message type update failed with input value: '
                            '%s', value)
 
-
-    # device ID field *********************************************************
+    # device name field *******************************************************
     @property
-    def dev_id(self):
-        self.log.debug('Returning current value of device ID: '
-                       '%s', self._dev_id)
-        return self._dev_id
+    def dev_name(self):
+        self.log.debug('Returning current value of device name: '
+                       '%s', self._dev_name)
+        return self._dev_name
 
-    @dev_id.setter
-    def dev_id(self, value):
-        if in_int_range(self.log, value, 1, 99999999) is True:
-            self._dev_id = str(value)
-            self.log.debug('Device ID updated to: %s', self._dev_id)
+    @dev_name.setter
+    def dev_name(self, value):
+        if isinstance(value, str):
+            self._dev_name = value
         else:
-            self.log.debug('Device ID update failed with input value: '
-                           '%s', value)
+            self._dev_name = str(value)
+        self.log.debug('Device name value updated to: '
+                       '%s', self._dev_name)
 
 
     # complete message encode/decode methods **********************************
@@ -195,13 +192,11 @@ class UCACKmessage(object):
                        '%s,%s,%s,%s,%s,%s,%s',
                        self._ref, self._dest_addr, self._dest_port,
                        self._source_addr, self._source_port,
-                       self._msg_type,
-                       self._dev_id)
+                       self._msg_type, self._dev_name)
         return '%s,%s,%s,%s,%s,%s,%s' % (
             self._ref, self._dest_addr, self._dest_port,
             self._source_addr, self._source_port,
-            self._msg_type, self._dev_id)
-
+            self._msg_type, self._dev_name)
 
     @complete.setter
     def complete(self, value):
@@ -215,4 +210,5 @@ class UCACKmessage(object):
                 self.source_addr = self.temp_list[3]
                 self.source_port = self.temp_list[4]
                 self.msg_type = self.temp_list[5]
-                self.dev_id = self.temp_list[6]
+                self.dev_name = self.temp_list[6]
+

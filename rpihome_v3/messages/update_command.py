@@ -1,17 +1,14 @@
 #!/usr/bin/python3
-""" message_rod_ack.py:
+""" message_uc.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import datetime
 import logging
-import os
-import sys
 import env
 from rpihome_v3.helpers.ipv4_help import check_ipv4
 from rpihome_v3.messages.field_checkers import in_int_range
 from rpihome_v3.messages.field_checkers import is_valid_datetime
-
 
 
 # Authorship Info *************************************************************
@@ -26,8 +23,8 @@ __status__ = "Development"
 
 
 # Message Class Definition ****************************************************
-class RODACKmessage(object):
-    """ Log Status Update message class and methods """
+class UpdateCommandMessage(object):
+    """ Update Command message class and methods """
     def __init__(self, log=None, **kwargs):
         # Configure logger
         self.log = log or logging.getLogger(__name__)
@@ -37,8 +34,10 @@ class RODACKmessage(object):
         self._source_addr = str()
         self._source_port = str()
         self._msg_type = str()
-        self._dev_name = str()
-
+        self._dev_id = str()
+        self._dev_processed = str()
+        self.temp_list = []
+        
         # Process input variables if present
         if kwargs is not None:
             for key, value in kwargs.items():
@@ -66,10 +65,15 @@ class RODACKmessage(object):
                     self.msg_type = value
                     self.log.debug('Message type value set during __init__ to: '
                                    '%s', self.msg_type)
-                if key == "dev_name":
-                    self.dev_name = value
-                    self.log.debug('Device name value set during __init__ to: '
-                                   '%s', self.dev_name)
+                if key == "dev_id":
+                    self.dev_id = value
+                    self.log.debug('Device cmd ID value set during '
+                                   '__init__ to: %s', self.dev_id)
+                if key == "dev_processed":
+                    self.dev_processed = value
+                    self.log.debug('Device cmd processed value set during '
+                                   '__init__ to: %s', self.dev_processed)
+
 
     # ref number field ********************************************************
     @property
@@ -102,6 +106,7 @@ class RODACKmessage(object):
         else:
             self.log.warning('Destination address update failed with input value: '
                              '%s', value)
+        
 
     # destination port ********************************************************
     @property
@@ -168,41 +173,56 @@ class RODACKmessage(object):
             self.log.debug('Message type update failed with input value: '
                            '%s', value)
 
-    # device name field *******************************************************
+    # device ID field *********************************************************
     @property
-    def dev_name(self):
-        self.log.debug('Returning current value of device name: '
-                       '%s', self._dev_name)
-        return self._dev_name
+    def dev_id(self):
+        self.log.debug('Returning current value of device ID: '
+                       '%s', self._dev_id)
+        return self._dev_id
 
-    @dev_name.setter
-    def dev_name(self, value):
-        if isinstance(value, str):
-            self._dev_name = value
+    @dev_id.setter
+    def dev_id(self, value):
+        if in_int_range(self.log, value, 1, 99999999) is True:
+            self._dev_id = str(value)
+            self.log.debug('Device ID updated to: %s', self._dev_id)
         else:
-            self._dev_name = str(value)
-        self.log.debug('Device name value updated to: '
-                       '%s', self._dev_name)
+            self.log.debug('Device ID update failed with input value: '
+                           '%s', value)
 
+    # device last seen field **************************************************
+    @property
+    def dev_processed(self):
+        self.log.debug('Returning current value of device cmd processed: '
+                       '%s', self._dev_processed)
+        return self._dev_processed
+
+    @dev_processed.setter
+    def dev_processed(self, value):
+        self._dev_processed = is_valid_datetime(
+            self.log,
+            value,
+            self._dev_processed)
+        self.log.debug('Device processed updated to: %s', self._dev_processed)
 
     # complete message encode/decode methods **********************************
     @property
     def complete(self):
         self.log.debug('Returning current value of complete message: '
-                       '%s,%s,%s,%s,%s,%s,%s',
+                       '%s,%s,%s,%s,%s,%s,%s,%s',
                        self._ref, self._dest_addr, self._dest_port,
                        self._source_addr, self._source_port,
-                       self._msg_type, self._dev_name)
-        return '%s,%s,%s,%s,%s,%s,%s' % (
+                       self._msg_type,
+                       self._dev_id, self._dev_processed)
+        return '%s,%s,%s,%s,%s,%s,%s,%s' % (
             self._ref, self._dest_addr, self._dest_port,
             self._source_addr, self._source_port,
-            self._msg_type, self._dev_name)
+            self._msg_type, self._dev_id, self._dev_processed)
 
     @complete.setter
     def complete(self, value):
         if isinstance(value, str):
             self.temp_list = value.split(',')
-            if len(self.temp_list) >= 7:
+            if len(self.temp_list) >= 8:
                 self.log.debug('Message was properly formatted for decoding')
                 self.ref = self.temp_list[0]
                 self.dest_addr = self.temp_list[1]
@@ -210,5 +230,5 @@ class RODACKmessage(object):
                 self.source_addr = self.temp_list[3]
                 self.source_port = self.temp_list[4]
                 self.msg_type = self.temp_list[5]
-                self.dev_name = self.temp_list[6]
-
+                self.dev_id = self.temp_list[6]
+                self.dev_processed = self.temp_list[7]

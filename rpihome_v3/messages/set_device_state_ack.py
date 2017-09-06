@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" message_gds.py:
+""" message_sds_ack.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
@@ -23,7 +23,7 @@ __status__ = "Development"
 
 
 # Message Class Definition ****************************************************
-class GDSmessage(object):
+class SetDeviceStateMessageACK(object):
     """ Log Status Update message class and methods """
     def __init__(self, log=None, **kwargs):
         # Configure logger
@@ -35,7 +35,6 @@ class GDSmessage(object):
         self._source_port = str()
         self._msg_type = str()
         self._dev_name = str()
-        self._dev_addr = str()
         self._dev_status = str()
         self._dev_last_seen = str()
         self.temp_list = []
@@ -70,14 +69,10 @@ class GDSmessage(object):
                     self.dev_name = value
                     self.log.debug('Device name value set during __init__ to: '
                                    '%s', self.dev_name)
-                if key == "dev_addr":
-                    self.dev_addr = value
-                    self.log.debug('Device Address value set during __init__ '
-                                   'to: %s', self.dev_addr)
                 if key == "dev_status":
                     self.dev_status = value
                     self.log.debug('Device Status value set during __init__ '
-                                   'to: %s', self.dev_status)                                   
+                                   'to: %s', self.dev_status)
                 if key == "dev_last_seen":
                     self.dev_last_seen = value
                     self.log.debug('Device last seen value set during __init__ '
@@ -196,23 +191,6 @@ class GDSmessage(object):
         self.log.debug('Device name value updated to: '
                        '%s', self._dev_name)
 
-    # device address field ****************************************************
-    @property
-    def dev_addr(self):
-        self.log.debug('Returning current value of device address: '
-                       '%s', self._dev_addr)
-        return self._dev_addr
-
-    @dev_addr.setter
-    def dev_addr(self, value):
-        if check_ipv4(value) is True:
-            self._dev_addr = value
-            self.log.debug('Device address updated to: '
-                           '%s', self._dev_addr)
-        else:
-            self.log.warning('Device address update failed with input value: '
-                             '%s', value)
-
     # device status field *****************************************************
     @property
     def dev_status(self):
@@ -244,26 +222,27 @@ class GDSmessage(object):
             self._dev_last_seen)
         self.log.debug('Device last seen updated to: %s', self._dev_last_seen)
 
+
     # complete message encode/decode methods **********************************
     @property
     def complete(self):
         self.log.debug('Returning current value of complete message: '
-                       '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s',
+                       '%s,%s,%s,%s,%s,%s,%s,%s,%s',
                        self._ref, self._dest_addr, self._dest_port,
                        self._source_addr, self._source_port,
-                       self._msg_type, self._dev_name, self._dev_addr,
+                       self._msg_type, self._dev_name,
                        self._dev_status, self._dev_last_seen)
-        return '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
+        return '%s,%s,%s,%s,%s,%s,%s,%s,%s' % (
             self._ref, self._dest_addr, self._dest_port,
             self._source_addr, self._source_port,
-            self._msg_type, self._dev_name, self._dev_addr,
+            self._msg_type, self._dev_name,
             self._dev_status, self._dev_last_seen)
 
     @complete.setter
     def complete(self, value):
         if isinstance(value, str):
             self.temp_list = value.split(',')
-            if len(self.temp_list) >= 10:
+            if len(self.temp_list) >= 9:
                 self.log.debug('Message was properly formatted for decoding')
                 self.ref = self.temp_list[0]
                 self.dest_addr = self.temp_list[1]
@@ -272,6 +251,5 @@ class GDSmessage(object):
                 self.source_port = self.temp_list[4]
                 self.msg_type = self.temp_list[5]
                 self.dev_name = self.temp_list[6]
-                self.dev_addr = self.temp_list[7]
-                self.dev_status = self.temp_list[8]
-                self.dev_last_seen = self.temp_list[9]
+                self.dev_status = self.temp_list[7]
+                self.dev_last_seen = self.temp_list[8]

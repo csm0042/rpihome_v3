@@ -1,14 +1,12 @@
 #!/usr/bin/python3
-""" message_uc.py:
+""" message_ccs_ack.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
-import datetime
 import logging
 import env
 from rpihome_v3.helpers.ipv4_help import check_ipv4
 from rpihome_v3.messages.field_checkers import in_int_range
-from rpihome_v3.messages.field_checkers import is_valid_datetime
 
 
 # Authorship Info *************************************************************
@@ -23,8 +21,8 @@ __status__ = "Development"
 
 
 # Message Class Definition ****************************************************
-class WWUmessage(object):
-    """ Update Command message class and methods """
+class GetDeviceScheduledStateMessageACK(object):
+    """ Return Command message class and methods """
     def __init__(self, log=None, **kwargs):
         # Configure logger
         self.log = log or logging.getLogger(__name__)
@@ -34,10 +32,10 @@ class WWUmessage(object):
         self._source_addr = str()
         self._source_port = str()
         self._msg_type = str()
-        self._dev_id = str()
-        self._dev_processed = str()
+        self._dev_name = str()
+        self._dev_cmd = str()
         self.temp_list = []
-        
+
         # Process input variables if present
         if kwargs is not None:
             for key, value in kwargs.items():
@@ -65,6 +63,14 @@ class WWUmessage(object):
                     self.msg_type = value
                     self.log.debug('Message type value set during __init__ to: '
                                    '%s', self.msg_type)
+                if key == "dev_name":
+                    self.dev_name = value
+                    self.log.debug('Device name value set during __init__ to: '
+                                   '%s', self.dev_name)
+                if key == "dev_cmd":
+                    self.dev_cmd = value
+                    self.log.debug('Device cmd value set during __init__ to: '
+                                   '%s', self.dev_cmd)
 
 
     # ref number field ********************************************************
@@ -98,7 +104,6 @@ class WWUmessage(object):
         else:
             self.log.warning('Destination address update failed with input value: '
                              '%s', value)
-        
 
     # destination port ********************************************************
     @property
@@ -165,25 +170,56 @@ class WWUmessage(object):
             self.log.debug('Message type update failed with input value: '
                            '%s', value)
 
+    # device name field *******************************************************
+    @property
+    def dev_name(self):
+        self.log.debug('Returning current value of device name: '
+                       '%s', self._dev_name)
+        return self._dev_name
+
+    @dev_name.setter
+    def dev_name(self, value):
+        if isinstance(value, str):
+            self._dev_name = value
+        else:
+            self._dev_name = str(value)
+        self.log.debug('Device name value updated to: '
+                       '%s', self._dev_name)
+
+    # device cmd field *******************************************************
+    @property
+    def dev_cmd(self):
+        self.log.debug('Returning current value of device cmd: '
+                       '%s', self._dev_cmd)
+        return self._dev_cmd
+
+    @dev_cmd.setter
+    def dev_cmd(self, value):
+        if isinstance(value, str):
+            self._dev_cmd = value
+        else:
+            self._dev_cmd = str(value)
+        self.log.debug('Device cmd value updated to: '
+                       '%s', self._dev_cmd)
 
     # complete message encode/decode methods **********************************
     @property
     def complete(self):
         self.log.debug('Returning current value of complete message: '
-                       '%s,%s,%s,%s,%s,%s',
+                       '%s,%s,%s,%s,%s,%s,%s,%s',
                        self._ref, self._dest_addr, self._dest_port,
                        self._source_addr, self._source_port,
-                       self._msg_type)
-        return '%s,%s,%s,%s,%s,%s' % (
+                       self._msg_type, self._dev_name, self._dev_cmd)
+        return '%s,%s,%s,%s,%s,%s,%s,%s' % (
             self._ref, self._dest_addr, self._dest_port,
             self._source_addr, self._source_port,
-            self._msg_type)
+            self._msg_type, self._dev_name, self._dev_cmd)
 
     @complete.setter
     def complete(self, value):
         if isinstance(value, str):
             self.temp_list = value.split(',')
-            if len(self.temp_list) >= 6:
+            if len(self.temp_list) >= 8:
                 self.log.debug('Message was properly formatted for decoding')
                 self.ref = self.temp_list[0]
                 self.dest_addr = self.temp_list[1]
@@ -191,3 +227,5 @@ class WWUmessage(object):
                 self.source_addr = self.temp_list[3]
                 self.source_port = self.temp_list[4]
                 self.msg_type = self.temp_list[5]
+                self.dev_name = self.temp_list[6]
+                self.dev_cmd = self.temp_list[7]

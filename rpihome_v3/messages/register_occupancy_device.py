@@ -1,12 +1,17 @@
 #!/usr/bin/python3
-""" message_lsu_ack.py:
+""" message_oc.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
+import datetime
 import logging
+import os
+import sys
 import env
 from rpihome_v3.helpers.ipv4_help import check_ipv4
 from rpihome_v3.messages.field_checkers import in_int_range
+from rpihome_v3.messages.field_checkers import is_valid_datetime
+
 
 
 # Authorship Info *************************************************************
@@ -21,7 +26,7 @@ __status__ = "Development"
 
 
 # Message Class Definition ****************************************************
-class LSUACKmessage(object):
+class RegisterOccupancyDeviceMessage(object):
     """ Log Status Update message class and methods """
     def __init__(self, log=None, **kwargs):
         # Configure logger
@@ -33,8 +38,7 @@ class LSUACKmessage(object):
         self._source_port = str()
         self._msg_type = str()
         self._dev_name = str()
-        self.temp_list = []
-        
+
         # Process input variables if present
         if kwargs is not None:
             for key, value in kwargs.items():
@@ -66,7 +70,6 @@ class LSUACKmessage(object):
                     self.dev_name = value
                     self.log.debug('Device name value set during __init__ to: '
                                    '%s', self.dev_name)
-
 
     # ref number field ********************************************************
     @property
@@ -181,6 +184,7 @@ class LSUACKmessage(object):
         self.log.debug('Device name value updated to: '
                        '%s', self._dev_name)
 
+
     # complete message encode/decode methods **********************************
     @property
     def complete(self):
@@ -207,3 +211,4 @@ class LSUACKmessage(object):
                 self.source_port = self.temp_list[4]
                 self.msg_type = self.temp_list[5]
                 self.dev_name = self.temp_list[6]
+

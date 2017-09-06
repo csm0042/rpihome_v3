@@ -21,7 +21,7 @@ __status__ = "Development"
 
 
 # Message Class Definition ****************************************************
-class RCmessage(object):
+class ReturnCommandMessage(object):
     """ Return Command message class and methods """
     def __init__(self, log=None, **kwargs):
         # Configure logger

@@ -1,14 +1,12 @@
 #!/usr/bin/python3
-""" message_wwu_ack.py:
+""" message_lsu_ack.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
-import datetime
 import logging
 import env
 from rpihome_v3.helpers.ipv4_help import check_ipv4
 from rpihome_v3.messages.field_checkers import in_int_range
-from rpihome_v3.messages.field_checkers import is_valid_datetime
 
 
 # Authorship Info *************************************************************
@@ -23,8 +21,8 @@ __status__ = "Development"
 
 
 # Message Class Definition ****************************************************
-class WWUACKmessage(object):
-    """ Update Command message class and methods """
+class LogStatusUpdateMessageACK(object):
+    """ Log Status Update message class and methods """
     def __init__(self, log=None, **kwargs):
         # Configure logger
         self.log = log or logging.getLogger(__name__)
@@ -34,8 +32,7 @@ class WWUACKmessage(object):
         self._source_addr = str()
         self._source_port = str()
         self._msg_type = str()
-        self._dev_id = str()
-        self._dev_processed = str()
+        self._dev_name = str()
         self.temp_list = []
         
         # Process input variables if present
@@ -65,6 +62,10 @@ class WWUACKmessage(object):
                     self.msg_type = value
                     self.log.debug('Message type value set during __init__ to: '
                                    '%s', self.msg_type)
+                if key == "dev_name":
+                    self.dev_name = value
+                    self.log.debug('Device name value set during __init__ to: '
+                                   '%s', self.dev_name)
 
 
     # ref number field ********************************************************
@@ -94,7 +95,7 @@ class WWUACKmessage(object):
         if check_ipv4(value) is True:
             self._dest_addr = str(value)
             self.log.debug('Destination address updated to: '
-                           '%s', self._dest_addr)
+                            '%s', self._dest_addr)
         else:
             self.log.warning('Destination address update failed with input value: '
                              '%s', value)
@@ -164,25 +165,40 @@ class WWUACKmessage(object):
             self.log.debug('Message type update failed with input value: '
                            '%s', value)
 
+    # device name field *******************************************************
+    @property
+    def dev_name(self):
+        self.log.debug('Returning current value of device name: '
+                       '%s', self._dev_name)
+        return self._dev_name
+
+    @dev_name.setter
+    def dev_name(self, value):
+        if isinstance(value, str):
+            self._dev_name = value
+        else:
+            self._dev_name = str(value)
+        self.log.debug('Device name value updated to: '
+                       '%s', self._dev_name)
 
     # complete message encode/decode methods **********************************
     @property
     def complete(self):
         self.log.debug('Returning current value of complete message: '
-                       '%s,%s,%s,%s,%s,%s',
+                       '%s,%s,%s,%s,%s,%s,%s',
                        self._ref, self._dest_addr, self._dest_port,
                        self._source_addr, self._source_port,
-                       self._msg_type)
-        return '%s,%s,%s,%s,%s,%s' % (
+                       self._msg_type, self._dev_name)
+        return '%s,%s,%s,%s,%s,%s,%s' % (
             self._ref, self._dest_addr, self._dest_port,
             self._source_addr, self._source_port,
-            self._msg_type)
+            self._msg_type, self._dev_name)
 
     @complete.setter
     def complete(self, value):
         if isinstance(value, str):
             self.temp_list = value.split(',')
-            if len(self.temp_list) >= 6:
+            if len(self.temp_list) >= 7:
                 self.log.debug('Message was properly formatted for decoding')
                 self.ref = self.temp_list[0]
                 self.dest_addr = self.temp_list[1]
@@ -190,3 +206,4 @@ class WWUACKmessage(object):
                 self.source_addr = self.temp_list[3]
                 self.source_port = self.temp_list[4]
                 self.msg_type = self.temp_list[5]
+                self.dev_name = self.temp_list[6]

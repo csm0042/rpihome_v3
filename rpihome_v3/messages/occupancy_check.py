@@ -1,14 +1,17 @@
 #!/usr/bin/python3
-""" message_sds_ack.py:
+""" message_oc.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import datetime
 import logging
+import os
+import sys
 import env
 from rpihome_v3.helpers.ipv4_help import check_ipv4
 from rpihome_v3.messages.field_checkers import in_int_range
 from rpihome_v3.messages.field_checkers import is_valid_datetime
+
 
 
 # Authorship Info *************************************************************
@@ -23,7 +26,7 @@ __status__ = "Development"
 
 
 # Message Class Definition ****************************************************
-class SDSACKmessage(object):
+class OccupancyCheckMessage(object):
     """ Log Status Update message class and methods """
     def __init__(self, log=None, **kwargs):
         # Configure logger
@@ -72,7 +75,7 @@ class SDSACKmessage(object):
                 if key == "dev_status":
                     self.dev_status = value
                     self.log.debug('Device Status value set during __init__ '
-                                   'to: %s', self.dev_status)
+                                   'to: %s', self.dev_status)                                   
                 if key == "dev_last_seen":
                     self.dev_last_seen = value
                     self.log.debug('Device last seen value set during __init__ '
@@ -221,7 +224,6 @@ class SDSACKmessage(object):
             value,
             self._dev_last_seen)
         self.log.debug('Device last seen updated to: %s', self._dev_last_seen)
-
 
     # complete message encode/decode methods **********************************
     @property

@@ -5,6 +5,7 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import configparser
+import logging
 import sys
 import env
 from rpihome_v3.helpers.log_support import setup_log_handlers
@@ -22,40 +23,39 @@ __status__ = "Development"
 
 
 # Config Function Def *********************************************************
-def configure_log(filename):
-    # Define connection to configuration file
-    config_file = configparser.ConfigParser()
-    config_file.read(filename)
-    # Set up application logging
-    log = setup_log_handlers(
-        __file__,
-        config_file['LOG FILES']['debug_log_file'],
-        config_file['LOG FILES']['info_log_file'])
-    # Return configured objects to main program
-    return log
+class ConfigureService(object):
+    def __init__(self, filename):
+        self.filename = filename
+        self.service_addresses = {}
+        self.message_types = {}
+        # Define connection to configuration file
+        self.config_file = configparser.ConfigParser()
+        self.config_file.read(self.filename)
+        # Configure logger
+        self.log = self.setup_logger()
 
 
-# Configure service addresses and ports ***************************************
-def configure_servers(filename, log):
-    # Define connection to configuration file
-    config_file = configparser.ConfigParser()
-    config_file.read(filename)
-    # Create dict with all services defined in INI file
-    service_addresses = {}
-    for option in config_file.options('SERVICES'):
-        service_addresses[option] = config_file['SERVICES'][option]
-    # Return dict of configured addresses and ports to main program
-    return service_addresses
+    def setup_logger(self):
+        # Set up application logging
+        self.log = setup_log_handlers(
+            __file__,
+            self.config_file['LOG FILES']['debug_log_file'],
+            self.config_file['LOG FILES']['info_log_file'])
+        # Return configured objects to main program
+        return self.log
 
 
-# Configure message types *****************************************************
-def configure_message_types(filename, log):
-    # Define connection to configuration file
-    config_file = configparser.ConfigParser()
-    config_file.read(filename)
-    # Create dict with all services defined in INI file
-    message_types = {}
-    for option in config_file.options('MESSAGE TYPES'):
-        message_types[option] = config_file['MESSAGE TYPES'][option]
-    # Return dict of configured addresses and ports to main program
-    return message_types
+    def setup_servers(self):
+        # Create dict with all services defined in INI file
+        for option in self.config_file.options('SERVICES'):
+            self.service_addresses[option] = self.config_file['SERVICES'][option]
+        # Return dict of configured addresses and ports to main program
+        return self.service_addresses
+
+
+    def setup_message_types(self):
+        # Create dict with all services defined in INI file
+        for option in self.config_file.options('MESSAGE TYPES'):
+            self.message_types[option] = self.config_file['MESSAGE TYPES'][option]
+        # Return dict of configured addresses and ports to main program
+        return self.message_types

@@ -6,13 +6,12 @@
 import asyncio
 import copy
 import env
-from rpihome_v3.messages.message_gds import GDSmessage
-from rpihome_v3.messages.message_gds_ack import GDSACKmessage
-from rpihome_v3.messages.message_sds import SDSmessage
-from rpihome_v3.messages.message_sds_ack import SDSACKmessage
-from rpihome_v3.messages.message_wwu import WWUmessage
-from rpihome_v3.messages.message_wwu_ack import WWUACKmessage
-
+from rpihome_v3.messages.heartbeat import HeartbeatMessage
+from rpihome_v3.messages.heartbeat_ack import HeartbeatMessageACK
+from rpihome_v3.messages.get_device_state import GetDeviceStateMessage
+from rpihome_v3.messages.get_device_state_ack import GetDeviceStateMessageACK
+from rpihome_v3.messages.set_device_state import SetDeviceStateMessage
+from rpihome_v3.messages.set_device_state_ack import SetDeviceStateMessageACK
 
 
 # Authorship Info *************************************************************
@@ -28,25 +27,25 @@ __status__ = "Development"
 
 # ACK wake-up message *********************************************************
 @asyncio.coroutine
-def check_wemo_service(log, ref_num, msg, message_types):
+def reply_to_hb(log, ref_num, msg, message_types):
     """ function to ack wake-up requests to wemo service """
     # Initialize result list
     out_msg_list = []
 
     # Map message into wemo wake-up message class
-    message = WWUmessage(log=log)
+    message = HeartbeatMessage(log=log)
     message.complete = msg
 
     # Send response indicating query was executed
     log.debug('Building response message header')
-    out_msg = WWUACKmessage(
+    out_msg = HeartbeatMessageACK(
         log=log,
         ref=ref_num.new(),
         dest_addr=message.source_addr,
         dest_port=message.source_port,
         source_addr=message.dest_addr,
         source_port=message.dest_port,
-        msg_type=message_types['wemo_wu_ack'])
+        msg_type=message_types['heartbeat_ack'])
 
     # Load message into output list
     log.debug('Loading completed msg: [%s]', out_msg.complete)
@@ -58,13 +57,13 @@ def check_wemo_service(log, ref_num, msg, message_types):
 
 # Internal Service Work Subtask - wemo get status *****************************
 @asyncio.coroutine
-def get_wemo_status(log, ref_num, wemo_gw, msg, message_types):
+def get_wemo_state(log, ref_num, wemo_gw, msg, message_types):
     """ Function to properly process wemo device status requests """
     # Initialize result list
     out_msg_list = []
 
     # Map message into GDS message class
-    message = GDSmessage(log=log)
+    message = GetDeviceStateMessage(log=log)
     message.complete = msg    
 
     # Execute Status Update
@@ -82,14 +81,14 @@ def get_wemo_status(log, ref_num, wemo_gw, msg, message_types):
 
     # Send response indicating query was executed
     log.debug('Building response message header')
-    out_msg = GDSACKmessage(
+    out_msg = GetDeviceStateMessageACK(
         log=log,
         ref=ref_num.new(),
         dest_addr=message.source_addr,
         dest_port=message.source_port,
         source_addr=message.dest_addr,
         source_port=message.dest_port,
-        msg_type=message_types['wemo_gds_ack'],
+        msg_type=message_types['get_device_state_ack'],
         dev_name=message.dev_name,
         dev_status=str(dev_status_new),
         dev_last_seen=str(dev_last_seen_new)[:19])
@@ -110,7 +109,7 @@ def set_wemo_state(log, ref_num, wemo_gw, msg, message_types):
     out_msg_list = []
 
     # Map message into CCS message class
-    message = SDSmessage(log=log)
+    message = SetDeviceStateMessage(log=log)
     message.complete = msg
 
     # Execute wemo on commands
@@ -141,14 +140,14 @@ def set_wemo_state(log, ref_num, wemo_gw, msg, message_types):
 
     # Send response indicating command was executed
     log.debug('Building response message')
-    out_msg = SDSACKmessage(
+    out_msg = SetDeviceStateMessageACK(
         log=log,
         ref=ref_num.new(),
         dest_addr=message.source_addr,
         dest_port=message.msg_source_port,
         source_addr=message.msg_dest_addr,
         source_port=message.msg_dest_port,
-        msg_type=message_types['wemo_sds_ack'],
+        msg_type=message_types['set_device_state_ack'],
         dev_name=message.dev_name,
         dev_status=dev_status_new,
         dev_last_seen=dev_last_seen_new)
