@@ -15,7 +15,6 @@
         }
 
         $devname = $_POST['devname'];
-        echo $devname;
 
         // Execute query
         $sql = "SELECT device, status FROM device_log WHERE device = '$devname' AND (device, timestamp) IN (SELECT device, Max(timestamp) FROM device_log GROUP BY device) LIMIT 1";
@@ -25,10 +24,10 @@
         if ($result->num_rows > 0) {
             // output data of each row
             while($row = $result->fetch_assoc()) {
-                echo "device: " . $row["device"]. " - " . $row["status"]. "<br>";
+                echo $row['status'];
             }
         } else {
-            echo "0 results";
+            echo "??";
         }
 
         // Close connection to database

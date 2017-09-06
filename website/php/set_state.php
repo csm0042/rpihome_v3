@@ -22,9 +22,9 @@
 
          // Exxecute query and return results
          if ($conn->query($sql) === TRUE) {
-             echo "New record created successfully";
+             echo $devcmd;
          } else {
-             echo "Error: " . $sql . "<br>" . $conn->error;
+             echo "??";
          }
 
          // Close connection to database
