@@ -4,12 +4,15 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="fonts/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" type="text/css" href="css/main.css">
-        <script src="js/index.js"></script>
+        <script src="js/calendar.js"></script>
+        <script src="js/datetime.js"></script>
+        <script src="js/ajax.js"></script>
     </head>
     
     <body onload="playSound('sound/screenshow.mp3')">
+        
         <div class="icon-bar">
-            <a href="#"><i class="fa fa-bars"></i></a> 
+            <a href="#" onclick="toggleMenu('menuIcon')"><i id="menuIcon" class="fa fa-bars"></i></a>
             <a href="index.html"><i class="fa fa-home"></i></a>
             <a href="users.html"><i class="fa fa-user"></i></a>
             <a class="active" href="calendar.html"><i class="fa fa-calendar"></i></a> 
