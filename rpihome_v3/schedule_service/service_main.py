@@ -4,8 +4,12 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
+import datetime
+import logging
 import env
-from rpihome_v3.schedule_service.int_to_schedule import process_sched_ccs
+from rpihome_v3.messages.heartbeat import HeartbeatMessage
+from rpihome_v3.schedule_service.msg_processing import reply_to_hb
+from rpihome_v3.schedule_service.msg_processing import process_sched_gdss
 
 
 # Authorship Info *************************************************************
@@ -20,45 +24,117 @@ __status__ = "Development"
 
 
 # Internal Service Work Task **************************************************
-@asyncio.coroutine
-def service_main_task(log, ref_num, schedule, msg_in_que, msg_out_que,
-                      message_types):
-    """ task to handle the work the service is intended to do """
-    while True:
-        # Initialize result list
-        out_msg_list = []
+class MainTask(object):
+    def __init__(self, log, **kwargs):
+        # Configure logger
+        self.log = log or logging.getLogger(__name__)
+        # Define instance variables
+        self.ref_num = None
+        self.msg_in_queue = None
+        self.msg_out_queue = None
+        self.schedule = []
+        self.service_addresses = []
+        self.message_types = []
+        self.last_check = datetime.datetime.now()
+        self.out_msg_list = []
+        self.next_msg = str()
+        self.next_msg_split = []
+        self.msg_source_addr = str()
+        self.msg_type = str()
+        # Map input variables
+        if kwargs is not None:
+            for key, value in kwargs.items():
+                if key == "ref":
+                    self.ref_num = value
+                    self.log.debug('Ref number generator set during __init__ '
+                                   'to: %s', self.ref_num)
+                if key == "msg_in_queue":
+                    self.msg_in_queue = value
+                    self.log.debug('Message in queue set during __init__ '
+                                   'to: %s', self.ref_num)
+                if key == "msg_out_queue":
+                    self.msg_out_queue = value
+                    self.log.debug('Message out queue set during __init__ '
+                                   'to: %s', self.ref_num)
+                if key == "schedule":
+                    self.schedule = value
+                    self.log.debug('Schedule set during __init__ '
+                                   'to: %s', self.schedule)
+                if key == "service_addresses":
+                    self.service_addresses = value
+                    self.log.debug('Service address list set during __init__ '
+                                   'to: %s', self.ref_num)
+                if key == "message_types":
+                    self.message_types = value
+                    self.log.debug('Message type list set during __init__ '
+                                   'to: %s', self.ref_num)
 
-        if msg_in_que.qsize() > 0:
-            log.debug('Getting Incoming message from queue')
-            next_msg = msg_in_que.get_nowait()
-            log.debug('Message pulled from queue: [%s]', next_msg)
+    @asyncio.coroutine
+    def service_main_task(self):
+        """ task to handle the work the service is intended to do """
 
-            # Determine message type
-            next_msg_split = next_msg.split(',')
-            if len(next_msg_split) >= 6:
-                log.debug('Extracting source address and message type')
-                msg_source_addr = next_msg_split[1]
-                msg_type = next_msg_split[5]
-                log.debug('Source Address: %s', msg_source_addr)
-                log.debug('Message Type: %s', msg_type)
+        while True:
+            # Initialize result list
+            self.out_msg_list = []
 
-            # Process messages from database service
-            if msg_type == message_types['schedule_ccs']:
-                log.debug('Message is a Check Command State (CCS) message')
-                out_msg_list = process_sched_ccs(
-                    log,
-                    ref_num,
-                    schedule,
-                    next_msg,
-                    message_types)
+            # INCOMING MESSAGE HANDLING
+            if self.msg_in_queue.qsize() > 0:
+                self.log.debug('Getting Incoming message from queue')
+                self.next_msg = self.msg_in_queue.get_nowait()
+                self.log.debug('Message pulled from queue: [%s]', self.next_msg)
 
-        # Que up response messages in outgoing msg que
-        if len(out_msg_list) > 0:
-            log.debug('Queueing response message(s)')
-            for out_msg in out_msg_list:
-                msg_out_que.put_nowait(out_msg)
-                log.debug('Response message [%s] successfully queued',
-                          out_msg)
+                # Determine message type
+                self.next_msg_split = self.next_msg.split(',')
+                if len(self.next_msg_split) >= 6:
+                    self.log.debug('Extracting source address and message type')
+                    self.msg_source_addr = self.next_msg_split[1]
+                    self.msg_type = self.next_msg_split[5]
+                    self.log.debug('Source Address: %s', self.msg_source_addr)
+                    self.log.debug('Message Type: %s', self.msg_type)
 
-        # Yield to other tasks for a while
-        yield from asyncio.sleep(0.25)
+                # Service Check (heartbeat)
+                if self.msg_type == self.message_types['heartbeat']:
+                    self.log.debug('Message is a heartbeat')
+                    self.out_msg_list = yield from reply_to_hb(
+                        self.log,
+                        self.ref_num,
+                        self.next_msg,
+                        self.message_types)                    
+
+                # Device scheduled command checks
+                if self.msg_type == self.message_types['get_device_scheduled_state']:
+                    self.log.debug('Message is a get device scheduled state message')
+                    self.out_msg_list = process_sched_gdss(
+                        self.log,
+                        self.ref_num,
+                        self.schedule,
+                        self.next_msg,
+                        self.message_types)
+
+            # PERIODIC TASKS
+            if datetime.datetime.now() >= (self.last_check + datetime.timedelta(seconds=5)):
+                # Send heartbeat to automation task
+                self.out_msg_list.append(
+                    HeartbeatMessage(
+                        log=self.log,
+                        ref=self.ref_num.new(),
+                        dest_addr=self.service_addresses['automation_addr'],
+                        dest_port=self.service_addresses['automation_port'],
+                        source_addr=self.service_addresses['schedule_addr'],
+                        source_port=self.service_addresses['schedule_port'],
+                        msg_type=self.message_types['heartbeat']
+                    ).complete
+                )
+                # Update last-check
+                self.last_check = datetime.datetime.now()
+
+            # OUTGOING MESSAGE HANDLING
+            if len(self.out_msg_list) > 0:
+                self.log.debug('Queueing response message(s)')
+                for out_msg in self.out_msg_list:
+                    self.msg_out_queue.put_nowait(out_msg)
+                    self.log.debug('Response message [%s] successfully queued',
+                                   out_msg)
+
+            # Yield to other tasks for a while
+            yield from asyncio.sleep(0.25)

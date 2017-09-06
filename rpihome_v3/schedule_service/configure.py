@@ -25,89 +25,84 @@ __status__ = "Development"
 
 
 # Config Function Def *********************************************************
-def configure_log(filename):
-    # Define connection to configuration file
-    config_file = configparser.ConfigParser()
-    config_file.read(filename)
-    # Set up application logging
-    log = setup_log_handlers(
-        __file__,
-        config_file['LOG FILES']['debug_log_file'],
-        config_file['LOG FILES']['info_log_file'])
-    # Return configured objects to main program
-    return log
+class ConfigureService(object):
+    def __init__(self, filename):
+        self.filename = filename
+        self.service_addresses = {}
+        self.message_types = {}
+        self.credentials = None
+        # Define connection to configuration file
+        self.config_file = configparser.ConfigParser()
+        self.cred_file = configparser.ConfigParser()
+        # Configure logger
+        self.log = self.setup_logger()
+
+    def setup_logger(self):
+        # Set up application logging
+        self.config_file.read(self.filename)
+        self.log = setup_log_handlers(
+            __file__,
+            self.config_file['LOG FILES']['debug_log_file'],
+            self.config_file['LOG FILES']['info_log_file'])
+        # Return configured objects to main program
+        return self.log
 
 
-# Configure service addresses and ports ***************************************
-def configure_servers(filename, log):
-    # Define connection to configuration file
-    config_file = configparser.ConfigParser()
-    config_file.read(filename)
-    # Create dict with all services defined in INI file
-    service_addresses = {}
-    for option in config_file.options('SERVICES'):
-        service_addresses[option] = config_file['SERVICES'][option]
-    # Return dict of configured addresses and ports to main program
-    return service_addresses
+    def setup_servers(self):
+        # Create dict with all services defined in INI file
+        self.config_file.read(self.filename)        
+        for option in self.config_file.options('SERVICES'):
+            self.service_addresses[option] = self.config_file['SERVICES'][option]
+        # Return dict of configured addresses and ports to main program
+        return self.service_addresses
 
 
-# Configure message types *****************************************************
-def configure_message_types(filename, log):
-    # Define connection to configuration file
-    config_file = configparser.ConfigParser()
-    config_file.read(filename)
-    # Create dict with all services defined in INI file
-    message_types = {}
-    for option in config_file.options('MESSAGE TYPES'):
-        message_types[option] = config_file['MESSAGE TYPES'][option]
-    # Return dict of configured addresses and ports to main program
-    return message_types
+    def setup_message_types(self):
+        # Create dict with all services defined in INI file
+        self.config_file.read(self.filename)        
+        for option in self.config_file.options('MESSAGE TYPES'):
+            self.message_types[option] = self.config_file['MESSAGE TYPES'][option]
+        # Return dict of configured addresses and ports to main program
+        return self.message_types
 
 
-# Obtain Credentials **********************************************************
-def configure_credentials(filename, log):
-    # Define connection to configuration file
-    config_file = configparser.ConfigParser()
-    config_file.read(filename)
-    # Read credential info from file
-    try:
-        credentials = config_file['CREDENTIALS']['file']
-        log.debug('Credentails file found')
-    except:
-        log.error('No credentials file found')
-    # Return configured objects to main program
-    return credentials
+    def setup_credentials(self):
+        # Read credential info from file
+        self.config_file.read(self.filename)        
+        try:
+            self.credentials = self.config_file['CREDENTIALS']['file']
+            self.log.debug('Credentails file found')
+        except:
+            self.log.error('No credentials file found')
+        # Return configured objects to main program
+        return self.credentials
 
 
-# Configure service socket server *********************************************
-def configure_schedule(filename, credentials, log):
-    # Define connection to configuration file
-    log.debug('Creating configparser connection to [%s]', filename)
-    config_file = configparser.ConfigParser()
-    config_file.read(filename)
-    log.debug('Creating configparser connection to [%s]', credentials)
-    cred_file = configparser.ConfigParser()
-    cred_file.read(credentials)
-    log.debug('Connections established to [%s] and [%s]', config_file, cred_file)
-    # Read credential info from file
-    try:
-        calId = cred_file['GOOGLE']['cal_id']
-        log.debug('Setting calendar ID to: [%s]', calId)
-        credentialDir = config_file['CALENDAR']['credential_dir']
-        log.debug('Setting credential directory to: [%s]', credentialDir)
-        clientSecretFile = config_file['CALENDAR']['client_secret_file']
-        log.debug('Setting client secret file to: [%s]', clientSecretFile)
-    except:
-        calId = credentialDir = clientSecretFile = None
-    # Create connection to calendar
-    if calId is not None:
-        schedule = GoogleCalSync(
-            cal_id=calId,
-            credential_dir=credentialDir,
-            client_secret=clientSecretFile,
-            log=log)
-        log.debug('Created calendar object: [%s]', schedule)
-    else:
-        log.error('Error creating calendar object')
-    # Return configured objects to main program
-    return schedule
+    def setup_schedule(self):
+        # Define connection to configuration file
+        self.config_file.read(self.filename)
+        self.cred_file.read(self.credentials)
+        self.log.debug('Connections established to [%s] and [%s]',
+                       self.config_file, self.cred_file)
+        # Read credential info from file
+        try:
+            self.calId = self.cred_file['GOOGLE']['cal_id']
+            self.log.debug('Setting calendar ID to: [%s]', self.calId)
+            self.credentialDir = self.config_file['CALENDAR']['credential_dir']
+            self.log.debug('Setting credential directory to: [%s]', self.credentialDir)
+            self.clientSecretFile = self.config_file['CALENDAR']['client_secret_file']
+            self.log.debug('Setting client secret file to: [%s]', self.clientSecretFile)
+        except:
+            self.calId = self.credentialDir = self.clientSecretFile = None
+        # Create connection to calendar
+        if self.calId is not None:
+            self.schedule = GoogleCalSync(
+                cal_id=self.calId,
+                credential_dir=self.credentialDir,
+                client_secret=self.clientSecretFile,
+                log=self.log)
+            self.log.debug('Created calendar object: [%s]', self.schedule)
+        else:
+            self.log.error('Error creating calendar object')
+        # Return configured objects to main program
+        return self.schedule

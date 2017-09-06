@@ -6,16 +6,11 @@
 import asyncio
 from contextlib import suppress
 import sys
-import time
 import env
+from rpihome_v3.schedule_service.configure import ConfigureService
 from rpihome_v3.helpers.ref_num import RefNum
 from rpihome_v3.helpers.message_handlers import MessageHandler
-from rpihome_v3.schedule_service.configure import configure_log
-from rpihome_v3.schedule_service.configure import configure_servers
-from rpihome_v3.schedule_service.configure import configure_message_types
-from rpihome_v3.schedule_service.configure import configure_credentials
-from rpihome_v3.schedule_service.configure import configure_schedule
-from rpihome_v3.schedule_service.service_main import service_main_task
+from rpihome_v3.schedule_service.service_main import MainTask
 
 
 # Authorship Info *************************************************************
@@ -30,18 +25,24 @@ __status__ = "Development"
 
 
 # Application wide objects ****************************************************
-LOG = configure_log('config.ini')
-SERVICE_ADDRESSES = configure_servers('config.ini', LOG)
-MESSAGE_TYPES = configure_message_types('config.ini', LOG)
-CREDENTIALS = configure_credentials('config.ini', LOG)
-SCHEDULE = configure_schedule('config.ini', CREDENTIALS, LOG)
-
+SERVICE_CONFIG = ConfigureService('config.ini')
+LOG = SERVICE_CONFIG.setup_logger()
+SERVICE_ADDRESSES = SERVICE_CONFIG.setup_servers()
+MESSAGE_TYPES = SERVICE_CONFIG.setup_message_types()
+CREDENTIALS = SERVICE_CONFIG.setup_credentials()
+SCHEDULE = SERVICE_CONFIG.setup_schedule()
 REF_NUM = RefNum(log=LOG)
-MSG_IN_QUEUE = asyncio.Queue()
-MSG_OUT_QUEUE = asyncio.Queue()
 LOOP = asyncio.get_event_loop()
-
 COMM_HANDLER = MessageHandler(LOG)
+MAINTASK = MainTask(
+    LOG,
+    ref=REF_NUM,
+    msg_in_queue=COMM_HANDLER.msg_in_queue,
+    msg_out_queue=COMM_HANDLER.msg_out_queue,
+    schedule=SCHEDULE,
+    service_addresses=SERVICE_ADDRESSES,
+    message_types=MESSAGE_TYPES
+)
 
 
 # Main ************************************************************************
@@ -69,14 +70,7 @@ def main():
     
     # Create main task for this service
     LOG.debug('Scheduling main task for execution')
-    asyncio.ensure_future(
-        service_main_task(
-            LOG,
-            REF_NUM,
-            SCHEDULE,
-            MSG_IN_QUEUE,
-            MSG_OUT_QUEUE,
-            MESSAGE_TYPES))
+    asyncio.ensure_future(MAINTASK.run())
 
     # Create outgoing message task
     LOG.debug('Scheduling outgoing message task for execution')

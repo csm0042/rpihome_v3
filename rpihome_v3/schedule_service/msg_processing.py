@@ -3,11 +3,13 @@
 """
 
 # Im_port Required Libraries (Standard, Third Party, Local) ********************
+import asyncio
 import copy
 import env
-from rpihome_v3.messages.message_ccs import CCSmessage
-from rpihome_v3.messages.message_ccs_ack import CCSACKmessage
-
+from rpihome_v3.messages.heartbeat import HeartbeatMessage
+from rpihome_v3.messages.heartbeat_ack import HeartbeatMessageACK
+from rpihome_v3.messages.get_device_scheduled_state import GetDeviceScheduledStateMessage
+from rpihome_v3.messages.get_device_scheduled_state_ack import GetDeviceScheduledStateMessageACK
 
 
 # Authorship Info *************************************************************
@@ -21,15 +23,45 @@ __email__ = "csmaue@gmail.com"
 __status__ = "Development"
 
 
+# ACK wake-up message *********************************************************
+@asyncio.coroutine
+def reply_to_hb(log, ref_num, msg, message_types):
+    """ function to ack wake-up requests to wemo service """
+    # Initialize result list
+    out_msg_list = []
+
+    # Map message into wemo wake-up message class
+    message = HeartbeatMessage(log=log)
+    message.complete = msg
+
+    # Send response indicating query was executed
+    log.debug('Building response message header')
+    out_msg = HeartbeatMessageACK(
+        log=log,
+        ref=ref_num.new(),
+        dest_addr=message.source_addr,
+        dest_port=message.source_port,
+        source_addr=message.dest_addr,
+        source_port=message.dest_port,
+        msg_type=message_types['heartbeat_ack'])
+
+    # Load message into output list
+    log.debug('Loading completed msg: [%s]', out_msg.complete)
+    out_msg_list.append(out_msg.complete)
+
+    # Return response message
+    return out_msg_list
+
+
 # Process messages type 100 ***************************************************
-def process_sched_ccs(log, ref_num, schedule, msg, message_types):
+def process_sched_gdss(log, ref_num, schedule, msg, message_types):
     """
     """
     # Initialize result list
     out_msg_list = []
 
     # Map message into LSU message class
-    message = CCSmessage(log=log)
+    message = GetDeviceScheduledStateMessage(log=log)
     message.complete = msg
 
     # Check schedule for device
@@ -40,30 +72,30 @@ def process_sched_ccs(log, ref_num, schedule, msg, message_types):
     # Create ACK message (type 301) with desired device state per schedule
     if desired_cmd is True:
         log.debug('Device [%s] should be "on" according to schedule', message.dev_name)
-        out_msg = CCSACKmessage(
+        out_msg = GetDeviceScheduledStateMessageACK(
             ref=ref_num.new(),
             dest_addr=message.source_addr,
             dest_port=message.source_port,
             source_addr=message.dest_addr,
             source_port=message.dest_port,
-            msg_type=message_types['schedule_ccs_ack'],
+            msg_type=message_types['get_device_scheduled_state_ack'],
             dev_name=message.dev_name,
             dev_cmd='on')
     else:
         log.debug('Device [%s] should be "off" according to schedule', message.dev_name)
-        out_msg = CCSACKmessage(
+        out_msg = GetDeviceScheduledStateMessageACK(
             ref=ref_num.new(),
             dest_addr=message.source_addr,
             dest_port=message.source_port,
             source_addr=message.dest_addr,
             source_port=message.dest_port,
-            msg_type=message_types['schedule_ccs_ack'],
+            msg_type=message_types['get_device_scheduled_state_ack'],
             dev_name=message.dev_name,
             dev_cmd='off')
 
     # Load revised message into output list
-    log.debug('Loading completed msg: %s', message.complete)
-    out_msg_list.append(message.complete)
+    log.debug('Loading completed msg: %s', out_msg.complete)
+    out_msg_list.append(out_msg.complete)
 
     # Return response message
     return out_msg_list
