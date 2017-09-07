@@ -23,12 +23,12 @@ def create_heartbeat_msg(log, ref_num, destinations, source_addr, source_port, m
     """ function to create one or more heartbeat messages """
     # Initialize result list
     out_msg_list = []
-    
+
     # Generate a heartbeat message for each destination given
     for entry in destinations:
         out_msg = HeartbeatMessage(
             log=log,
-            ref=ref_num,
+            ref=ref_num.new(),
             dest_addr=entry[0],
             dest_port=entry[1],
             source_addr=source_addr,

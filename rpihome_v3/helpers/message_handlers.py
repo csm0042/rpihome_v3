@@ -4,16 +4,9 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
-from contextlib import suppress
-import sys
 import env
 from rpihome_v3.helpers.ref_num import RefNum
-from rpihome_v3.occupancy_service.configure import configure_log
-from rpihome_v3.occupancy_service.configure import configure_servers
-from rpihome_v3.occupancy_service.configure import configure_message_types
-from rpihome_v3.occupancy_service.configure import configure_watch_folder
-from rpihome_v3.occupancy_service.service_main import service_main_task
-from rpihome_v3.occupancy_service.occupancy import OccupancyMonitor
+
 
 
 
@@ -30,8 +23,9 @@ __status__ = "Development"
 
 # Message Handler Class Def ***************************************************
 class MessageHandler(object):
-    def __init__(self, log):
+    def __init__(self, log, loop):
         self.log = log
+        self.loop = loop
         self.msg_in_queue = asyncio.Queue()
         self.msg_out_queue = asyncio.Queue()
         self.data_in = None
@@ -97,7 +91,7 @@ class MessageHandler(object):
                                self.msg_seg_out[1], self.msg_seg_out[2])
                 try:
                     self.reader_out, self.writer_out = yield from asyncio.open_connection(
-                        self.msg_seg_out[1], int(self.msg_seg_out[2]), loop=LOOP)
+                        self.msg_seg_out[1], int(self.msg_seg_out[2]), loop=self.loop)
                     self.log.debug('Sending message: [%s]', self.msg_to_send)
                     self.writer_out.write(self.msg_to_send.encode())
 

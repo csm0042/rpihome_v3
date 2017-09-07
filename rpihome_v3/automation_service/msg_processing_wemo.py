@@ -6,10 +6,10 @@
 import copy
 import env
 from rpihome_v3.helpers.device import search_device_list
-from rpihome_v3.messages.message_gds import GDSmessage
-from rpihome_v3.messages.message_gds_ack import GDSACKmessage
-from rpihome_v3.messages.message_sds import SDSmessage
-from rpihome_v3.messages.message_sds_ack import SDSACKmessage
+from rpihome_v3.messages.get_device_state import GetDeviceStateMessage
+from rpihome_v3.messages.get_device_state_ack import GetDeviceStateMessageACK
+from rpihome_v3.messages.set_device_state import SetDeviceStateMessage
+from rpihome_v3.messages.set_device_state_ack import SetDeviceStateMessageACK
 
 
 # Authorship Info *************************************************************
@@ -23,8 +23,8 @@ __email__ = "csmaue@gmail.com"
 __status__ = "Development"
 
 
-# Process GET DEVICE STATUS message *******************************************
-def process_wemo_gds(log, devices, msg, service_addresses):
+# Process get device state message ********************************************
+def process_get_device_state_msg(log, devices, msg, service_addresses):
     """ Get Device Status
         When a mis-directed GDS message is received, this function will:
         1) Update destination addr and port values in the GDS message to the
@@ -37,7 +37,7 @@ def process_wemo_gds(log, devices, msg, service_addresses):
     out_msg_list = []
 
     # Map message into CCS message class
-    message = GDSmessage(log=log)
+    message = GetDeviceStateMessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
@@ -64,8 +64,8 @@ def process_wemo_gds(log, devices, msg, service_addresses):
     return out_msg_list
 
 
-# Process messages type 201 ***************************************************
-def process_wemo_gds_ack(log, devices, msg):
+# Process get device state ACK message ****************************************
+def process_get_device_state_msg_ack(log, devices, msg):
     """ Get Device Status ACK
         When a GDS-ACK message is received, this function will:
         1) Search for the device in the active device table
@@ -76,7 +76,7 @@ def process_wemo_gds_ack(log, devices, msg):
     out_msg_list = []
 
     # Map message into CCS message class
-    message = GDSACKmessage(log=log)
+    message = GetDeviceStateMessageACK(log=log)
     message.complete = msg
 
     # Search device table to find device name
@@ -100,8 +100,8 @@ def process_wemo_gds_ack(log, devices, msg):
     return out_msg_list
 
 
-# Process messages type 202 ***************************************************
-def process_wemo_sds(log, devices, msg, service_addresses):
+# Process set device state message ********************************************
+def process_set_device_state_msg(log, devices, msg, service_addresses):
     """ Set Device Status
         When a mis-directed SDS message is received, this function will:
         1) Update destination addr and port values in the SDS message to the
@@ -114,7 +114,7 @@ def process_wemo_sds(log, devices, msg, service_addresses):
     out_msg_list = []
 
     # Map message into CCS message class
-    message = SDSmessage(log=log)
+    message = SetDeviceStateMessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
@@ -142,8 +142,8 @@ def process_wemo_sds(log, devices, msg, service_addresses):
     return out_msg_list
 
 
-# Process messages type 203 ***************************************************
-def process_wemo_sds_ack(log, devices, msg):
+# Process get device state ACK message ****************************************
+def process_set_device_state_msg_ack(log, devices, msg):
     """ Set Device Status ACK
         When a SDS-ACK message is received, this function will:
         1) Search for the device in the active device table
@@ -154,7 +154,7 @@ def process_wemo_sds_ack(log, devices, msg):
     out_msg_list = []
 
     # Map message into CCS message class
-    message = SDSACKmessage(log=log)
+    message = SetDeviceStateMessageACK(log=log)
     message.complete = msg
 
     # Search device table to find device name

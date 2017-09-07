@@ -7,10 +7,10 @@ import asyncio
 from contextlib import suppress
 import sys
 import env
-from rpihome_v3.wemo_service.configure import ConfigureService
+from rpihome_v3.automation_service.configure import ConfigureService
 from rpihome_v3.helpers.ref_num import RefNum
 from rpihome_v3.helpers.message_handlers import MessageHandler
-from rpihome_v3.wemo_service.service_main import MainTask
+from rpihome_v3.automation_service.service_main import MainTask
 
 
 # Authorship Info *************************************************************
@@ -34,7 +34,7 @@ DEVICES = SERVICE_CONFIG.get_devices()
 
 REF_NUM = RefNum(log=LOG)
 LOOP = asyncio.get_event_loop()
-COMM_HANDLER = MessageHandler(LOG)
+COMM_HANDLER = MessageHandler(LOG, LOOP)
 MAINTASK = MainTask(
     LOG,
     ref=REF_NUM,

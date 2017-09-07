@@ -42,6 +42,7 @@ class ConfigureService(object):
         # Configure logger
         self.log = self.get_logger()
 
+
     def get_logger(self):
         # Set up application logging
         self.config_file.read(self.filename)

@@ -4,12 +4,11 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import copy
-import datetime
 import env
 from rpihome_v3.helpers.device import search_device_list
-from rpihome_v3.messages.message_ccs import CCSmessage
-from rpihome_v3.messages.message_ccs_ack import CCSACKmessage
-from rpihome_v3.messages.message_sds import SDSmessage
+from rpihome_v3.messages.get_device_scheduled_state import GetDeviceScheduledStateMessage
+from rpihome_v3.messages.get_device_scheduled_state_ack import GetDeviceScheduledStateMessageACK
+from rpihome_v3.messages.set_device_state import SetDeviceStateMessage
 
 
 # Authorship Info *************************************************************
@@ -23,13 +22,10 @@ __email__ = "csmaue@gmail.com"
 __status__ = "Development"
 
 
-# Create CHECK COMMAND SCHEDULE messages **************************************
+# Create get device scheduled state message ***********************************
 def create_get_device_scheduled_state_msg(log, ref_num, devices, service_addresses, message_types):
-    """ Check Command Schedule Message
-        When called, this function will:
-        1) Generate and queue a CCS message for every device in the device
-           list
-        2) Queue the message to be sent to the schedule service
+    """ When called, this function will generate and queue a get device
+        scheduled state message for every device in the device list
     """
     # Initialize result list
     out_msg_list = []
@@ -39,15 +35,15 @@ def create_get_device_scheduled_state_msg(log, ref_num, devices, service_address
         if device.dev_rule == 'schedule' or \
            device.dev_rule == 'dusk_to_dawn' or \
            device.dev_rule == '':
-            out_msg = CCSmessage(
+            out_msg = GetDeviceScheduledStateMessage(
                 log=log,
                 ref=ref_num.new(),
                 dest_addr=service_addresses['schedule_addr'],
                 dest_port=service_addresses['schedule_port'],
                 source_addr=service_addresses['automation_addr'],
                 source_port=service_addresses['automation_port'],
-                msg_type=message_types['schedule_ccs'],
-                msg_name=device.dev_name)
+                msg_type=message_types['get_device_scheduled_state'],
+                dev_name=device.dev_name)
 
             # Load message into output list
             log.debug('Loading completed msg: [%s]', out_msg.complete)
@@ -57,27 +53,24 @@ def create_get_device_scheduled_state_msg(log, ref_num, devices, service_address
     return out_msg_list
 
 
-# Process messages type 301 ***************************************************
+# Process get device scheduled state message **********************************
 def process_get_device_scheduled_state_msg(log, devices, msg, service_addresses):
-    """ Check Command Schedule
-        When a mis-directed CCS message is received, this function will:
-        1) Update destination addr and port values in the CCS message to the
-           appropraite values for the schedule service
-        2) Update the device address, status, and last_seen values to the most
-           current values known
-        3) Queue the message to be sent to the schedule service
+    """ If a mis-directed get device scheduled state message is received, this
+        function will update destination addr and port values in the message to
+        the appropraite values for the schedule service, then queue it to be
+        sent to the schedule service via the outgoing message queue
     """
     # Initialize result list
     out_msg_list = []
 
     # Map message into CCS message class
-    message = CCSmessage(log=log)
+    message = GetDeviceScheduledStateMessage(log=log)
     message.complete = msg
 
     # Search device table to find device name
     log.debug('Searching device table for [%s]', message.dev_name)
     dev_pointer = search_device_list(log, devices, message.dev_name)
-    log.debug('Match found at device table index: %s', dev_pointer)    
+    log.debug('Match found at device table index: %s', dev_pointer)
 
     # Modify CCS message to forward to wemo service
     if dev_pointer is not None:
@@ -90,7 +83,6 @@ def process_get_device_scheduled_state_msg(log, devices, msg, service_addresses)
         # Load message into output list
         log.debug('Loading completed msg: [%s]', message.complete)
         out_msg_list.append(message.complete)
-
     else:
         log.debug('Device not in device list: %s', message.dev_name)
 
@@ -98,27 +90,25 @@ def process_get_device_scheduled_state_msg(log, devices, msg, service_addresses)
     return out_msg_list
 
 
-# Process messages type 301 ***************************************************
+# Process get device scheduled state ACK message ******************************
 def process_get_device_scheduled_state_msg_ack(log, ref_num, devices, msg, service_addresses, message_types):
-    """ Check Command Schedule ACK
-        When a CCS-ACK message is received, this function will:
-        1) Check if the command in the message matches the last command
-           sent to the device
-        2) If a new command is detected, a message is created and queued to send that
-           command the appropriate device gateway
-        3) Queue the message to be sent to the appropriate device gateway
+    """ When a get device scheduled state ACK message is received, this
+        function will first check if the command in the message matches the
+        last command sent to the device and if a change of state is detected
+        it will create a new set device state message to send to the device
+        via the outgoing message queue
     """
     # Initialize result list
     out_msg_list = []
 
     # Map message into LSU message class
-    message = CCSACKmessage(log=log)
+    message = GetDeviceScheduledStateMessageACK(log=log)
     message.complete = msg
 
     # Search device table to find device name
     log.debug('Searching device table for [%s]', message.dev_name)
     dev_pointer = search_device_list(log, devices, message.dev_name)
-    log.debug('Match found at device table index: %s', dev_pointer)    
+    log.debug('Match found at device table index: %s', dev_pointer)
 
     # Update values based on message content
     if dev_pointer is not None:
@@ -134,14 +124,14 @@ def process_get_device_scheduled_state_msg_ack(log, ref_num, devices, msg, servi
             if devices[dev_pointer].devtype == 'wemo_switch':
                 # Build new message to forward to wemo service
                 log.debug('Generating message to wemo service')
-                out_msg = SDSmessage(
+                out_msg = SetDeviceStateMessage(
                     log=log,
                     ref=ref_num.new(),
                     dest_addr=service_addresses['schedule_addr'],
                     dest_port=service_addresses['schedule_port'],
                     source_addr=message.source_addr,
                     source_port=message.source_port,
-                    msg_type=message_types['wemo_sds'],
+                    msg_type=message_types['set_device_state'],
                     dev_name=message.dev_name,
                     dev_addr=devices[dev_pointer].address,
                     dev_cmd=message.dev_cmd,
@@ -151,7 +141,6 @@ def process_get_device_scheduled_state_msg_ack(log, ref_num, devices, msg, servi
                 # Load message into output list
                 log.debug('Loading completed msg: [%s]', out_msg.complete)
                 out_msg_list.append(out_msg.complete)
-
     else:
         log.debug('Device not in device list: %s', message.dev_name)
 
