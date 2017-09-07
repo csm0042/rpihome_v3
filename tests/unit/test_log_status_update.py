@@ -8,11 +8,11 @@ import logging
 import sys
 import unittest
 import env
-from rpihome_v3.messages.message_lsu import LSUmessage
+from rpihome_v3.messages.log_status_update import LogStatusUpdateMessage
 
 
 # Define test class ***********************************************************
-class TestLSUmessage(unittest.TestCase):
+class TestLogStatusUpdateMessage(unittest.TestCase):
     """ unittests for Log Status Update Message Class """
 
     def __init__(self, *args, **kwargs):
@@ -21,19 +21,19 @@ class TestLSUmessage(unittest.TestCase):
         self.log.level = logging.DEBUG
         self.datetime = datetime.datetime
         self.datetime_str = str()
-        super(TestLSUmessage, self).__init__(*args, **kwargs)
+        super(TestLogStatusUpdateMessage, self).__init__(*args, **kwargs)
 
 
     def setUp(self):
-        self.lsu = LSUmessage(log=self.log)
-        super(TestLSUmessage, self).setUp()
+        self.lsu = LogStatusUpdateMessage(log=self.log)
+        super(TestLogStatusUpdateMessage, self).setUp()
 
 
     def test_init(self):
         """ test class __init__ and input variables """
         self.datetime = datetime.datetime.now()
         self.datetime_str = (str(self.datetime))[:19]
-        self.lsu = LSUmessage(
+        self.lsu = LogStatusUpdateMessage(
             log=self.log,
             ref='101',
             dest_addr='192.168.86.1',

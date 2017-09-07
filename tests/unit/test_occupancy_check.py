@@ -9,11 +9,11 @@ import logging
 import sys
 import unittest
 import env
-from rpihome_v3.messages.message_oc import OCmessage
+from rpihome_v3.messages.occupancy_check import OccupancyCheckMessage
 
 
 # Define test class ***********************************************************
-class TestOCmessage(unittest.TestCase):
+class TestOccupancyCheckMessage(unittest.TestCase):
     """ unittests for Get Device Status Message Class """
 
     def __init__(self, *args, **kwargs):
@@ -24,12 +24,12 @@ class TestOCmessage(unittest.TestCase):
         self.datetime_str = str()
         self.temp_str = str()
         self.temp_str2 = str()
-        super(TestOCmessage, self).__init__(*args, **kwargs)
+        super(TestOccupancyCheckMessage, self).__init__(*args, **kwargs)
 
 
     def setUp(self):
-        self.message = OCmessage(log=self.log)
-        super(TestOCmessage, self).setUp()
+        self.message = OccupancyCheckMessage(log=self.log)
+        super(TestOccupancyCheckMessage, self).setUp()
 
 
     def test_init(self):
@@ -39,7 +39,7 @@ class TestOCmessage(unittest.TestCase):
             datetime.time(8, 45)
         )
         self.datetime_str = '2017-08-05 08:45:00'
-        self.message = OCmessage(
+        self.message = OccupancyCheckMessage(
             log=self.log,
             ref='101',
             dest_addr='192.168.86.1',

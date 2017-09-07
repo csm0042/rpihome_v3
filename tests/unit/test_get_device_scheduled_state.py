@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" test_message_sds_ack.py:
+""" test_message_ccs.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
@@ -9,30 +9,34 @@ import logging
 import sys
 import unittest
 import env
-from rpihome_v3.messages.message_uc_ack import UCACKmessage
+from rpihome_v3.messages.get_device_scheduled_state import GetDeviceScheduledStateMessage
 
 
 # Define test class ***********************************************************
-class TestUCACKmessage(unittest.TestCase):
-    """ unittests for Get Device Status Message Class """
+class TestGetDeviceScheduledStateMessage(unittest.TestCase):
+    """ unittests for Log Status Update Message Class """
 
     def __init__(self, *args, **kwargs):
         logging.basicConfig(stream=sys.stdout)
         self.log = logging.getLogger(__name__)
         self.log.level = logging.DEBUG
+        self.datetime = datetime.datetime
+        self.datetime_str = str()
         self.temp_str = str()
         self.temp_str2 = str()
-        super(TestUCACKmessage, self).__init__(*args, **kwargs)
+        super(TestGetDeviceScheduledStateMessage, self).__init__(*args, **kwargs)
 
 
     def setUp(self):
-        self.message = UCACKmessage(log=self.log)
-        super(TestUCACKmessage, self).setUp()
+        self.message = GetDeviceScheduledStateMessage(log=self.log)
+        super(TestGetDeviceScheduledStateMessage, self).setUp()
 
 
     def test_init(self):
         """ test class __init__ and input variables """
-        self.message = UCACKmessage(
+        self.datetime = datetime.datetime.now()
+        self.datetime_str = (str(self.datetime))[:19]
+        self.message = GetDeviceScheduledStateMessage(
             log=self.log,
             ref='101',
             dest_addr='192.168.86.1',
@@ -40,7 +44,7 @@ class TestUCACKmessage(unittest.TestCase):
             source_addr='192.168.5.4',
             source_port='12000',
             msg_type='601',
-            dev_id='42',
+            dev_name='fylt1'
         )
         self.assertEqual(self.message.ref, '101')
         self.assertEqual(self.message.dest_addr, '192.168.86.1')
@@ -48,7 +52,7 @@ class TestUCACKmessage(unittest.TestCase):
         self.assertEqual(self.message.source_addr, '192.168.5.4')
         self.assertEqual(self.message.source_port, '12000')
         self.assertEqual(self.message.msg_type, '601')
-        self.assertEqual(self.message.dev_id, '42')
+        self.assertEqual(self.message.dev_name, 'fylt1')
 
 
     def test_ref_number(self):
@@ -127,19 +131,16 @@ class TestUCACKmessage(unittest.TestCase):
         self.assertEqual(self.message.msg_type, '102')
 
 
-    def test_device_id(self):
+    def test_device_name(self):
         """ test setting and getting device name field """
-        self.message.dev_id = 101
-        self.assertEqual(self.message.dev_id, '101')
-        self.message.dev_id = '202'
-        self.assertEqual(self.message.dev_id, '202')   
+        self.message.dev_name = 101
+        self.assertEqual(self.message.dev_name, '101')
+        self.message.dev_name = 'fylt1'
+        self.assertEqual(self.message.dev_name, 'fylt1')
 
 
     def test_complete(self):
-        self.temp_str = '142,127.0.0.1,12000,192.168.5.45,13000,' \
-                        '301,42'
-        self.temp_str2 = '142,127.0.0.1,12000,192.168.5.45,13000,' \
-                         '301,42'
+        self.temp_str = '142,127.0.0.1,12000,192.168.5.45,13000,301,device01'
         self.message.complete = copy.copy(self.temp_str)
         self.assertEqual(self.message.ref, '142')
         self.assertEqual(self.message.dest_addr, '127.0.0.1')
@@ -147,7 +148,30 @@ class TestUCACKmessage(unittest.TestCase):
         self.assertEqual(self.message.source_addr, '192.168.5.45')
         self.assertEqual(self.message.source_port, '13000')
         self.assertEqual(self.message.msg_type, '301')
-        self.assertEqual(self.message.dev_id, '42')
+        self.assertEqual(self.message.dev_name, 'device01')
+        self.assertEqual(self.message.complete, self.temp_str)
+
+        self.temp_str2 = '142,192.168.1,12000,192.168.5.45,130000,301,device01'
+        self.message.complete = copy.copy(self.temp_str2)
+        self.assertEqual(self.message.ref, '142')
+        self.assertEqual(self.message.dest_addr, '127.0.0.1')
+        self.assertEqual(self.message.dest_port, '12000')
+        self.assertEqual(self.message.source_addr, '192.168.5.45')
+        self.assertEqual(self.message.source_port, '13000')
+        self.assertEqual(self.message.msg_type, '301')
+        self.assertEqual(self.message.dev_name, 'device01')
+        self.assertEqual(self.message.complete, self.temp_str)
+
+        self.temp_str2 = '142,192.168.1.1,12001,192.168.5.46,13001,301,device01'
+        self.message.complete = copy.copy(self.temp_str2)
+        self.assertEqual(self.message.ref, '142')
+        self.assertEqual(self.message.dest_addr, '192.168.1.1')
+        self.assertEqual(self.message.dest_port, '12001')
+        self.assertEqual(self.message.source_addr, '192.168.5.46')
+        self.assertEqual(self.message.source_port, '13001')
+        self.assertEqual(self.message.msg_type, '301')
+        self.assertEqual(self.message.dev_name, 'device01')
+        self.assertEqual(self.message.complete, self.temp_str2)
 
 
 if __name__ == "__main__":

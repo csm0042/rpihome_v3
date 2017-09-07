@@ -92,7 +92,7 @@ class TestFieldCheckers(unittest.TestCase):
                 self.dt,
                 self.dt_initial
             ),
-            '2017-08-10 10:12:01'
+            str(datetime.datetime.combine(datetime.date(2017, 9, 7), datetime.time(10, 12, 1)))[:19]
         )
 
     def test_is_valid_datetime4(self):
@@ -108,7 +108,7 @@ class TestFieldCheckers(unittest.TestCase):
                 self.dt,
                 self.dt_initial
             ),
-            '2017-01-01 09:03:00'
+            str(datetime.datetime.combine(datetime.date(2017, 1, 1), datetime.time(9, 3, 0)))[:19]
         )
 
     def test_is_valid_datetime5(self):
@@ -140,7 +140,7 @@ class TestFieldCheckers(unittest.TestCase):
                 self.dt,
                 self.dt_initial
             ),
-            '2017-08-10 10:12:01'
+            '2017-09-07 10:12:01'
         )
 
     def test_is_valid_datetime7(self):
