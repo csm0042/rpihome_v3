@@ -31,15 +31,16 @@ SERVICE_ADDRESSES = SERVICE_CONFIG.setup_servers()
 MESSAGE_TYPES = SERVICE_CONFIG.setup_message_types()
 CREDENTIALS = SERVICE_CONFIG.setup_credentials()
 SCHEDULE = SERVICE_CONFIG.setup_schedule()
+
 REF_NUM = RefNum(log=LOG)
 LOOP = asyncio.get_event_loop()
 COMM_HANDLER = MessageHandler(LOG)
 MAINTASK = MainTask(
     LOG,
     ref=REF_NUM,
+    schedule=SCHEDULE,
     msg_in_queue=COMM_HANDLER.msg_in_queue,
     msg_out_queue=COMM_HANDLER.msg_out_queue,
-    schedule=SCHEDULE,
     service_addresses=SERVICE_ADDRESSES,
     message_types=MESSAGE_TYPES
 )

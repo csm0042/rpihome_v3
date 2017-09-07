@@ -24,7 +24,7 @@ __status__ = "Development"
 
 
 # Create CHECK COMMAND SCHEDULE messages **************************************
-def create_sched_ccs(log, ref_num, devices, service_addresses, message_types):
+def create_get_device_scheduled_state_msg(log, ref_num, devices, service_addresses, message_types):
     """ Check Command Schedule Message
         When called, this function will:
         1) Generate and queue a CCS message for every device in the device
@@ -58,7 +58,7 @@ def create_sched_ccs(log, ref_num, devices, service_addresses, message_types):
 
 
 # Process messages type 301 ***************************************************
-def process_sched_ccs(log, devices, msg, service_addresses):
+def process_get_device_scheduled_state_msg(log, devices, msg, service_addresses):
     """ Check Command Schedule
         When a mis-directed CCS message is received, this function will:
         1) Update destination addr and port values in the CCS message to the
@@ -99,7 +99,7 @@ def process_sched_ccs(log, devices, msg, service_addresses):
 
 
 # Process messages type 301 ***************************************************
-def process_sched_ccs_ack(log, ref_num, devices, msg, service_addresses, message_types):
+def process_get_device_scheduled_state_msg_ack(log, ref_num, devices, msg, service_addresses, message_types):
     """ Check Command Schedule ACK
         When a CCS-ACK message is received, this function will:
         1) Check if the command in the message matches the last command

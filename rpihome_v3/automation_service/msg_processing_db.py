@@ -3,8 +3,12 @@
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
+import asyncio
 import datetime
 import env
+from rpihome_v3.messages.heartbeat import HeartbeatMessage
+from rpihome_v3.messages.heartbeat_ack import HeartbeatMessageACK
+
 from rpihome_v3.helpers.device import search_device_list
 from rpihome_v3.messages.message_lsu import LSUmessage
 from rpihome_v3.messages.message_lsu_ack import LSUACKmessage
@@ -26,8 +30,11 @@ __email__ = "csmaue@gmail.com"
 __status__ = "Development"
 
 
+
+
+
 # Process LOG STATUS UPDATE messages ******************************************
-def process_db_lsu(log, msg, service_addresses):
+def process_log_status_update_msg(log, msg, service_addresses):
     """ Process Database Log Status Update Message
         When a mis-directed LSU message is received, this function will:
         1) Re-directs LSU messages to database service
@@ -53,7 +60,7 @@ def process_db_lsu(log, msg, service_addresses):
 
 
 # Process LOG STATUS UPDATE ACK messages **************************************
-def process_db_lsu_ack(log, msg):
+def process_log_status_update_msg_ack(log, msg):
     """ Process Database Log Status Update ACK Message
         When a LSU-ACK message is received, this function will:
         1) Processess the ACK from a LSU message re-direct
@@ -67,7 +74,7 @@ def process_db_lsu_ack(log, msg):
 
 
 # Process RETURN COMMAND message **********************************************
-def process_db_rc(log, msg, service_addresses):
+def process_return_command_msg(log, msg, service_addresses):
     """ Process Database Return Command Message
         When a mis-directed RC message is received, this function will:
         1) Re-direct RC message to database service
@@ -93,7 +100,7 @@ def process_db_rc(log, msg, service_addresses):
 
 
 # Process RETURN COMMAND ACK message ******************************************
-def process_db_rc_ack(log, ref_num, devices, msg, service_addresses, message_types):
+def process_return_command_msg_ack(log, ref_num, devices, msg, service_addresses, message_types):
     """ Process Database Return Command ACK Message
         When a RC-ACK message is received, this function will:
         1) Generate and queue a UC message to mark the command as processed
@@ -158,7 +165,7 @@ def process_db_rc_ack(log, ref_num, devices, msg, service_addresses, message_typ
 
 
 # Process UPDATE COMMAND message **********************************************
-def process_db_uc(log, msg, service_addresses):
+def process_update_command_msg(log, msg, service_addresses):
     """ Process Database Update Command Message
         When a mis-directed UC message is received, this function will:
         1) Redirect that message to the database service
@@ -185,7 +192,7 @@ def process_db_uc(log, msg, service_addresses):
 
 
 # Process UPDATE COMMAND ACK message ******************************************
-def process_db_uc_ack(log, msg):
+def process_update_command_msg_ack(log, msg):
     """ Process Database Update Command ACK Message
         When a UC-ACK message is received, this function will:
         1) Processess the ACK from a UC message re-direct

@@ -30,13 +30,13 @@ class ConfigureService(object):
         self.message_types = {}
         # Define connection to configuration file
         self.config_file = configparser.ConfigParser()
-        self.config_file.read(self.filename)
         # Configure logger
-        self.log = self.setup_logger()
+        self.log = self.get_logger()
 
 
-    def setup_logger(self):
+    def get_logger(self):
         # Set up application logging
+        self.config_file.read(self.filename)
         self.log = setup_log_handlers(
             __file__,
             self.config_file['LOG FILES']['debug_log_file'],
@@ -45,16 +45,18 @@ class ConfigureService(object):
         return self.log
 
 
-    def setup_servers(self):
+    def get_servers(self):
         # Create dict with all services defined in INI file
+        self.config_file.read(self.filename)
         for option in self.config_file.options('SERVICES'):
             self.service_addresses[option] = self.config_file['SERVICES'][option]
         # Return dict of configured addresses and ports to main program
         return self.service_addresses
 
 
-    def setup_message_types(self):
+    def get_message_types(self):
         # Create dict with all services defined in INI file
+        self.config_file.read(self.filename)
         for option in self.config_file.options('MESSAGE TYPES'):
             self.message_types[option] = self.config_file['MESSAGE TYPES'][option]
         # Return dict of configured addresses and ports to main program

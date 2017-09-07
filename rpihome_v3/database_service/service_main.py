@@ -4,7 +4,6 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
-import copy
 import datetime
 import logging
 import sys
@@ -26,6 +25,54 @@ __maintainer__ = "Christopher Maue"
 __email__ = "csmaue@gmail.com"
 __status__ = "Development"
 
+
+# Internal Service Work Task **************************************************
+class MainTask(object):
+    def __init__(self, log, **kwargs):
+        # Configure logger
+        self.log = log or logging.getLogger(__name__)
+        # Define instance variables
+        self.ref_num = None
+        self.gateway = None
+        self.msg_in_queue = None
+        self.msg_out_queue = None
+        self.service_addresses = []
+        self.message_types = []
+        self.last_check = datetime.datetime.now()
+        self.out_msg_list = []
+        self.next_msg = str()
+        self.next_msg_split = []
+        self.msg_source_addr = str()
+        self.msg_type = str()
+        # Map input variables
+        if kwargs is not None:
+            for key, value in kwargs.items():
+                if key == "ref":
+                    self.ref_num = value
+                    self.log.debug('Ref number generator set during __init__ '
+                                   'to: %s', self.ref_num)
+                if key == "gw":
+                    self.gateway = value
+                    self.log.debug('Device gateway set during __init__ '
+                                   'to: %s', self.ref_num)
+                if key == "msg_in_queue":
+                    self.msg_in_queue = value
+                    self.log.debug('Message in queue set during __init__ '
+                                   'to: %s', self.ref_num)
+                if key == "msg_out_queue":
+                    self.msg_out_queue = value
+                    self.log.debug('Message out queue set during __init__ '
+                                   'to: %s', self.ref_num)
+                if key == "service_addresses":
+                    self.service_addresses = value
+                    self.log.debug('Service address list set during __init__ '
+                                   'to: %s', self.ref_num)
+                if key == "message_types":
+                    self.message_types = value
+                    self.log.debug('Message type list set during __init__ '
+                                   'to: %s', self.ref_num)
+
+    @asyncio.coroutine
 
 # Internal Service Work Task **************************************************
 @asyncio.coroutine

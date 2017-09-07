@@ -35,9 +35,10 @@ class ConfigureService(object):
         self.config_file = configparser.ConfigParser()
         self.cred_file = configparser.ConfigParser()
         # Configure logger
-        self.log = self.setup_logger()
+        self.log = self.get_logger()
 
-    def setup_logger(self):
+
+    def get_logger(self):
         # Set up application logging
         self.config_file.read(self.filename)
         self.log = setup_log_handlers(
@@ -48,7 +49,7 @@ class ConfigureService(object):
         return self.log
 
 
-    def setup_servers(self):
+    def get_servers(self):
         # Create dict with all services defined in INI file
         self.config_file.read(self.filename)        
         for option in self.config_file.options('SERVICES'):
@@ -57,7 +58,7 @@ class ConfigureService(object):
         return self.service_addresses
 
 
-    def setup_message_types(self):
+    def get_message_types(self):
         # Create dict with all services defined in INI file
         self.config_file.read(self.filename)        
         for option in self.config_file.options('MESSAGE TYPES'):
@@ -66,7 +67,7 @@ class ConfigureService(object):
         return self.message_types
 
 
-    def setup_credentials(self):
+    def get_credentials(self):
         # Read credential info from file
         self.config_file.read(self.filename)        
         try:
@@ -78,7 +79,7 @@ class ConfigureService(object):
         return self.credentials
 
 
-    def setup_schedule(self):
+    def get_schedule(self):
         # Define connection to configuration file
         self.config_file.read(self.filename)
         self.cred_file.read(self.credentials)

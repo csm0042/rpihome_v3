@@ -4,19 +4,12 @@
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
 from contextlib import suppress
-import copy
-import logging
 import sys
-import time
 import env
+from rpihome_v3.wemo_service.configure import ConfigureService
 from rpihome_v3.helpers.ref_num import RefNum
 from rpihome_v3.helpers.message_handlers import MessageHandler
-from rpihome_v3.database_service.configure import configure_log
-from rpihome_v3.database_service.configure import configure_credentials
-from rpihome_v3.database_service.configure import configure_database
-from rpihome_v3.database_service.configure import configure_servers
-from rpihome_v3.database_service.configure import configure_message_types
-from rpihome_v3.database_service.service_main import service_main_task
+from rpihome_v3.wemo_service.service_main import MainTask
 
 
 # Authorship Info *************************************************************
@@ -31,18 +24,25 @@ __status__ = "Development"
 
 
 # Application wide objects ****************************************************
-LOG = configure_log('config.ini')
-CREDENTIALS = configure_credentials('config.ini', LOG)
-DATABASE = configure_database('config.ini', CREDENTIALS, LOG)
-SERVICE_ADDRESSES = configure_servers('config.ini', LOG)
-MESSAGE_TYPES = configure_message_types('config.ini', LOG)
+SERVICE_CONFIG = ConfigureService('config.ini')
+LOG = SERVICE_CONFIG.get_logger()
+SERVICE_ADDRESSES = SERVICE_CONFIG.get_servers()
+MESSAGE_TYPES = SERVICE_CONFIG.get_message_types()
+CREDENTIALS = SERVICE_CONFIG.get_credentials()
+DATABASE = SERVICE_CONFIG.get_database()
 
 REF_NUM = RefNum(log=LOG)
-MSG_IN_QUEUE = asyncio.Queue()
-MSG_OUT_QUEUE = asyncio.Queue()
 LOOP = asyncio.get_event_loop()
-
 COMM_HANDLER = MessageHandler(LOG)
+MAINTASK = MainTask(
+    LOG,
+    ref=REF_NUM,
+    db=DATABASE,
+    msg_in_queue=COMM_HANDLER.msg_in_queue,
+    msg_out_queue=COMM_HANDLER.msg_out_queue,
+    service_addresses=SERVICE_ADDRESSES,
+    message_types=MESSAGE_TYPES
+)
 
 
 # Main ************************************************************************
@@ -70,15 +70,7 @@ def main():
 
     # Create main task for this service
     LOG.debug('Scheduling main task for execution')
-    asyncio.ensure_future(
-        service_main_task(
-            LOG,
-            REF_NUM,
-            DATABASE,
-            MSG_IN_QUEUE,
-            MSG_OUT_QUEUE,
-            SERVICE_ADDRESSES,
-            MESSAGE_TYPES))
+    asyncio.ensure_future(COMM_HANDLER.handle_msg_out())
 
     # Create outgoing message task
     LOG.debug('Scheduling outgoing message task for execution')

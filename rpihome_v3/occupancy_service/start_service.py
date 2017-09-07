@@ -7,13 +7,10 @@ import asyncio
 from contextlib import suppress
 import sys
 import env
+from rpihome_v3.wemo_service.configure import ConfigureService
 from rpihome_v3.helpers.ref_num import RefNum
 from rpihome_v3.helpers.message_handlers import MessageHandler
-from rpihome_v3.occupancy_service.configure import configure_log
-from rpihome_v3.occupancy_service.configure import configure_servers
-from rpihome_v3.occupancy_service.configure import configure_message_types
-from rpihome_v3.occupancy_service.configure import configure_watch_folder
-from rpihome_v3.occupancy_service.service_main import service_main_task
+from rpihome_v3.wemo_service.service_main import MainTask
 from rpihome_v3.occupancy_service.occupancy import OccupancyMonitor
 
 
@@ -30,18 +27,25 @@ __status__ = "Development"
 
 
 # Application wide objects ****************************************************
-LOG = configure_log('config.ini')
-SERVICE_ADDRESSES = configure_servers('config.ini', LOG)
-MESSAGE_TYPES = configure_message_types('config.ini', LOG)
-WATCH_FOLDER = configure_watch_folder('config.ini', LOG)
-
+SERVICE_CONFIG = ConfigureService('config.ini')
+LOG = SERVICE_CONFIG.get_logger()
+SERVICE_ADDRESSES = SERVICE_CONFIG.get_servers()
+MESSAGE_TYPES = SERVICE_CONFIG.get_message_types()
+WATCH_FOLDER = SERVICE_CONFIG.get_watch_folder()
 OCCUPANCY_MONITOR = OccupancyMonitor(LOG, WATCH_FOLDER, MESSAGE_TYPES)
 
 REF_NUM = RefNum(log=LOG)
 LOOP = asyncio.get_event_loop()
-
 COMM_HANDLER = MessageHandler(LOG)
-
+MAINTASK = MainTask(
+    LOG,
+    ref=REF_NUM,
+    om=OCCUPANCY_MONITOR,
+    msg_in_queue=COMM_HANDLER.msg_in_queue,
+    msg_out_queue=COMM_HANDLER.msg_out_queue,
+    service_addresses=SERVICE_ADDRESSES,
+    message_types=MESSAGE_TYPES
+)
 
 # Main ************************************************************************
 def main():
@@ -68,15 +72,7 @@ def main():
 
     # Create main task for this service
     LOG.debug('Scheduling main task for execution')
-    asyncio.ensure_future(
-        service_main_task(
-            LOG,
-            REF_NUM,
-            OCCUPANCY_MONITOR,
-            COMM_HANDLER.msg_in_queue,
-            COMM_HANDLER.msg_out_queue,
-            SERVICE_ADDRESSES,
-            MESSAGE_TYPES))
+    asyncio.ensure_future(COMM_HANDLER.handle_msg_out())
 
     # Create outgoing message task
     LOG.debug('Scheduling outgoing message task for execution')
