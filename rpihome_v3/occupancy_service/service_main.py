@@ -7,6 +7,8 @@ import asyncio
 import datetime
 import logging
 import env
+from rpihome_v3.occupancy_service.msg_processing import create_heartbeat_msg
+from rpihome_v3.occupancy_service.msg_processing import process_heartbeat_msg
 
 
 # Authorship Info *************************************************************
@@ -27,12 +29,14 @@ class MainTask(object):
         self.log = log or logging.getLogger(__name__)
         # Define instance variables
         self.ref_num = None
-        self.gateway = None
+        self.occupancy_monitor = None
         self.msg_in_queue = None
         self.msg_out_queue = None
         self.service_addresses = []
         self.message_types = []
-        self.last_check = datetime.datetime.now()
+        self.last_check_hb = datetime.datetime.now()
+        self.last_check_om = datetime.datetime.now()
+        self.out_msg = str()
         self.out_msg_list = []
         self.next_msg = str()
         self.next_msg_split = []
@@ -45,87 +49,120 @@ class MainTask(object):
                     self.ref_num = value
                     self.log.debug('Ref number generator set during __init__ '
                                    'to: %s', self.ref_num)
-                if key == "gw":
-                    self.gateway = value
-                    self.log.debug('Device gateway set during __init__ '
-                                   'to: %s', self.ref_num)
+                if key == "om":
+                    self.occupancy_monitor = value
+                    self.log.debug('Occupancy monitor set during __init__ '
+                                   'to: %s', self.occupancy_monitor)
                 if key == "msg_in_queue":
                     self.msg_in_queue = value
                     self.log.debug('Message in queue set during __init__ '
-                                   'to: %s', self.ref_num)
+                                   'to: %s', self.msg_in_queue)
                 if key == "msg_out_queue":
                     self.msg_out_queue = value
                     self.log.debug('Message out queue set during __init__ '
-                                   'to: %s', self.ref_num)
+                                   'to: %s', self.msg_out_queue)
                 if key == "service_addresses":
                     self.service_addresses = value
                     self.log.debug('Service address list set during __init__ '
-                                   'to: %s', self.ref_num)
+                                   'to: %s', self.service_addresses)
                 if key == "message_types":
                     self.message_types = value
                     self.log.debug('Message type list set during __init__ '
-                                   'to: %s', self.ref_num)
+                                   'to: %s', self.message_types)
+
 
     @asyncio.coroutine
+    def run(self):
+        """ task to handle the work the service is intended to do """
+        self.log.debug('Starting main task')
 
-# Internal Service Work Task **************************************************
-@asyncio.coroutine
-def service_main_task(log, ref_num, occupancy_monitor, msg_in_que, msg_out_que,
-                      service_addresses, message_types):
-    """ task to handle the work the service is intended to do """
-    log.debug('Starting main task')
-    # Initialize timestamp for periodic DB checks
-    last_check = datetime.datetime.now()
-    while True:
-        # Initialize result list
-        out_msg_list = []
+        while True:
+            # Initialize result list
+            self.out_msg_list = []
 
-        if msg_in_que.qsize() > 0:
-            log.debug('Getting Incoming message from queue')
-            next_msg = msg_in_que.get_nowait()
-            log.debug('Message pulled from queue: [%s]', next_msg)
+            # INCOMING MESSAGE HANDLING
+            if self.msg_in_queue.qsize() > 0:
+                self.log.debug('Getting Incoming message from queue')
+                self.next_msg = self.msg_in_queue.get_nowait()
+                self.log.debug('Message pulled from queue: [%s]', self.next_msg)
 
-            # Determine message type
-            next_msg_split = next_msg.split(',')
-            if len(next_msg_split) >= 6:
-                log.debug('Extracting source address and message type')
-                msg_source_addr = next_msg_split[1]
-                msg_type = next_msg_split[5]
-                log.debug('Source Address: %s', msg_source_addr)
-                log.debug('Message Type: %s', msg_type)
+                # Determine message type
+                self.next_msg_split = self.next_msg.split(',')
+                if len(self.next_msg_split) >= 6:
+                    self.log.debug('Extracting source address and message type')
+                    self.msg_source_addr = self.next_msg_split[1]
+                    self.msg_type = self.next_msg_split[5]
+                    self.log.debug('Source Address: %s', self.msg_source_addr)
+                    self.log.debug('Message Type: %s', self.msg_type)
 
+                # Process heartbeat from remote service
+                if self.msg_type == self.message_types['heartbeat']:
+                    self.log.debug('Message is a heartbeat')
+                    self.out_msg_list = yield from process_heartbeat_msg(
+                        self.log,
+                        self.ref_num,
+                        self.next_msg,
+                        self.message_types)
 
-            # Register new devices to monitor
-            if msg_type == message_types['occupancy_rod']:
-                log.debug('Message is a request to register a device for '
-                          'occupancy checking')
-                out_msg_list = yield from occupancy_monitor.register(
-                    next_msg,
-                    message_types)
-
-
-            # Que up response messages in outgoing msg que
-            if len(out_msg_list) > 0:
-                log.debug('Queueing response message(s)')
-                for out_msg in out_msg_list:
-                    msg_out_que.put_nowait(out_msg)
-                    log.debug('Message [%s] successfully queued', out_msg)
+                # Register new devices to monitor
+                if self.msg_type == self.message_types['register_occupancy_device']:
+                    self.log.debug('Message is a request to register a device for '
+                                   'occupancy checking')
+                    self.out_msg_list = yield from self.occupancy_monitor.register(
+                        self.next_msg,
+                        self.message_types)
 
 
-        # Periodically check state of devices
-        if datetime.datetime.now() >= (last_check + datetime.timedelta(seconds=1)):
-            log.debug('Performing occupancy check')
-            out_msg_list = occupancy_monitor.check_all()
-            last_check = datetime.datetime.now()
-
-            # Que up response messages in outgoing msg que
-            if len(out_msg_list) > 0:
-                log.debug('Queueing message(s)')
-                for out_msg in out_msg_list:
-                    msg_out_que.put_nowait(out_msg)
-                    log.debug('Message [%s] successfully queued', out_msg)
+                # Que up response messages in outgoing msg que
+                if len(self.out_msg_list) > 0:
+                    self.log.debug('Queueing response message(s)')
+                    for self.out_msg in self.out_msg_list:
+                        self.msg_out_queue.put_nowait(self.out_msg)
+                        self.log.debug('Message [%s] successfully queued', self.out_msg)
 
 
+            # PERIODIC TASKS
+            # Periodically send heartbeats to other services
+            if datetime.datetime.now() >= (self.last_check_hb + datetime.timedelta(seconds=5)):
+                self.destinations = [
+                    (self.service_addresses['automation_addr'], self.service_addresses['automation_port'])
+                ]
+                self.out_msg_list = create_heartbeat_msg(
+                    self.log,
+                    self.ref_num,
+                    self.destinations,
+                    self.service_addresses['occupancy_addr'],
+                    self.service_addresses['occupancy_port'],
+                    self.message_types)
 
-        # Yield to other tasks for a while
-        yield from asyncio.sleep(0.25)
+                # Que up response messages in outgoing msg que
+                if len(self.out_msg_list) > 0:
+                    self.log.debug('Queueing response message(s)')
+                    for self.out_msg in self.out_msg_list:
+                        self.msg_out_queue.put_nowait(self.out_msg)
+                        self.log.debug('Response message [%s] successfully queued',
+                                       self.out_msg)
+
+                # Update last-check
+                self.last_check_hb = datetime.datetime.now()
+
+
+            # PERIODIC TASKS
+            # Periodically check state of devices
+            if datetime.datetime.now() >= (self.last_check_om + datetime.timedelta(seconds=1)):
+                self.log.debug('Performing occupancy check')
+                self.out_msg_list = self.occupancy_monitor.check_all()
+
+                # Que up response messages in outgoing msg que
+                if len(self.out_msg_list) > 0:
+                    self.log.debug('Queueing message(s)')
+                    for self.out_msg in self.out_msg_list:
+                        self.msg_out_queue.put_nowait(self.out_msg)
+                        self.log.debug('Message [%s] successfully queued', self.out_msg)
+
+                # Update last-check
+                self.last_check_om = datetime.datetime.now()
+
+
+            # Yield to other tasks for a while
+            yield from asyncio.sleep(0.25)

@@ -8,8 +8,8 @@ import copy
 import sys
 import env
 from rpihome_v3.helpers.ref_num import RefNum
-from rpihome_v3.messages.message_rod import RODmessage
-from rpihome_v3.messages.message_rod_ack import RODACKmessage
+from rpihome_v3.messages.register_occupancy_device import RegisterOccupancyDeviceMessage
+from rpihome_v3.messages.register_occupancy_device_ack import RegisterOccupancyDeviceMessageACK
 
 
 # Authorship Info *************************************************************
@@ -28,7 +28,7 @@ class OccupancyMonitor(object):
     def __init__(self, log, watch_folder, msg_types):
         self.log = log
         self.watch_folder = watch_folder
-        self.msg = RODmessage
+        self.msg = RegisterOccupancyDeviceMessage
         self.device_list = []
 
 
@@ -39,7 +39,7 @@ class OccupancyMonitor(object):
         if msg.name.lower() not in self.device_list:
             self.device_list.append(copy.copy(msg.name.lower()))
         # ACK original message to confirm receipt and processing
-        return RODACKmessage(
+        return RegisterOccupancyDeviceMessage(
             ref=msg.ref,
             dest_addr=msg.source_addr,
             dest_port=msg.source_port,

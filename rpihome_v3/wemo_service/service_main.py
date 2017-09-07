@@ -76,7 +76,8 @@ class MainTask(object):
     @asyncio.coroutine
     def run(self):
         """ task to handle the work the service is intended to do """
-
+        self.log.debug('Starting main task')
+        
         while True:
             # Initialize result list
             self.out_msg_list = []

@@ -36,6 +36,7 @@ class MainTask(object):
         self.service_addresses = []
         self.message_types = []
         self.last_check = datetime.datetime.now()
+        self.out_msg = str()
         self.out_msg_list = []
         self.next_msg = str()
         self.next_msg_split = []
@@ -51,11 +52,11 @@ class MainTask(object):
                 if key == "msg_in_queue":
                     self.msg_in_queue = value
                     self.log.debug('Message in queue set during __init__ '
-                                   'to: %s', self.ref_num)
+                                   'to: %s', self.msg_in_queue)
                 if key == "msg_out_queue":
                     self.msg_out_queue = value
                     self.log.debug('Message out queue set during __init__ '
-                                   'to: %s', self.ref_num)
+                                   'to: %s', self.msg_out_queue)
                 if key == "schedule":
                     self.schedule = value
                     self.log.debug('Schedule set during __init__ '
@@ -63,14 +64,14 @@ class MainTask(object):
                 if key == "service_addresses":
                     self.service_addresses = value
                     self.log.debug('Service address list set during __init__ '
-                                   'to: %s', self.ref_num)
+                                   'to: %s', self.service_addresses)
                 if key == "message_types":
                     self.message_types = value
                     self.log.debug('Message type list set during __init__ '
-                                   'to: %s', self.ref_num)
+                                   'to: %s', self.message_types)
 
     @asyncio.coroutine
-    def service_main_task(self):
+    def run(self):
         """ task to handle the work the service is intended to do """
 
         while True:
