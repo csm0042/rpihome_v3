@@ -82,7 +82,7 @@ class SetDeviceStateMessage(object):
                 if key == "dev_status":
                     self.dev_status = value
                     self.log.debug('Device Status value set during __init__ '
-                                   'to: %s', self.dev_status)                                   
+                                   'to: %s', self.dev_status)
                 if key == "dev_last_seen":
                     self.dev_last_seen = value
                     self.log.debug('Device last seen value set during __init__ '

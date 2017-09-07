@@ -49,9 +49,9 @@ def process_get_device_state_msg(log, devices, msg, service_addresses):
     if dev_pointer is not None:
         message.dest_addr = service_addresses['wemo_addr']
         message.dest_port = service_addresses['wemo_port']
-        message.dev_addr = devices[dev_pointer].address
-        message.dev_status = devices[dev_pointer].status,
-        message.dev_last_seen = devices[dev_pointer].last_seen
+        message.dev_addr = devices[dev_pointer].dev_addr
+        message.dev_status = devices[dev_pointer].dev_status,
+        message.dev_last_seen = devices[dev_pointer].dev_last_seen
 
         # Load message into output list
         log.debug('Loading completed msg: [%s]', message.complete)
@@ -90,8 +90,8 @@ def process_get_device_state_msg_ack(log, devices, msg):
                   message.dev_name,
                   message.dev_status,
                   message.dev_last_seen)
-        devices[dev_pointer].status = copy.copy(message.dev_status)
-        devices[dev_pointer].last_seen = copy.copy(message.dev_last_seen)
+        devices[dev_pointer].dev_status = copy.copy(message.dev_status)
+        devices[dev_pointer].dev_last_seen = copy.copy(message.dev_last_seen)
     else:
         log.debug('Device [%s] not found in active device table. '
                   'No further action being taken', message.dev_name)
@@ -128,8 +128,8 @@ def process_set_device_state_msg(log, devices, msg, service_addresses):
         log.debug('Updating SDS message to forward to wemo service')
         message.dest_addr=service_addresses['wemo_addr']
         message.dest_port=service_addresses['wemo_port']
-        message.dev_status=devices[dev_pointer].status
-        message.dev_last_seen=devices[dev_pointer].last_seen
+        message.dev_status=devices[dev_pointer].dev_status
+        message.dev_last_seen=devices[dev_pointer].dev_last_seen
         
         # Load message into output list
         log.debug('Loading completed msg: [%s]', message.complete)
@@ -168,8 +168,8 @@ def process_set_device_state_msg_ack(log, devices, msg):
                   message.dev_name,
                   message.dev_status,
                   message.dev_last_seen)
-        devices[dev_pointer].status = copy.copy(message.dev_status)
-        devices[dev_pointer].last_seen = copy.copy(message.dev_last_seen)
+        devices[dev_pointer].dev_status = copy.copy(message.dev_status)
+        devices[dev_pointer].dev_last_seen = copy.copy(message.dev_last_seen)
     else:
         log.debug('Device [%s] not found in active device table. '
                   'No further action being taken', message.dev_name)

@@ -90,7 +90,7 @@ class MainTask(object):
     @asyncio.coroutine
     def run(self):
         """ task to handle the work the service is intended to do """
-        self.log.debug('Starting main task')
+        self.log.info('Starting automation service main task')
 
         while True:
             # Initialize result list
@@ -114,7 +114,7 @@ class MainTask(object):
                 # Process heartbeat from remote service
                 if self.msg_type == self.message_types['heartbeat']:
                     self.log.debug('Message is a heartbeat')
-                    self.out_msg_list = yield from process_heartbeat_msg(
+                    self.out_msg_list = process_heartbeat_msg(
                         self.log,
                         self.ref_num,
                         self.next_msg,

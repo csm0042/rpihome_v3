@@ -34,7 +34,7 @@ def create_heartbeat_msg(log, ref_num, destinations, source_addr, source_port, m
     for entry in destinations:
         out_msg = HeartbeatMessage(
             log=log,
-            ref=ref_num,
+            ref=ref_num.new(),
             dest_addr=entry[0],
             dest_port=entry[1],
             source_addr=source_addr,
@@ -166,9 +166,9 @@ def set_wemo_state(log, ref_num, wemo_gw, msg, message_types):
         log=log,
         ref=ref_num.new(),
         dest_addr=message.source_addr,
-        dest_port=message.msg_source_port,
-        source_addr=message.msg_dest_addr,
-        source_port=message.msg_dest_port,
+        dest_port=message.source_port,
+        source_addr=message.dest_addr,
+        source_port=message.dest_port,
         msg_type=message_types['set_device_state_ack'],
         dev_name=message.dev_name,
         dev_status=dev_status_new,

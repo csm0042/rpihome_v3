@@ -76,9 +76,9 @@ def process_get_device_scheduled_state_msg(log, devices, msg, service_addresses)
     if dev_pointer is not None:
         message.dest_addr = service_addresses['schedule_addr']
         message.dest_port = service_addresses['schedule_port']
-        message.dev_addr = devices[dev_pointer].address
-        message.dev_status = devices[dev_pointer].status,
-        message.dev_last_seen = devices[dev_pointer].last_seen
+        message.dev_addr = devices[dev_pointer].dev_addr
+        message.dev_status = devices[dev_pointer].dev_status,
+        message.dev_last_seen = devices[dev_pointer].dev_last_seen
 
         # Load message into output list
         log.debug('Loading completed msg: [%s]', message.complete)
@@ -115,13 +115,13 @@ def process_get_device_scheduled_state_msg_ack(log, ref_num, devices, msg, servi
         log.debug('[%s] found in table at index [%s]', message.dev_name, dev_pointer)
 
         # Check for command change-of-state
-        if devices[dev_pointer].cmd != message.dev_cmd:
+        if devices[dev_pointer].dev_cmd != message.dev_cmd:
             log.debug('New command detected [%s]', message.dev_cmd)
             # Snapshot command so we only issue command message once
-            devices[dev_pointer].cmd = copy.copy(message.dev_cmd)
+            devices[dev_pointer].dev_cmd = copy.copy(message.dev_cmd)
 
             # Issue messages to wemo servivce for wemo device commands
-            if devices[dev_pointer].devtype == 'wemo_switch':
+            if devices[dev_pointer].dev_type == 'wemo_switch':
                 # Build new message to forward to wemo service
                 log.debug('Generating message to wemo service')
                 out_msg = SetDeviceStateMessage(
@@ -133,10 +133,10 @@ def process_get_device_scheduled_state_msg_ack(log, ref_num, devices, msg, servi
                     source_port=message.source_port,
                     msg_type=message_types['set_device_state'],
                     dev_name=message.dev_name,
-                    dev_addr=devices[dev_pointer].address,
+                    dev_addr=devices[dev_pointer].dev_addr,
                     dev_cmd=message.dev_cmd,
-                    dev_status=devices[dev_pointer].status,
-                    dev_last_seen=devices[dev_pointer].last_seen)
+                    dev_status=devices[dev_pointer].dev_status,
+                    dev_last_seen=devices[dev_pointer].dev_last_seen)
 
                 # Load message into output list
                 log.debug('Loading completed msg: [%s]', out_msg.complete)

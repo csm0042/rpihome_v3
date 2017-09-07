@@ -59,7 +59,7 @@ class MessageHandler(object):
         self.log.debug('Received %r from %r', self.message, self.addr)
 
         # Coping incoming message to message buffer
-        self.log.debug('Loading message into incoming msg buffer')
+        self.log.info('Received message: %s', self.message)
         self.msg_in_queue.put_nowait(self.message)
         self.log.debug('Resulting buffer length: %s',
                        str(self.msg_in_queue.qsize()))
@@ -70,7 +70,7 @@ class MessageHandler(object):
         self.msg_seg = self.message.split(',')
         self.log.debug('Extracted msg sequence number: [%s]', self.msg_seg[0])
         self.ack_to_send = self.msg_seg[0].encode()
-        self.log.debug('Sending response msg: [%s]', self.ack_to_send)
+        self.log.info('Sending ACK: %s', self.ack_to_send)
         self.writer.write(self.ack_to_send)
         yield from writer.drain()
         self.log.debug('Closing the socket after sending ACK')
@@ -92,13 +92,13 @@ class MessageHandler(object):
                 try:
                     self.reader_out, self.writer_out = yield from asyncio.open_connection(
                         self.msg_seg_out[1], int(self.msg_seg_out[2]), loop=self.loop)
-                    self.log.debug('Sending message: [%s]', self.msg_to_send)
+                    self.log.info('Sending message: %s', self.msg_to_send)
                     self.writer_out.write(self.msg_to_send.encode())
 
-                    self.log.debug('Waiting for ack')
+                    self.log.info('Waiting for ack')
                     self.data_ack = yield from self.reader_out.read(200)
                     self.ack = self.data_ack.decode()
-                    self.log.debug('Received: %r', self.ack)
+                    self.log.info('Received ACK: %r', self.ack)
                     if self.ack.split(',')[0] == self.msg_seg_out[0]:
                         self.log.debug('Successful ACK received')
                     else:

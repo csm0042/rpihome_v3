@@ -6,10 +6,9 @@
 import asyncio
 import datetime
 import logging
-import sys
 import env
-from rpihome_v3.automation_service.msg_processing import create_heartbeat_msg
-from rpihome_v3.automation_service.msg_processing import process_heartbeat_msg
+from rpihome_v3.database_service.msg_processing import create_heartbeat_msg
+from rpihome_v3.database_service.msg_processing import process_heartbeat_msg
 from rpihome_v3.database_service.msg_processing import process_log_status_update_msg
 from rpihome_v3.database_service.msg_processing import process_return_command_msg
 from rpihome_v3.database_service.msg_processing import process_update_command_msg
@@ -81,7 +80,7 @@ class MainTask(object):
     @asyncio.coroutine
     def run(self):
         """ task to handle the work the service is intended to do """
-        self.log.debug('Starting main task')
+        self.log.info('Starting database service main task')
 
         while True:
             # Initialize result list
@@ -105,7 +104,7 @@ class MainTask(object):
                 # Process heartbeat from remote service
                 if self.msg_type == self.message_types['heartbeat']:
                     self.log.debug('Message is a heartbeat')
-                    self.out_msg_list = yield from process_heartbeat_msg(
+                    self.out_msg_list = process_heartbeat_msg(
                         self.log,
                         self.ref_num,
                         self.next_msg,
