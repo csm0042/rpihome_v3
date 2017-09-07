@@ -7,12 +7,12 @@ import asyncio
 import copy
 import datetime
 import env
-from rpihome_v3.messages.message_lsu import LSUmessage
-from rpihome_v3.messages.message_lsu_ack import LSUACKmessage
-from rpihome_v3.messages.message_rc import RCmessage
-from rpihome_v3.messages.message_rc_ack import RCACKmessage
-from rpihome_v3.messages.message_uc import UCmessage
-from rpihome_v3.messages.message_uc_ack import UCACKmessage
+from rpihome_v3.messages.log_status_update import LogStatusUpdateMessage
+from rpihome_v3.messages.log_status_update_ack import LogStatusUpdateMessageACK
+from rpihome_v3.messages.return_command import ReturnCommandMessage
+from rpihome_v3.messages.return_command_ack import ReturnCommandMessageACK
+from rpihome_v3.messages.update_command import UpdateCommandMessage
+from rpihome_v3.messages.update_command_ack import UpdateCommandMessageACK
 from rpihome_v3.database_service.persistance import insert_record
 from rpihome_v3.database_service.persistance import query_command
 from rpihome_v3.database_service.persistance import update_command
@@ -29,23 +29,22 @@ __email__ = "csmaue@gmail.com"
 __status__ = "Development"
 
 
-# Internal Service Work Subtask - log status updates **************************
+# Process log status update message *******************************************
 @asyncio.coroutine
-def process_db_lsu(log, ref_num, database, msg, message_types):
-    """ Function to insert status updates into device_log table """
+def process_log_status_update_msg(log, ref_num, database, msg, message_types):
+    """ When a LSU message is received, log the contents of the message to
+        the database
+    """
     # Initialize result list
     out_msg_list = []
 
     # Map message header & payload to usable tags
-    message = LSUmessage(log=log)
+    message = LogStatusUpdateMessage(log=log)
     message.complete = msg
 
     # Execute Insert Query
-    log.debug('Logging status change to database for [%s].  New '
-              'status is [%s] with a last seen time of [%s]',
-              message.dev_name,
-              message.dev_status,
-              message.dev_last_seen)
+    log.debug('Logging status change message to database: %s',
+              message.complete)
     insert_record(
         log,
         database,
@@ -54,35 +53,37 @@ def process_db_lsu(log, ref_num, database, msg, message_types):
         message.dev_last_seen)
 
     # Send response indicating query was executed
-    log.debug('Building LSU ACK message')
-    out_msg = LSUACKmessage(
+    log.debug('Generating LSU ACK message')
+    out_msg = LogStatusUpdateMessageACK(
         log=log,
         ref=ref_num.new(),
         dest_addr=message.source_addr,
         dest_port=message.source_port,
         source_addr=message.dest_addr,
         source_port=message.dest_port,
-        msg_type=message_types['database_LSU_ACK'],
+        msg_type=message_types['log_status_update_ack'],
         dev_name=message.dev_name)
 
     # Load message into output list
-    log.debug('Loading completed msg: [%s]', out_msg.complete)
+    log.debug('Loading completed msg: %s', out_msg.complete)
     out_msg_list.append(out_msg.complete)
 
     # Return response message
     return out_msg_list
 
 
-# Internal Service Work Subtask - wemo turn on ********************************
+# Process return command message **********************************************
 @asyncio.coroutine
-def process_db_rc(log, ref_num, database, msg, message_types):
-    """ Function to query database for any un-processed device commands """
+def process_return_command_msg(log, ref_num, database, msg, message_types):
+    """ When a RC message is received, check the database for any pending
+        commands
+    """
     # Initialize result list
     out_msg_list = []
     result_list = []
 
     # Map message header & payload to usable tags
-    message = RCmessage(log=log)
+    message = ReturnCommandMessage(log=log)
     message.complete = msg
 
     # Execute select Query
@@ -99,14 +100,14 @@ def process_db_rc(log, ref_num, database, msg, message_types):
             pending_cmd_seg = pending_cmd.split(',')
             # Create message RC ACK message to automation service
             if len(pending_cmd_seg) >= 5:
-                out_msg = RCACKmessage(
+                out_msg = ReturnCommandMessageACK(
                     log=log,
                     ref=ref_num.new(),
                     dest_addr=message.source_addr,
                     dest_port=message.source_port,
                     source_addr=message.dest_addr,
                     source_port=message.dest_port,
-                    msg_type=message_types['database_rc_ack'],
+                    msg_type=message_types['return_command_ack'],
                     dev_id=copy.copy(pending_cmd_seg[0]),
                     dev_name=copy.copy(pending_cmd_seg[1]),
                     dev_cmd=copy.copy(pending_cmd_seg[2]),
@@ -114,7 +115,7 @@ def process_db_rc(log, ref_num, database, msg, message_types):
                     dev_processed=copy.copy(pending_cmd_seg[4]))
 
                 # Load message into output list
-                log.debug('Loading completed msg: [%s]', out_msg.complete)
+                log.debug('Loading completed msg: %s', out_msg.complete)
                 out_msg_list.append(out_msg.complete)
             else:
                 log.warning('Invalid command received from DB: %s', pending_cmd)
@@ -125,25 +126,25 @@ def process_db_rc(log, ref_num, database, msg, message_types):
     return out_msg_list
 
 
-# Internal Service Work Subtask - wemo turn off *******************************
+# Process update command message **********************************************
 @asyncio.coroutine
-def process_db_uc(log, ref_num, database, msg, message_types):
-    """ Function to set state of wemo device to "off" """
+def process_update_command_msg(log, ref_num, database, msg, message_types):
+    """ When a UC message is received, perform an update query on the database
+        to mark the original command as processed
+    """
     # Initialize result list
     out_msg_list = []
 
     # Map message header & payload to usable tags
-    message = UCmessage(log=log)
+    message = UpdateCommandMessage(log=log)
     message.complete = msg
 
     # Update timestamp
     message.dev_processed = datetime.datetime.now()
 
     # Execute update Query
-    log.debug('Querying database to mark command with ID [%s] as complete '
-              'with timestamp [%s]',
-              message.dev_id,
-              message.dev_processed)
+    log.debug('Querying database to mark command as processed: %s',
+              message.complete)
     update_command(
         log,
         database,
@@ -151,15 +152,15 @@ def process_db_uc(log, ref_num, database, msg, message_types):
         message.dev_processed)
 
     # Send response indicating query was executed
-    log.debug('Building response message header')
-    out_msg = UCACKmessage(
+    log.debug('Generating UC ACK message')
+    out_msg = UpdateCommandMessageACK(
         log=log,
         ref=ref_num.new(),
         dest_addr=message.source_addr,
         dest_port=message.source_port,
         source_addr=message.dest_addr,
         source_port=message.dest_port,
-        msg_type=message_types['database_uc_ack'],
+        msg_type=message_types['update_command_ack'],
         dev_id=message.dev_id)
 
     # Load message into output list

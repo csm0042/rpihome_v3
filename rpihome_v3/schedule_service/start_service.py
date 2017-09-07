@@ -34,7 +34,7 @@ SCHEDULE = SERVICE_CONFIG.setup_schedule()
 
 REF_NUM = RefNum(log=LOG)
 LOOP = asyncio.get_event_loop()
-COMM_HANDLER = MessageHandler(LOG)
+COMM_HANDLER = MessageHandler(LOG, LOOP)
 MAINTASK = MainTask(
     LOG,
     ref=REF_NUM,
