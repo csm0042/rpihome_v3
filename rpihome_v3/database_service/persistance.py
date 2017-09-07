@@ -74,15 +74,16 @@ def query_command(log, database):
             # Grab cursor and prepare query
             cursor = database.cursor()
             log.debug('Connection to cursor successful')
-            query = ("SELECT id_device_cmd, device, cmd, timestamp, processed "
-                     "FROM device_cmd "
-                     "WHERE (timestamp >= '%s' AND processed IS NULL)")
-            current_time = (str(datetime.datetime.now() + \
-                            datetime.timedelta(days=-30)))[:19]
-            data = (current_time)
-            full_query = query % data
-            log.debug('Ready to execute query: %s', full_query)
-            cursor.execute(query, data)
+
+            query = "SELECT id_device_cmd, device, cmd, timestamp, processed " \
+                    "FROM device_cmd " \
+                    "WHERE processed Is NULL " \
+                    "AND (device, timestamp) " \
+                    "IN (SELECT device, Max(timestamp) " \
+                    "FROM device_cmd GROUP BY device) LIMIT 1"
+
+            log.debug('Ready to execute query: %s', query)
+            cursor.execute(query)
             log.debug('Query execution successful')
             row = cursor.fetchone()
             while row is not None:
