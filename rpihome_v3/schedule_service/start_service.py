@@ -26,11 +26,11 @@ __status__ = "Development"
 
 # Application wide objects ****************************************************
 SERVICE_CONFIG = ConfigureService('config.ini')
-LOG = SERVICE_CONFIG.setup_logger()
-SERVICE_ADDRESSES = SERVICE_CONFIG.setup_servers()
-MESSAGE_TYPES = SERVICE_CONFIG.setup_message_types()
-CREDENTIALS = SERVICE_CONFIG.setup_credentials()
-SCHEDULE = SERVICE_CONFIG.setup_schedule()
+LOG = SERVICE_CONFIG.get_logger()
+SERVICE_ADDRESSES = SERVICE_CONFIG.get_servers()
+MESSAGE_TYPES = SERVICE_CONFIG.get_message_types()
+CREDENTIALS = SERVICE_CONFIG.get_credentials()
+SCHEDULE = SERVICE_CONFIG.get_schedule()
 
 REF_NUM = RefNum(log=LOG)
 LOOP = asyncio.get_event_loop()

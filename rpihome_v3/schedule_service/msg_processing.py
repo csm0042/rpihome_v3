@@ -23,9 +23,31 @@ __email__ = "csmaue@gmail.com"
 __status__ = "Development"
 
 
-# ACK wake-up message *********************************************************
-@asyncio.coroutine
-def reply_to_hb(log, ref_num, msg, message_types):
+def create_heartbeat_msg(log, ref_num, destinations, source_addr, source_port, message_types):
+    """ function to create one or more heartbeat messages """
+    # Initialize result list
+    out_msg_list = []
+
+    # Generate a heartbeat message for each destination given
+    for entry in destinations:
+        out_msg = HeartbeatMessage(
+            log=log,
+            ref=ref_num,
+            dest_addr=entry[0],
+            dest_port=entry[1],
+            source_addr=source_addr,
+            source_port=source_port,
+            msg_type=message_types['heartbeat']
+        )
+        # Load message into output list
+        log.debug('Loading completed msg: %s', out_msg.complete)
+        out_msg_list.append(out_msg.complete)
+
+    # Return response message
+    return out_msg_list
+
+
+def process_heartbeat_msg(log, ref_num, msg, message_types):
     """ function to ack wake-up requests to wemo service """
     # Initialize result list
     out_msg_list = []
@@ -54,7 +76,7 @@ def reply_to_hb(log, ref_num, msg, message_types):
 
 
 # Process messages type 100 ***************************************************
-def process_sched_gdss(log, ref_num, schedule, msg, message_types):
+def process_get_device_scheduled_state_msg(log, ref_num, schedule, msg, message_types):
     """
     """
     # Initialize result list

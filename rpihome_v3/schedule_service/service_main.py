@@ -7,9 +7,9 @@ import asyncio
 import datetime
 import logging
 import env
-from rpihome_v3.messages.heartbeat import HeartbeatMessage
-from rpihome_v3.schedule_service.msg_processing import reply_to_hb
-from rpihome_v3.schedule_service.msg_processing import process_sched_gdss
+from rpihome_v3.occupancy_service.msg_processing import create_heartbeat_msg
+from rpihome_v3.occupancy_service.msg_processing import process_heartbeat_msg
+from rpihome_v3.schedule_service.msg_processing import process_get_device_scheduled_state_msg
 
 
 # Authorship Info *************************************************************
@@ -35,13 +35,14 @@ class MainTask(object):
         self.schedule = []
         self.service_addresses = []
         self.message_types = []
-        self.last_check = datetime.datetime.now()
+        self.last_check_hb = datetime.datetime.now()
         self.out_msg = str()
         self.out_msg_list = []
         self.next_msg = str()
         self.next_msg_split = []
         self.msg_source_addr = str()
         self.msg_type = str()
+        self.destinations = []
         # Map input variables
         if kwargs is not None:
             for key, value in kwargs.items():
@@ -49,6 +50,10 @@ class MainTask(object):
                     self.ref_num = value
                     self.log.debug('Ref number generator set during __init__ '
                                    'to: %s', self.ref_num)
+                if key == "schedule":
+                    self.schedule = value
+                    self.log.debug('Schedule set during __init__ '
+                                   'to: %s', self.schedule)                                   
                 if key == "msg_in_queue":
                     self.msg_in_queue = value
                     self.log.debug('Message in queue set during __init__ '
@@ -57,10 +62,6 @@ class MainTask(object):
                     self.msg_out_queue = value
                     self.log.debug('Message out queue set during __init__ '
                                    'to: %s', self.msg_out_queue)
-                if key == "schedule":
-                    self.schedule = value
-                    self.log.debug('Schedule set during __init__ '
-                                   'to: %s', self.schedule)
                 if key == "service_addresses":
                     self.service_addresses = value
                     self.log.debug('Service address list set during __init__ '
@@ -69,6 +70,7 @@ class MainTask(object):
                     self.message_types = value
                     self.log.debug('Message type list set during __init__ '
                                    'to: %s', self.message_types)
+
 
     @asyncio.coroutine
     def run(self):
@@ -96,46 +98,54 @@ class MainTask(object):
                 # Service Check (heartbeat)
                 if self.msg_type == self.message_types['heartbeat']:
                     self.log.debug('Message is a heartbeat')
-                    self.out_msg_list = yield from reply_to_hb(
+                    self.out_msg_list = yield from process_heartbeat_msg(
                         self.log,
                         self.ref_num,
                         self.next_msg,
-                        self.message_types)                    
+                        self.message_types)
 
                 # Device scheduled command checks
                 if self.msg_type == self.message_types['get_device_scheduled_state']:
                     self.log.debug('Message is a get device scheduled state message')
-                    self.out_msg_list = process_sched_gdss(
+                    self.out_msg_list = process_get_device_scheduled_state_msg(
                         self.log,
                         self.ref_num,
                         self.schedule,
                         self.next_msg,
                         self.message_types)
 
-            # PERIODIC TASKS
-            if datetime.datetime.now() >= (self.last_check + datetime.timedelta(seconds=5)):
-                # Send heartbeat to automation task
-                self.out_msg_list.append(
-                    HeartbeatMessage(
-                        log=self.log,
-                        ref=self.ref_num.new(),
-                        dest_addr=self.service_addresses['automation_addr'],
-                        dest_port=self.service_addresses['automation_port'],
-                        source_addr=self.service_addresses['schedule_addr'],
-                        source_port=self.service_addresses['schedule_port'],
-                        msg_type=self.message_types['heartbeat']
-                    ).complete
-                )
-                # Update last-check
-                self.last_check = datetime.datetime.now()
+                # Que up response messages in outgoing msg que
+                if len(self.out_msg_list) > 0:
+                    self.log.debug('Queueing response message(s)')
+                    for self.out_msg in self.out_msg_list:
+                        self.msg_out_queue.put_nowait(self.out_msg)
+                        self.log.debug('Message [%s] successfully queued', self.out_msg)
 
-            # OUTGOING MESSAGE HANDLING
-            if len(self.out_msg_list) > 0:
-                self.log.debug('Queueing response message(s)')
-                for out_msg in self.out_msg_list:
-                    self.msg_out_queue.put_nowait(out_msg)
-                    self.log.debug('Response message [%s] successfully queued',
-                                   out_msg)
+
+            # PERIODIC TASKS
+            # Periodically send heartbeats to other services
+            if datetime.datetime.now() >= (self.last_check_hb + datetime.timedelta(seconds=5)):
+                self.destinations = [
+                    (self.service_addresses['automation_addr'], self.service_addresses['automation_port'])
+                ]
+                self.out_msg_list = create_heartbeat_msg(
+                    self.log,
+                    self.ref_num,
+                    self.destinations,
+                    self.service_addresses['schedule_addr'],
+                    self.service_addresses['schedule_port'],
+                    self.message_types)
+
+                # Que up response messages in outgoing msg que
+                if len(self.out_msg_list) > 0:
+                    self.log.debug('Queueing response message(s)')
+                    for self.out_msg in self.out_msg_list:
+                        self.msg_out_queue.put_nowait(self.out_msg)
+                        self.log.debug('Response message [%s] successfully queued',
+                                       self.out_msg)
+
+                # Update last-check
+                self.last_check_hb = datetime.datetime.now()
 
             # Yield to other tasks for a while
             yield from asyncio.sleep(0.25)
