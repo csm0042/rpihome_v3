@@ -9,7 +9,7 @@ import logging
 import sys
 import mysql.connector
 import mysql.connector.errorcode as errorcodes
-from .env import *
+import env
 from rpihome_v3.helpers.log_support import setup_log_handlers
 
 

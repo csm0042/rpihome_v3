@@ -6,7 +6,7 @@
 import asyncio
 import copy
 import datetime
-from .env import *
+import env
 from rpihome_v3.messages.heartbeat import HeartbeatMessage
 from rpihome_v3.messages.heartbeat_ack import HeartbeatMessageACK
 from rpihome_v3.messages.log_status_update import LogStatusUpdateMessage

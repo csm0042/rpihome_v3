@@ -14,7 +14,7 @@ from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
-from .env import *
+import env
 from rpihome_v3.schedule_service.schedule import Sched
 
 

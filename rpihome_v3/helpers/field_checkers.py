@@ -6,7 +6,7 @@
 import datetime
 import logging
 import re
-from .env import *
+import env
 from rpihome_v3.helpers.ipv4_help import check_ipv4
 
 

@@ -4,7 +4,7 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import copy
-from .env import *
+import env
 from rpihome_v3.helpers.device import search_device_list
 from rpihome_v3.messages.get_device_state import GetDeviceStateMessage
 from rpihome_v3.messages.get_device_state_ack import GetDeviceStateMessageACK

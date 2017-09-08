@@ -7,7 +7,7 @@
 import configparser
 import datetime
 import sys
-from .env import *
+import env
 from rpihome_v3.helpers.log_support import setup_log_handlers
 from rpihome_v3.schedule_service.schedule import Sched
 from rpihome_v3.schedule_service.goog_cal import GoogleCalSync

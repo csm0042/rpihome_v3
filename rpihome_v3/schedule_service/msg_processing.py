@@ -5,7 +5,7 @@
 # Im_port Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
 import copy
-from .env import *
+import env
 from rpihome_v3.messages.heartbeat import HeartbeatMessage
 from rpihome_v3.messages.heartbeat_ack import HeartbeatMessageACK
 from rpihome_v3.messages.get_device_scheduled_state import GetDeviceScheduledStateMessage

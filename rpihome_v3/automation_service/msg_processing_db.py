@@ -4,7 +4,7 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import datetime
-from .env import *
+import env
 from rpihome_v3.helpers.device import search_device_list
 from rpihome_v3.messages.heartbeat import HeartbeatMessage
 from rpihome_v3.messages.heartbeat_ack import HeartbeatMessageACK

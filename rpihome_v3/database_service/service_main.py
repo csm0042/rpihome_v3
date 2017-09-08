@@ -6,7 +6,7 @@
 import asyncio
 import datetime
 import logging
-from .env import *
+import env
 from rpihome_v3.database_service.msg_processing import create_heartbeat_msg
 from rpihome_v3.database_service.msg_processing import process_heartbeat_msg
 from rpihome_v3.database_service.msg_processing import process_log_status_update_msg

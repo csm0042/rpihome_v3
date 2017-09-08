@@ -6,7 +6,7 @@
 import asyncio
 from contextlib import suppress
 import sys
-from .env import *
+import env
 from rpihome_v3.schedule_service.configure import ConfigureService
 from rpihome_v3.helpers.ref_num import RefNum
 from rpihome_v3.helpers.message_handlers import MessageHandler

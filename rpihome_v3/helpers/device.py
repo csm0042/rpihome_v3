@@ -5,7 +5,7 @@
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import datetime
 import logging
-from .env import *
+import env
 from rpihome_v3.helpers.ipv4_help import check_ipv4
 
 

@@ -6,7 +6,7 @@
 import asyncio
 import copy
 import sys
-from .env import *
+import env
 from rpihome_v3.helpers.ref_num import RefNum
 from rpihome_v3.messages.register_occupancy_device import RegisterOccupancyDeviceMessage
 from rpihome_v3.messages.register_occupancy_device_ack import RegisterOccupancyDeviceMessageACK

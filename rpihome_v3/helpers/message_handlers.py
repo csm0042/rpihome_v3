@@ -4,7 +4,7 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
-from .env import *
+import env
 from rpihome_v3.helpers.ref_num import RefNum
 
 

@@ -8,7 +8,7 @@ import datetime
 import logging
 import pywemo
 import sys
-from .env import *
+import env
 from rpihome_v3.helpers.ipv4_help import check_ipv4
 
 
