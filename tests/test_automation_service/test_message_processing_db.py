@@ -40,7 +40,7 @@ class Test_message_processing_db(unittest.TestCase):
     def setUp(self):
         self.msg_out = []
         self.service_addresses = {}
-        self.config_file.read('config.ini')
+        self.config_file.read('tests/test_automation_service/config.ini')
         for option in self.config_file.options('SERVICES'):
             self.service_addresses[option] = self.config_file['SERVICES'][option]
         # call parent class setup
