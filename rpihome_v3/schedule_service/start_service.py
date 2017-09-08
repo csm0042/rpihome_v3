@@ -6,7 +6,9 @@
 import asyncio
 from contextlib import suppress
 import sys
-import env
+if __name__ == "__main__":
+    import os
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from rpihome_v3.schedule_service.configure import ConfigureService
 from rpihome_v3.helpers.ref_num import RefNum
 from rpihome_v3.helpers.message_handlers import MessageHandler

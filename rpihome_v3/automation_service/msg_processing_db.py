@@ -4,7 +4,10 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import datetime
-import env
+if __name__ == "__main__":
+    import os
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from rpihome_v3.helpers.device import search_device_list
 from rpihome_v3.messages.heartbeat import HeartbeatMessage
 from rpihome_v3.messages.heartbeat_ack import HeartbeatMessageACK

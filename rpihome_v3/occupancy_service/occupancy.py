@@ -5,8 +5,10 @@
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import asyncio
 import copy
-import sys
-import env
+if __name__ == "__main__":
+    import os
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from rpihome_v3.helpers.ref_num import RefNum
 from rpihome_v3.messages.register_occupancy_device import RegisterOccupancyDeviceMessage
 from rpihome_v3.messages.register_occupancy_device_ack import RegisterOccupancyDeviceMessageACK

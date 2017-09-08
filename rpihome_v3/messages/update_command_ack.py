@@ -4,7 +4,10 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import logging
-import env
+if __name__ == "__main__":
+    import os
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from rpihome_v3.helpers.ipv4_help import check_ipv4
 from rpihome_v3.helpers.field_checkers import in_int_range
 

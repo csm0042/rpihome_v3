@@ -6,7 +6,10 @@
 import asyncio
 import copy
 import datetime
-import env
+if __name__ == "__main__":
+    import os
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from rpihome_v3.messages.heartbeat import HeartbeatMessage
 from rpihome_v3.messages.heartbeat_ack import HeartbeatMessageACK
 from rpihome_v3.messages.log_status_update import LogStatusUpdateMessage

@@ -4,7 +4,10 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import copy
-import env
+if __name__ == "__main__":
+    import os
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from rpihome_v3.helpers.device import search_device_list
 from rpihome_v3.messages.get_device_scheduled_state import GetDeviceScheduledStateMessage
 from rpihome_v3.messages.get_device_scheduled_state_ack import GetDeviceScheduledStateMessageACK
