@@ -61,12 +61,18 @@ def process_log_status_update_msg_ack(log, msg):
     """ When a LSU-ACK message is received, this function will
         log it then exit
     """
+    # Initialize result list
+    out_msg_list = []
+
     # Map message into LSU message class
     message = LogStatusUpdateMessageACK(log=log)
     message.complete = msg
 
     # Log receipt of ACK for debug purposes
-    log.debug('Log Status Update Ack message received: %s', msg.complete)
+    log.debug('Log Status Update Ack message received: %s', message.complete)
+
+    # Return response messages
+    return out_msg_list
 
 
 # Process return command messages *********************************************
@@ -189,9 +195,15 @@ def process_update_command_msg_ack(log, msg):
     """ When a UC-ACK message is received, this function will:
         log that message and then exit
     """
+    # Initialize result list
+    out_msg_list = []
+
     # Map message into LSU message class
     message = UpdateCommandMessageACK()
     message.complete = msg
 
     # Log receipt of ACK for debug purposes
     log.debug('Update Command ACK message Received: %s', message.complete)
+
+    # Return response message
+    return out_msg_list
