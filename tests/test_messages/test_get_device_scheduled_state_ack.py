@@ -10,7 +10,7 @@ import sys
 import unittest
 if __name__ == "__main__":
     import os
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))*
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from rpihome_v3.messages.get_device_scheduled_state_ack import GetDeviceScheduledStateMessageACK
 
 
