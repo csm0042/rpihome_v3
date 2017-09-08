@@ -4,7 +4,7 @@
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
 import copy
-import env
+from .env import *
 from rpihome_v3.helpers.device import search_device_list
 from rpihome_v3.messages.get_device_scheduled_state import GetDeviceScheduledStateMessage
 from rpihome_v3.messages.get_device_scheduled_state_ack import GetDeviceScheduledStateMessageACK

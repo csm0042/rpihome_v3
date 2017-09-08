@@ -6,7 +6,7 @@
 import datetime
 import logging
 import re
-import env
+from .env import *
 from rpihome_v3.helpers.ipv4_help import check_ipv4
 
 
@@ -51,6 +51,7 @@ def is_valid_datetime(log, value, initial_value):
     if isinstance(value, datetime.datetime):
         log.debug('Input value matches datetime format: %s', value)
         result = (str(value))[:19]
+    
     # If only the date portion is provided, merge it with the current time
     elif isinstance(value, datetime.date):
         log.debug('Input value matches date format: %s', value)
@@ -60,6 +61,7 @@ def is_valid_datetime(log, value, initial_value):
                 datetime.datetime.now().time()
             )
         ))[:19]
+    
     # If only the time portion is provided, merge it with the current date
     elif isinstance(value, datetime.time):
         log.debug('Input value matches time format: %s', value)
@@ -69,6 +71,7 @@ def is_valid_datetime(log, value, initial_value):
                 value
             )
         ))[:19]
+    
     # If the input value is provided in string format,
     # determine what data it contains
     elif isinstance(value, str):

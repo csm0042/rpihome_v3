@@ -8,7 +8,7 @@ import configparser
 import datetime
 import logging
 import sys
-import env
+from .env import *
 from rpihome_v3.helpers.log_support import setup_log_handlers
 from rpihome_v3.helpers.device import Device
 

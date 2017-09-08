@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" test_message_gds_ack.py:
+""" test_message_gds.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
@@ -8,13 +8,13 @@ import datetime
 import logging
 import sys
 import unittest
-import env
-from rpihome_v3.messages.get_device_state_ack import GetDeviceStateMessageACK
+from .env import *
+from rpihome_v3.messages.get_device_state import GetDeviceStateMessage
 
 
 # Define test class ***********************************************************
-class TestGetDeviceStateMessageACK(unittest.TestCase):
-    """ unittests for Log Status Update Message Class """
+class TestGetDeviceStateMessage(unittest.TestCase):
+    """ unittests for Get Device Status Message Class """
 
     def __init__(self, *args, **kwargs):
         logging.basicConfig(stream=sys.stdout)
@@ -24,19 +24,22 @@ class TestGetDeviceStateMessageACK(unittest.TestCase):
         self.datetime_str = str()
         self.temp_str = str()
         self.temp_str2 = str()
-        super(TestGetDeviceStateMessageACK, self).__init__(*args, **kwargs)
+        super(TestGetDeviceStateMessage, self).__init__(*args, **kwargs)
 
 
     def setUp(self):
-        self.message = GetDeviceStateMessageACK(log=self.log)
-        super(TestGetDeviceStateMessageACK, self).setUp()
+        self.message = GetDeviceStateMessage(log=self.log)
+        super(TestGetDeviceStateMessage, self).setUp()
 
 
     def test_init(self):
         """ test class __init__ and input variables """
-        self.datetime = datetime.datetime.now()
-        self.datetime_str = (str(self.datetime))[:19]
-        self.message = GetDeviceStateMessageACK(
+        self.datetime = datetime.datetime.combine(
+            datetime.date(2017, 8, 5),
+            datetime.time(8, 45)
+        )
+        self.datetime_str = '2017-08-05 08:45:00'
+        self.message = GetDeviceStateMessage(
             log=self.log,
             ref='101',
             dest_addr='192.168.86.1',
@@ -45,6 +48,7 @@ class TestGetDeviceStateMessageACK(unittest.TestCase):
             source_port='12000',
             msg_type='601',
             dev_name='fylt1',
+            dev_addr='192.168.86.12',
             dev_status='on',
             dev_last_seen=self.datetime
         )
@@ -55,6 +59,7 @@ class TestGetDeviceStateMessageACK(unittest.TestCase):
         self.assertEqual(self.message.source_port, '12000')
         self.assertEqual(self.message.msg_type, '601')
         self.assertEqual(self.message.dev_name, 'fylt1')
+        self.assertEqual(self.message.dev_addr, '192.168.86.12')
         self.assertEqual(self.message.dev_status, 'on')
         self.assertEqual(self.message.dev_last_seen, self.datetime_str)
 
@@ -143,6 +148,14 @@ class TestGetDeviceStateMessageACK(unittest.TestCase):
         self.assertEqual(self.message.dev_name, 'fylt1')
 
 
+    def test_dev_addr(self):
+        """ test setting and getting message device address field """
+        self.message.dev_addr = '192.168.1.1'
+        self.assertEqual(self.message.dev_addr, '192.168.1.1')
+        self.message.dev_addr = '192.168.2.x'
+        self.assertEqual(self.message.dev_addr, '192.168.1.1')
+
+
     def test_dev_status(self):
         """ test setting and getting device status field """
         self.message.dev_status = 'off'
@@ -156,14 +169,16 @@ class TestGetDeviceStateMessageACK(unittest.TestCase):
         self.datetime = datetime.datetime.combine(
             datetime.date(2017, 10, 3),
             datetime.time(7, 30))
-        self.datetime_str = (str(self.datetime))[:19]
+        self.datetime_str = '2017-10-03 07:30:00'
         self.message.dev_last_seen = self.datetime
         self.assertEqual(self.message.dev_last_seen, self.datetime_str)      
 
 
     def test_complete(self):
-        self.temp_str = '142,127.0.0.1,12000,192.168.5.45,13000,301,device01,on,2017-10-04 07:01:03.000034'
-        self.temp_str2 = '142,127.0.0.1,12000,192.168.5.45,13000,301,device01,on,2017-10-04 07:01:03'
+        self.temp_str = '142,127.0.0.1,12000,192.168.5.45,13000,301,' \
+                        'device01,192.168.86.12,on,2017-10-04 07:01:03.000034'
+        self.temp_str2 = '142,127.0.0.1,12000,192.168.5.45,13000,301,' \
+                         'device01,192.168.86.12,on,2017-10-04 07:01:03'
         self.message.complete = copy.copy(self.temp_str)
         self.assertEqual(self.message.ref, '142')
         self.assertEqual(self.message.dest_addr, '127.0.0.1')
@@ -172,12 +187,15 @@ class TestGetDeviceStateMessageACK(unittest.TestCase):
         self.assertEqual(self.message.source_port, '13000')
         self.assertEqual(self.message.msg_type, '301')
         self.assertEqual(self.message.dev_name, 'device01')
+        self.assertEqual(self.message.dev_addr, '192.168.86.12')
         self.assertEqual(self.message.dev_status, 'on')
         self.assertEqual(self.message.dev_last_seen, '2017-10-04 07:01:03')
         self.assertEqual(self.message.complete, self.temp_str2)
 
-        self.temp_str = '142,192.168.1,12000,192.168.5.45,130000,301,device01,on,2017-10-04 07:01:04'
-        self.temp_str2 = '142,127.0.0.1,12000,192.168.5.45,13000,301,device01,on,2017-10-04 07:01:04'
+        self.temp_str = '142,192.168.1,12000,192.168.5.45,130000,301,' \
+                        'device01,192.168.86.300,on,2017-10-04 07:01:04'
+        self.temp_str2 = '142,127.0.0.1,12000,192.168.5.45,13000,301,' \
+                         'device01,192.168.86.12,on,2017-10-04 07:01:04'
         self.message.complete = copy.copy(self.temp_str)
         self.assertEqual(self.message.ref, '142')
         self.assertEqual(self.message.dest_addr, '127.0.0.1')
@@ -186,12 +204,15 @@ class TestGetDeviceStateMessageACK(unittest.TestCase):
         self.assertEqual(self.message.source_port, '13000')
         self.assertEqual(self.message.msg_type, '301')
         self.assertEqual(self.message.dev_name, 'device01')
+        self.assertEqual(self.message.dev_addr, '192.168.86.12')
         self.assertEqual(self.message.dev_status, 'on')
-        self.assertEqual(self.message.dev_last_seen, '2017-10-04 07:01:04')        
+        self.assertEqual(self.message.dev_last_seen, '2017-10-04 07:01:04')
         self.assertEqual(self.message.complete, self.temp_str2)
 
-        self.temp_str = '142,192.168.1.1,12001,192.168.5.46,13001,301,device01,off,2017-10-04 07:01:04'
-        self.temp_str2 = '142,192.168.1.1,12001,192.168.5.46,13001,301,device01,off,2017-10-04 07:01:04'
+        self.temp_str = '142,192.168.1.1,12001,192.168.5.46,13001,301,' \
+                        'device01,192.168.86.13,off,2017-10-04 07:01:04'
+        self.temp_str2 = '142,192.168.1.1,12001,192.168.5.46,13001,301,' \
+                         'device01,192.168.86.13,off,2017-10-04 07:01:04'
         self.message.complete = copy.copy(self.temp_str)
         self.assertEqual(self.message.ref, '142')
         self.assertEqual(self.message.dest_addr, '192.168.1.1')
@@ -200,8 +221,9 @@ class TestGetDeviceStateMessageACK(unittest.TestCase):
         self.assertEqual(self.message.source_port, '13001')
         self.assertEqual(self.message.msg_type, '301')
         self.assertEqual(self.message.dev_name, 'device01')
+        self.assertEqual(self.message.dev_addr, '192.168.86.13')
         self.assertEqual(self.message.dev_status, 'off')
-        self.assertEqual(self.message.dev_last_seen, '2017-10-04 07:01:04')        
+        self.assertEqual(self.message.dev_last_seen, '2017-10-04 07:01:04')
         self.assertEqual(self.message.complete, self.temp_str2)
 
 

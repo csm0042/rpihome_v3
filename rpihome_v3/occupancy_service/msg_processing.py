@@ -3,7 +3,7 @@
 """
 
 # Im_port Required Libraries (Standard, Third Party, Local) ********************
-import env
+from .env import *
 from rpihome_v3.messages.heartbeat import HeartbeatMessage
 from rpihome_v3.messages.heartbeat_ack import HeartbeatMessageACK
 

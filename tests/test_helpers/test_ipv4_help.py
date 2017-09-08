@@ -8,7 +8,7 @@ import datetime
 import logging
 import sys
 import unittest
-import env
+from .env import *
 from rpihome_v3.helpers.ipv4_help import check_ipv4
 
 

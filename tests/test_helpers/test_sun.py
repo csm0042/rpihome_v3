@@ -7,7 +7,7 @@ import datetime
 import logging
 import sys
 import unittest
-import env
+from .env import *
 from rpihome_v3.helpers.sun import Sun
 
 

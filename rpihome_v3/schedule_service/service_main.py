@@ -6,7 +6,7 @@
 import asyncio
 import datetime
 import logging
-import env
+from .env import *
 from rpihome_v3.occupancy_service.msg_processing import create_heartbeat_msg
 from rpihome_v3.occupancy_service.msg_processing import process_heartbeat_msg
 from rpihome_v3.schedule_service.msg_processing import process_get_device_scheduled_state_msg

@@ -8,8 +8,8 @@ import datetime
 import logging
 import sys
 import unittest
-import env
-from rpihome_v3.helpers.ref_num import RefNum
+from .env import *
+from rpihome_v3.helpers.dst import USdst
 
 
 # Define test class ***********************************************************
@@ -20,7 +20,8 @@ class TestDst(unittest.TestCase):
         logging.basicConfig(stream=sys.stdout)
         self.log = logging.getLogger(__name__)
         self.log.level = logging.DEBUG
-        self.ref_num = RefNum(log=self.log)
+        self.dst_checker = USdst(log=self.log)
+        self.dt = None
         super(TestDst, self).__init__(*args, **kwargs)
 
 
@@ -29,19 +30,15 @@ class TestDst(unittest.TestCase):
 
 
     def test_init(self):
-        self.assertEqual(self.ref_num.source, '100')
-
-
-    def test_new(self):
         """ test class __init__ and input variables """
-        self.assertEqual(self.ref_num.new(), '101')
-        self.assertEqual(self.ref_num.new(), '102')
-        self.assertEqual(self.ref_num.new(), '103')
-        self.assertEqual(self.ref_num.new(), '104')
-        self.ref_num.source = 998
-        self.assertEqual(self.ref_num.source, '998')
-        self.assertEqual(self.ref_num.new(), '999')
-        self.assertEqual(self.ref_num.new(), '100')
+        pass
+
+
+    def test_dt(self):
+        """ test setting and getting datetime value """
+        self.dt = datetime.datetime.now()
+        self.dst_checker.dt = copy.copy(self.dt)
+        self.assertEqual(self.dst_checker.dt, self.dt)
 
 
 if __name__ == "__main__":

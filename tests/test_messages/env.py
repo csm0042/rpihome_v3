@@ -14,7 +14,10 @@ sys.path.append(
         os.path.dirname(
             # Gets us to rpihome_v3\tests\unit
             os.path.dirname(
-                os.path.abspath(__file__)
+                # Gets us to rpihome_v3\tests\unit\messages
+                os.path.dirname(
+                    os.path.abspath(__file__)
+                )
             )
         )
     )
