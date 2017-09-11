@@ -27,7 +27,7 @@ __status__ = "Development"
 
 
 # Process get device state message ********************************************
-def process_get_device_state_msg(log, devices, msg, service_addresses):
+def process_get_device_state_msg(log, msg, service_addresses):
     """ Get Device Status
         When a mis-directed GDS message is received, this function will:
         1) Update destination addr and port values in the GDS message to the
@@ -43,25 +43,13 @@ def process_get_device_state_msg(log, devices, msg, service_addresses):
     message = GetDeviceStateMessage(log=log)
     message.complete = msg
 
-    # Search device table to find device name
-    log.debug('Searching device table for [%s]', message.dev_name)
-    dev_pointer = search_device_list(log, devices, message.dev_name)
-    log.debug('Match found at device table index: %s', dev_pointer)
-
     # Modify CCS message to forward to wemo service
-    if dev_pointer is not None:
-        message.dest_addr = service_addresses['wemo_addr']
-        message.dest_port = service_addresses['wemo_port']
-        message.dev_addr = devices[dev_pointer].dev_addr
-        message.dev_status = devices[dev_pointer].dev_status,
-        message.dev_last_seen = devices[dev_pointer].dev_last_seen
+    message.dest_addr = service_addresses['wemo_addr']
+    message.dest_port = service_addresses['wemo_port']
 
-        # Load message into output list
-        log.debug('Loading completed msg: [%s]', message.complete)
-        out_msg_list.append(message.complete)
-
-    else:
-        log.debug('Device not in device list: %s', message.dev_name)
+    # Load message into output list
+    log.debug('Loading completed msg: [%s]', message.complete)
+    out_msg_list.append(message.complete)
 
     # Return response message
     return out_msg_list
@@ -104,7 +92,7 @@ def process_get_device_state_msg_ack(log, devices, msg):
 
 
 # Process set device state message ********************************************
-def process_set_device_state_msg(log, devices, msg, service_addresses):
+def process_set_device_state_msg(log, msg, service_addresses):
     """ Set Device Status
         When a mis-directed SDS message is received, this function will:
         1) Update destination addr and port values in the SDS message to the
@@ -120,26 +108,12 @@ def process_set_device_state_msg(log, devices, msg, service_addresses):
     message = SetDeviceStateMessage(log=log)
     message.complete = msg
 
-    # Search device table to find device name
-    log.debug('Searching device table for [%s]', message.dev_name)
-    dev_pointer = search_device_list(log, devices, message.dev_name)
-    log.debug('Match found at device table index: %s', dev_pointer)
-
-    # Update values based on message content
-    if dev_pointer is not None:
-        # Update message to forward to wemo service
-        log.debug('Updating SDS message to forward to wemo service')
-        message.dest_addr=service_addresses['wemo_addr']
-        message.dest_port=service_addresses['wemo_port']
-        message.dev_status=devices[dev_pointer].dev_status
-        message.dev_last_seen=devices[dev_pointer].dev_last_seen
+    message.dest_addr=service_addresses['wemo_addr']
+    message.dest_port=service_addresses['wemo_port']
         
-        # Load message into output list
-        log.debug('Loading completed msg: [%s]', message.complete)
-        out_msg_list.append(message.complete)
-    else:
-        log.debug('Device [%s] not found in active device table. '
-                  'No further action being taken', message.dev_name)
+    # Load message into output list
+    log.debug('Loading completed msg: [%s]', message.complete)
+    out_msg_list.append(copy.copy(message.complete))
 
     # Return response message
     return out_msg_list

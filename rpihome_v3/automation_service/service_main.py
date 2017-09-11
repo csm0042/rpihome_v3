@@ -183,7 +183,6 @@ class MainTask(object):
                         self.log.debug('Message is a Get Device Status (GDS) message')
                         self.out_msg_list = process_get_device_state_msg(
                             self.log,
-                            self.devices,
                             self.next_msg,
                             self.service_addresses)
 
@@ -200,7 +199,6 @@ class MainTask(object):
                         self.log.debug('Message is a Set Device Status (SDS) message')
                         self.out_msg_list = process_set_device_state_msg(
                             self.log,
-                            self.devices,
                             self.next_msg,
                             self.service_addresses)
 
