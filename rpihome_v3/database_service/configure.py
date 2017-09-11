@@ -107,3 +107,4 @@ class ConfigureService(object):
             self.log.debug("Could not connect to database")
         # Return configured objects to main program
         return self.database
+ 

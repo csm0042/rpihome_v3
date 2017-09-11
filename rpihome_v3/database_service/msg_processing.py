@@ -123,7 +123,7 @@ def process_log_status_update_msg(log, ref_num, database, msg, message_types):
 
     # Load message into output list
     log.debug('Loading completed msg: %s', out_msg.complete)
-    out_msg_list.append(out_msg.complete)
+    out_msg_list.append(copy.copy(out_msg.complete))
 
     # Return response message
     return out_msg_list
