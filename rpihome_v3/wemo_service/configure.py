@@ -41,8 +41,8 @@ class ConfigureService(object):
         self.config_file.read(self.filename)
         self.log = setup_log_handlers(
             __file__,
-            self.config_file['LOG FILES']['debug_log_file'],
-            self.config_file['LOG FILES']['info_log_file'])
+            self.config_file['LOG FILES']['wemo_debug_log_file'],
+            self.config_file['LOG FILES']['wemo_info_log_file'])
         # Return configured objects to main program
         return self.log
 
