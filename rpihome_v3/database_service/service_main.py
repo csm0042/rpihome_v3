@@ -153,6 +153,31 @@ class MainTask(object):
 
 
             # PERIODIC TASKS
+            # Periodically send heartbeats to other services
+            if datetime.datetime.now() >= (self.last_check_hb + datetime.timedelta(seconds=120)):
+                self.destinations = [
+                    (self.service_addresses['automation_addr'], self.service_addresses['automation_port'])
+                ]
+                self.out_msg_list = create_heartbeat_msg(
+                    self.log,
+                    self.ref_num,
+                    self.destinations,
+                    self.service_addresses['database_addr'],
+                    self.service_addresses['database_port'],
+                    self.message_types)
+
+                # Que up response messages in outgoing msg que
+                if len(self.out_msg_list) > 0:
+                    self.log.debug('Queueing message(s)')
+                    for self.out_msg in self.out_msg_list:
+                        self.msg_out_queue.put_nowait(self.out_msg)
+                        self.log.debug('Message [%s] successfully queued', self.out_msg)
+
+                # Update last-check
+                self.last_check_hb = datetime.datetime.now()
+
+
+            # PERIODIC TASKS
             # Periodically check for pending commands
             if datetime.datetime.now() >= (self.last_check_db + datetime.timedelta(seconds=1)):
                 # Device command not yet processed query
@@ -180,31 +205,6 @@ class MainTask(object):
 
                 # Update timestamp
                 self.last_check_db = datetime.datetime.now()
-
-
-            # PERIODIC TASKS
-            # Periodically send heartbeats to other services
-            if datetime.datetime.now() >= (self.last_check_hb + datetime.timedelta(seconds=5)):
-                self.destinations = [
-                    (self.service_addresses['automation_addr'], self.service_addresses['automation_port'])
-                ]
-                self.out_msg_list = create_heartbeat_msg(
-                    self.log,
-                    self.ref_num,
-                    self.destinations,
-                    self.service_addresses['database_addr'],
-                    self.service_addresses['database_port'],
-                    self.message_types)
-
-                # Que up response messages in outgoing msg que
-                if len(self.out_msg_list) > 0:
-                    self.log.debug('Queueing message(s)')
-                    for self.out_msg in self.out_msg_list:
-                        self.msg_out_queue.put_nowait(self.out_msg)
-                        self.log.debug('Message [%s] successfully queued', self.out_msg)
-
-                # Update last-check
-                self.last_check_hb = datetime.datetime.now()
 
 
             # Yield to other tasks for a while

@@ -244,29 +244,8 @@ class MainTask(object):
 
 
             # PERIODIC TASKS
-            # Periodically check scheduled on/off commands for devices
-            if datetime.datetime.now() >= (self.last_check_schedule + datetime.timedelta(minutes=1)):
-                self.out_msg_list = create_get_device_scheduled_state_msg(
-                    self.log,
-                    self.ref_num,
-                    self.devices,
-                    self.service_addresses,
-                    self.message_types)
-
-                # Que up response messages in outgoing msg que
-                if len(self.out_msg_list) > 0:
-                    self.log.debug('Queueing message(s)')
-                    for self.out_msg in self.out_msg_list:
-                        self.msg_out_queue.put_nowait(self.out_msg)
-                        self.log.debug('Message [%s] successfully queued', self.out_msg)
-
-                # Update last-check
-                self.last_check_schedule = datetime.datetime.now()
-
-
-            # PERIODIC TASKS
             # Periodically send heartbeats to other services
-            if datetime.datetime.now() >= (self.last_check_hb + datetime.timedelta(seconds=5)):
+            if datetime.datetime.now() >= (self.last_check_hb + datetime.timedelta(seconds=120)):
                 self.destinations = [
                     (self.service_addresses['database_addr'], self.service_addresses['database_port']),
                     (self.service_addresses['motion_addr'], self.service_addresses['motion_port']),
@@ -292,6 +271,30 @@ class MainTask(object):
 
                 # Update last-check
                 self.last_check_hb = datetime.datetime.now()
+
+
+            # PERIODIC TASKS
+            # Periodically check scheduled on/off commands for devices
+            if datetime.datetime.now() >= (self.last_check_schedule + datetime.timedelta(minutes=1)):
+                self.out_msg_list = create_get_device_scheduled_state_msg(
+                    self.log,
+                    self.ref_num,
+                    self.devices,
+                    self.service_addresses,
+                    self.message_types)
+
+                # Que up response messages in outgoing msg que
+                if len(self.out_msg_list) > 0:
+                    self.log.debug('Queueing message(s)')
+                    for self.out_msg in self.out_msg_list:
+                        self.msg_out_queue.put_nowait(self.out_msg)
+                        self.log.debug('Message [%s] successfully queued', self.out_msg)
+
+                # Update last-check
+                self.last_check_schedule = datetime.datetime.now()
+
+
+
 
             # Yield to other tasks for a while
             yield from asyncio.sleep(0.25)
