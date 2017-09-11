@@ -9,8 +9,8 @@ import datetime
 import logging
 import sys
 import unittest
+import os
 if __name__ == "__main__":
-    import os
     sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from rpihome_v3.helpers.ref_num import RefNum
 from rpihome_v3.automation_service.configure import ConfigureService
