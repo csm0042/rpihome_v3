@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" test_device.py:
+""" test_msg_processing_db.py:
 """
 
 # Import Required Libraries (Standard, Third Party, Local) ********************
