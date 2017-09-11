@@ -57,7 +57,7 @@ def create_get_device_scheduled_state_msg(log, ref_num, devices, service_address
 
 
 # Process get device scheduled state message **********************************
-def process_get_device_scheduled_state_msg(log, devices, msg, service_addresses):
+def process_get_device_scheduled_state_msg(log, msg, service_addresses):
     """ If a mis-directed get device scheduled state message is received, this
         function will update destination addr and port values in the message to
         the appropraite values for the schedule service, then queue it to be
@@ -66,28 +66,17 @@ def process_get_device_scheduled_state_msg(log, devices, msg, service_addresses)
     # Initialize result list
     out_msg_list = []
 
-    # Map message into CCS message class
+    # Map message into GDSS message class
     message = GetDeviceScheduledStateMessage(log=log)
     message.complete = msg
 
-    # Search device table to find device name
-    log.debug('Searching device table for [%s]', message.dev_name)
-    dev_pointer = search_device_list(log, devices, message.dev_name)
-    log.debug('Match found at device table index: %s', dev_pointer)
+    # Modify GDSS message to forward to schedule service
+    message.dest_addr = service_addresses['schedule_addr']
+    message.dest_port = service_addresses['schedule_port']
 
-    # Modify CCS message to forward to wemo service
-    if dev_pointer is not None:
-        message.dest_addr = service_addresses['schedule_addr']
-        message.dest_port = service_addresses['schedule_port']
-        message.dev_addr = devices[dev_pointer].dev_addr
-        message.dev_status = devices[dev_pointer].dev_status,
-        message.dev_last_seen = devices[dev_pointer].dev_last_seen
-
-        # Load message into output list
-        log.debug('Loading completed msg: [%s]', message.complete)
-        out_msg_list.append(message.complete)
-    else:
-        log.debug('Device not in device list: %s', message.dev_name)
+    # Load message into output list
+    log.debug('Loading completed msg: [%s]', message.complete)
+    out_msg_list.append(message.complete)
 
     # Return response message
     return out_msg_list
@@ -130,8 +119,8 @@ def process_get_device_scheduled_state_msg_ack(log, ref_num, devices, msg, servi
                 out_msg = SetDeviceStateMessage(
                     log=log,
                     ref=ref_num.new(),
-                    dest_addr=service_addresses['schedule_addr'],
-                    dest_port=service_addresses['schedule_port'],
+                    dest_addr=service_addresses['wemo_addr'],
+                    dest_port=service_addresses['wemo_port'],
                     source_addr=message.source_addr,
                     source_port=message.source_port,
                     msg_type=message_types['set_device_state'],

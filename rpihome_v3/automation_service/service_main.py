@@ -220,7 +220,6 @@ class MainTask(object):
                         self.log.debug('Message is a get device scheduled state message')
                         self.out_msg_list = process_get_device_scheduled_state_msg(
                             self.log,
-                            self.devices,
                             self.next_msg,
                             self.service_addresses)
 
