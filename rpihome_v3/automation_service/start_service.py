@@ -27,7 +27,9 @@ __status__ = "Development"
 
 
 # Application wide objects ****************************************************
-SERVICE_CONFIG = ConfigureService('config.ini')
+PARENT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+CONFIG_FILE = os.path.join(PARENT_PATH, 'config.ini')
+SERVICE_CONFIG = ConfigureService(CONFIG_FILE)
 LOG = SERVICE_CONFIG.get_logger()
 SERVICE_ADDRESSES = SERVICE_CONFIG.get_servers()
 MESSAGE_TYPES = SERVICE_CONFIG.get_message_types()

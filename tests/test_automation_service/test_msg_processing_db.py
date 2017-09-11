@@ -38,10 +38,9 @@ class Test_message_processing_db(unittest.TestCase):
         self.ref_num_initial = int()
         self.temp_dt = datetime.datetime
         # Create items that will come from config file
-        if __name__ == "__main__":
-            self.config = ConfigureService('config.ini')
-        else:
-            self.config = ConfigureService('tests/test_automation_service/config.ini')
+        self.parent_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        self.config_file = os.path.join(self.parent_path, 'config.ini')
+        self.config = ConfigureService(self.config_file)
         self.service_addresses = self.config.get_servers()
         self.message_types = self.config.get_message_types()
         self.devices = self.config.get_devices()

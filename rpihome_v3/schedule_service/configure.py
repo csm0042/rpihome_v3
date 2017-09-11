@@ -33,6 +33,7 @@ class ConfigureService(object):
         self.service_addresses = {}
         self.message_types = {}
         self.credentials = None
+        self.schedule = None
         # Define connection to configuration file
         self.config_file = configparser.ConfigParser()
         self.cred_file = configparser.ConfigParser()
