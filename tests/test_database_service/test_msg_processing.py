@@ -127,25 +127,58 @@ class Test_message_processing_db(unittest.TestCase):
                       + self.message_types['log_status_update'] \
                       + ",test_dev,192.168.99.99,on," \
                       + self.ts
-        print(self.msg_in)
         # call function
-        self.msg_out = process_log_status_update_msg(
+        self.msg_out = yield from process_log_status_update_msg(
             self.log,
             self.ref_num,
             self.database,
             self.msg_in,
             self.message_types)
         # check output
-        #self.assertEqual(len(self.msg_out), 1)
-        #self.msg_out_split = self.msg_out[0].split(",")
-        #self.assertEqual(self.msg_out_split[0], self.ref_num.source)
-        #self.assertEqual(self.msg_out_split[1], '127.0.0.1')
-        #self.assertEqual(self.msg_out_split[2], '27001')
-        #self.assertEqual(self.msg_out_split[3], '127.0.0.1')
-        #self.assertEqual(self.msg_out_split[4], '27011')
-        #self.assertEqual(
-        #    self.msg_out_split[5], self.message_types['log_status_update_ack'])
-        #self.assertEqual(self.msg_out_split[6], 'test_dev')
+        self.assertEqual(len(self.msg_out), 1)
+        self.msg_out_split = self.msg_out[0].split(",")
+        self.assertEqual(self.msg_out_split[0], self.ref_num.source)
+        self.assertEqual(self.msg_out_split[1], '127.0.0.1')
+        self.assertEqual(self.msg_out_split[2], '27001')
+        self.assertEqual(self.msg_out_split[3], '127.0.0.1')
+        self.assertEqual(self.msg_out_split[4], '27011')
+        self.assertEqual(
+            self.msg_out_split[5],
+            self.message_types['log_status_update_ack']
+        )
+        self.assertEqual(self.msg_out_split[6], 'test_dev')
+
+
+    def test_process_return_command_msg(self):
+        """ test correct outputs result from various inputs """
+        # Create test input message
+        self.ts = str(datetime.datetime.now())[:19]
+        self.msg_in = self.ref_num.new() + "," \
+                      + "127.0.0.1,27011," \
+                      + "127.0.0.1,27001," \
+                      + self.message_types['log_status_update'] \
+                      + ",test_dev,192.168.99.99,on," \
+                      + self.ts
+        # call function
+        self.msg_out = yield from process_process_return_command_msg(
+            self.log,
+            self.ref_num,
+            self.database,
+            self.msg_in,
+            self.message_types)
+        # check output
+        self.assertEqual(len(self.msg_out), 1)
+        self.msg_out_split = self.msg_out[0].split(",")
+        self.assertEqual(self.msg_out_split[0], self.ref_num.source)
+        self.assertEqual(self.msg_out_split[1], '127.0.0.1')
+        self.assertEqual(self.msg_out_split[2], '27001')
+        self.assertEqual(self.msg_out_split[3], '127.0.0.1')
+        self.assertEqual(self.msg_out_split[4], '27011')
+        self.assertEqual(
+            self.msg_out_split[5],
+            self.message_types['log_status_update_ack']
+        )
+        self.assertEqual(self.msg_out_split[6], 'test_dev')
 
 
 if __name__ == "__main__":
